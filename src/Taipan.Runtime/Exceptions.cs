@@ -263,6 +263,15 @@ public class RuntimeError : TaipanException
     public static new RuntimeError @__new__(string @message) => Exceptions.Init(new RuntimeError(), message);
 }
 
+public class NameError : TaipanException
+{
+    protected NameError() { }
+
+    internal NameError(string message) : base(message) { }
+
+    public static new NameError @__new__(string @message) => Exceptions.Init(new NameError(), message);
+}
+
 public class EOFError : TaipanException
 {
     protected EOFError() { }

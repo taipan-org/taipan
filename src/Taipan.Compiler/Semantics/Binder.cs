@@ -109,6 +109,12 @@ public sealed partial class Binder
     private Module? _mainModule;
     private readonly HashSet<string> _scriptNames = [];
 
+    // The main file's top-level scope, which its functions read (SPEC §4.1, M53); set once the top level is bound.
+    private Scope? _scriptScope;
+    private readonly HashSet<VariableSymbol> _sharedBindings = [];
+    private readonly Dictionary<VariableSymbol, TextSpan> _sharedDeclarations = [];
+    private readonly Dictionary<FunctionSymbol, HashSet<VariableSymbol>> _sharedReads = [];
+
     // Built-in function names a top-level definition or import reuses, with where it starts, for the
     // use before it that Python would give the built-in (SPEC §4.5, M51).
     private readonly Dictionary<(Module Module, string Name), int> _replacedBuiltins = [];
@@ -319,6 +325,8 @@ public sealed partial class Binder
                 _topLevelBindings[let.Name.Text] = (let.Value, false);
             else if (stmt is VarStmt var)
                 _topLevelBindings[var.Name.Text] = (var.Value, true);
+            if (stmt is LetStmt or VarStmt)
+                _sharedDeclarationNames.Add(stmt is LetStmt l ? l.Name.Text : ((VarStmt)stmt).Name.Text);
         }
 
         // Defaults before any body, since a call anywhere may leave them out (SPEC §4.2).
@@ -332,6 +340,17 @@ public sealed partial class Binder
             foreach (var (syntax, symbol) in module.ClassDefs.Where(c => !c.Symbol.IsProtocol))
                 BindFieldDefaults(syntax, symbol);
         }
+
+        // The top level first, so that functions know the types of the bindings they read (SPEC §4.1, M53).
+        Enter(main);
+        _scope = new Scope(_global);
+        _scriptScope = _scope;
+        var unit = main.File.Unit;
+        _inTopLevel = true;
+        var topLevel = BindStatements([.. unit.Items.OfType<Stmt>()]);
+        _inTopLevel = false;
+        foreach (var decl in topLevel.OfType<BoundVariableDecl>())
+            _sharedDeclarations[decl.Symbol] = decl.Span;
 
         var functions = new List<BoundFunction>();
         var classes = new List<BoundClass>();
@@ -351,15 +370,16 @@ public sealed partial class Binder
             Enter(module);
             CheckClsConstruction(module.ClassDefs.Where(c => !c.Symbol.IsProtocol), module.Methods);
         }
-
         Enter(main);
-        _scope = new Scope(_global);
-        var unit = main.File.Unit;
-        _inTopLevel = true;
-        var topLevel = BindStatements([.. unit.Items.OfType<Stmt>()]);
-        _inTopLevel = false;
+        CheckSharedReadOrder(new BoundBlock(topLevel, unit.Span), functions, classes);
+        // A default can't see top-level bindings, nor can anything see one bound in a block or by unpacking (SPEC §4.1).
         foreach (var (span, function, name) in _topLevelUses)
-            _diagnostics.ReportTopLevelVariableInFunction(span, function, name, CouldBeConstant(name));
+        {
+            if (_sharedDeclarationNames.Contains(name))
+                _diagnostics.ReportTopLevelVariableInFunction(span, function, name, CouldBeConstant(name));
+            else
+                _diagnostics.ReportTopLevelVariableInBlock(span, function, name);
+        }
         var order = InitializationOrder(main, byName);
         var library = _asLibrary ? BindLibrary(modules, byName, functions, classes) : null;
         var extension = _asExtension ? BindExtension(main, [.. functions, .. classes.SelectMany(c => c.Methods)], new BoundBlock(topLevel, unit.Span)) : null;
@@ -377,6 +397,7 @@ public sealed partial class Binder
             Extension = extension,
             IsAsync = _topLevelAwaits,
             Tests = _asTests ? FindTests(main) : default,
+            SharedTopLevel = [.. _sharedBindings],
             NativeLibrary = _asNativeLibrary ? BindNativeLibrary(main) : null,
         };
     }
@@ -1821,6 +1842,89 @@ public sealed partial class Binder
     private bool IsShadowableBuiltin(Symbol symbol) =>
         symbol is FunctionSymbol { Builtin: not null } && _builtins.LookupLocal(symbol.Name) == symbol && !BuiltinTypeNames.Contains(symbol.Name);
 
+    /// <summary>
+    /// A top-level statement that calls a function, constructs a class or takes a function as a value
+    /// before a binding the callee reads, directly or through what it calls by name, is set (SPEC §4.1, M53).
+    /// Calls in lambdas and nested functions run later, so they're left to the run-time check.
+    /// </summary>
+    private void CheckSharedReadOrder(BoundBlock topLevel, List<BoundFunction> functions, List<BoundClass> classes)
+    {
+        if (_sharedReads.Count == 0)
+            return;
+        var callees = functions.Concat(classes.SelectMany(c => c.Methods))
+            .GroupBy(f => f.Symbol).ToDictionary(g => g.Key, g => g.SelectMany(f => Callees(f.Body, intoDeferred: true)).Select(c => c.Callee).ToHashSet());
+        var reads = new Dictionary<FunctionSymbol, HashSet<VariableSymbol>>();
+        HashSet<VariableSymbol> ReadsOf(FunctionSymbol function)
+        {
+            if (reads.TryGetValue(function, out var known))
+                return known;
+            var all = reads[function] = [.. _sharedReads.GetValueOrDefault(function) ?? []];
+            foreach (var callee in callees.GetValueOrDefault(function) ?? [])
+                all.UnionWith(ReadsOf(callee));
+            return all;
+        }
+        foreach (var (callee, span) in Callees(topLevel, intoDeferred: false))
+        {
+            foreach (var binding in ReadsOf(callee))
+            {
+                if (_sharedDeclarations.TryGetValue(binding, out var declaration) && span.Start < declaration.End)
+                {
+                    _diagnostics.ReportReadBeforeSet(span, callee.Name, binding.Name, _source.GetLinePosition(declaration.Start).Line);
+                    break;
+                }
+            }
+        }
+    }
+
+    // The functions a statement calls by name, constructs or takes as values, with where; into lambdas and
+    // nested functions only when asked.
+    private static IEnumerable<(FunctionSymbol Callee, TextSpan Span)> Callees(BoundStmt stmt, bool intoDeferred)
+    {
+        foreach (var expr in BoundTree.Expressions(stmt))
+        {
+            foreach (var callee in Callees(expr, intoDeferred))
+                yield return callee;
+        }
+        if (stmt is BoundLocalFunction && !intoDeferred)
+            yield break;
+        foreach (var inner in BoundTree.Statements(stmt))
+        {
+            foreach (var callee in Callees(inner, intoDeferred))
+                yield return callee;
+        }
+    }
+
+    private static IEnumerable<(FunctionSymbol Callee, TextSpan Span)> Callees(BoundExpr expr, bool intoDeferred)
+    {
+        if (expr is BoundLambda && !intoDeferred)
+            yield break;
+        var direct = expr switch
+        {
+            BoundCall { Function.Builtin: null } call => [call.Function],
+            BoundMethodCall call => [call.Method],
+            BoundSuperCall call => [call.Method],
+            BoundClassMethodCall call => [call.Method],
+            BoundFunctionValue value => [value.Function],
+            BoundNew created => [created.Constructor, .. ((FunctionSymbol?[])[created.ClassType.Symbol.FindMethod("__post_init__")]).OfType<FunctionSymbol>()],
+            BoundConstruct construct => ((FunctionSymbol?[])[construct.ClassType.Symbol.FindMethod("__init__"), construct.ClassType.Symbol.FindMethod("__post_init__")]).OfType<FunctionSymbol>(),
+            _ => (IEnumerable<FunctionSymbol>)[],
+        };
+        foreach (var callee in direct)
+            yield return (callee, expr.Span);
+        foreach (var child in BoundTree.Children(expr))
+        {
+            foreach (var callee in Callees(child, intoDeferred))
+                yield return callee;
+        }
+    }
+
+    // A let or var directly at the main file's top level, seen from one of its functions (SPEC §4.1, M53).
+    private VariableSymbol? SharedBinding(string name) =>
+        _outerFunction is not null && _module == _mainModule && _scriptScope?.LookupLocal(name) is VariableSymbol { Kind: VariableKind.Let or VariableKind.Var } binding
+        && _sharedDeclarationNames.Contains(name) ? binding : null;
+
+    private readonly HashSet<string> _sharedDeclarationNames = [];
+
     // Top-level code that runs before a definition replacing a built-in would, in Python, still get the
     // built-in; functions and lambdas run later (SPEC §4.5, M51).
     private void CheckUsedBeforeReplacing(string name, TextSpan span, Symbol symbol)
@@ -1833,7 +1937,18 @@ public sealed partial class Binder
     /// <summary>Looks up a value name, reporting TP0201 or TP0211 if it isn't visible.</summary>
     private Symbol? LookupName(string name, TextSpan span)
     {
-        if (_scope.Lookup(name) is { } symbol)
+        var found = _scope.Lookup(name);
+        // A function of the main file reads its top-level bindings, before a built-in of the same name (SPEC §4.1, M53).
+        if ((found is null || _builtins.LookupLocal(name) == found) && SharedBinding(name) is { } shared)
+        {
+            Index(span, shared);
+            _sharedBindings.Add(shared);
+            if (!_sharedReads.TryGetValue(_outerFunction!, out var reads))
+                _sharedReads[_outerFunction!] = reads = [];
+            reads.Add(shared);
+            return shared;
+        }
+        if (found is { } symbol)
         {
             Index(span, symbol);
             CheckUsedBeforeReplacing(name, span, symbol);
@@ -2425,6 +2540,12 @@ public sealed partial class Binder
 
         // A let's or parameter's assignment is TP0202 anyway, unless it's a list's +=, which changes the list.
         var isListAdd = assign.Op == AssignOp.Add && preset is null && variable.Type is ListOfType;
+        // There's no global, so a function can't rebind a top-level binding it reads (SPEC §4.1, M53).
+        if (_sharedBindings.Contains(variable) && _outerFunction is not null && _module == _mainModule)
+        {
+            _diagnostics.ReportAssignedTopLevelInNested(target.Span, target.Name);
+            return OrphanAssign(assign, preset);
+        }
         if (variable.Kind == VariableKind.Var || isListAdd)
             CheckNonlocalAssign(target);
 

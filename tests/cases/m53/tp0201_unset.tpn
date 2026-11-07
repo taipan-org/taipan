@@ -1,0 +1,24 @@
+def limit() -> int:
+    return LIMIT
+
+def twice() -> int:
+    return limit() * 2
+
+class Box:
+    size: int
+
+    def __init__(self):
+        self.size = LIMIT
+
+print(limit())
+print(twice())
+let b = Box()
+let f = limit
+let early = twice()
+let LIMIT = 3
+let x = uses_x()
+
+def uses_x() -> int:
+    return x
+
+print(limit(), twice(), Box().size)

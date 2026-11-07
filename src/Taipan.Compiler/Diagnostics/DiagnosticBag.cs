@@ -522,6 +522,13 @@ public sealed class DiagnosticBag
     public void ReportWrongArgumentCount(TextSpan span, string function, string expected, int found) =>
         Add("TP0209", span, $"'{function}' takes {expected}, found {found}");
 
+    public void ReportTopLevelVariableInBlock(TextSpan span, string function, string name) =>
+        Add("TP0211", span, $"'{function}' cannot use top-level variable '{name}'",
+            "it's bound inside a block or by unpacking; give it its own top-level 'let' or 'var'");
+
+    public void ReportReadBeforeSet(TextSpan span, string function, string name, int line) =>
+        Add("TP0201", span, $"'{function}' reads '{name}', which isn't set until line {line}", $"move this below line {line}");
+
     public void ReportTopLevelVariableInFunction(TextSpan span, string function, string name, bool couldBeConstant) =>
         Add("TP0211", span, $"'{function}' cannot use top-level variable '{name}'",
             couldBeConstant ? "pass it as a parameter, or make it a const" : "pass it as a parameter");
@@ -531,7 +538,7 @@ public sealed class DiagnosticBag
             $"add 'nonlocal {name}' at the start of this function, or use 'let' with another name for a new variable");
 
     public void ReportAssignedTopLevelInNested(TextSpan span, string name) =>
-        Add("TP0236", span, $"a nested function can't assign to the top-level variable '{name}'", "pass it in and return the new value");
+        Add("TP0236", span, $"a function can't assign to the top-level variable '{name}'", "pass it in and return the new value");
 
     public void ReportNonlocalOutsideNested(TextSpan span) =>
         Add("TP0236", span, "'nonlocal' can only be used in a nested function");

@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M52 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M53 are complete.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -426,3 +426,14 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M52 are complete
 - **Accept:**
   - Chains match Python 3.12, side effects included: each middle operand is evaluated once, and one past the first `False` not at all.
   - Each `dict` form matches Python, and the rejected forms report their errors.
+
+## M53 — Top-level reads
+- A function or method of the main file reads its top-level `let` and `var` bindings, as Python reads module variables. Assigning to one from a function stays an error, since there's no `global`.
+- A parameter or local may have the same name as one.
+- Reading one before it's set is caught at compile time where the compiler can trace the call from the top level, and raises `NameError` at run time otherwise, as in Python.
+- Update SPEC first: §4.1's top level, §3.7's capture, the new messages, and `NameError`.
+- **Accept:**
+  - A function reads a top-level table, a compiled `Regex` and a `var` that changes, and a method and a lambda in a function do too.
+  - A parameter named like a top-level binding is its own, and `examples/health.tpn` runs unchanged.
+  - A top-level call before the binding is set is `TP0201`, and an untraced read raises `NameError`.
+  - Assigning to a top-level binding from a function is `TP0236`.

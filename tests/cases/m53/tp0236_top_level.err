@@ -1,0 +1,10 @@
+tests/cases/m53/tp0236_top_level.tpn:5:5: error TP0236: a function can't assign to the top-level variable 'count'
+  help: pass it in and return the new value
+tests/cases/m53/tp0236_top_level.tpn:8:5: error TP0236: a function can't assign to the top-level variable 'count'
+  help: pass it in and return the new value
+tests/cases/m53/tp0236_top_level.tpn:11:5: error TP0236: a function can't assign to the top-level variable 'xs'
+  help: pass it in and return the new value
+tests/cases/m53/tp0236_top_level.tpn:19:5: error TP0236: a function can't assign to the top-level variable 'count'
+  help: pass it in and return the new value
+tests/cases/m53/tp0236_top_level.tpn:19:12: error TP0236: a function can't assign to the top-level variable 'other'
+  help: pass it in and return the new value

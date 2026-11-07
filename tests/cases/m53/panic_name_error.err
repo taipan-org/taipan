@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "tests/cases/m53/panic_name_error.tpn", line 6, in <module>
+    print(call_it())
+  File "tests/cases/m53/panic_name_error.tpn", line 4, in <lambda>
+    let call_it: Callable[[], int] = lambda: read()
+  File "tests/cases/m53/panic_name_error.tpn", line 2, in read
+    return LATER
+NameError: name 'LATER' is not defined

@@ -51,41 +51,44 @@ main.tpn:3:5: error TP0201: undefined name 'cuont'
 
 `const` declares a top-level constant. Blocks have their own scope, as in C#, and a name in an inner block can't shadow one in an outer block.
 
-## Functions don't see top-level variables
+## Functions read top-level variables
 
-A top-level `let` or `var` belongs to the script's top level, so a function can't use it, where Python would read a module variable:
+As in Python, a function reads the top-level `let` and `var` bindings of its file, and sees a `var`'s current value:
 
 ```taipan
-let limit = 3
+let LIMIT = 3
+var calls = 0
 
 def check(n: int) -> bool:
-    return n < limit
+    return n < LIMIT
 
-print(check(2))
-```
+def count() -> int:
+    return calls
 
-```error
-main.tpn:4:16: error TP0211: 'check' cannot use top-level variable 'limit'
-  help: pass it as a parameter, or make it a const
-```
-
-Pass the value in as a parameter, or make it a `const`. A `const` is visible everywhere, but its value must be a literal or arithmetic on literals, so it can't hold a list or a dict. For a lookup table, a class attribute works:
-
-```taipan
-class Ports:
-    BY_NAME: ClassVar[dict[str, int]] = {"api": 8080, "admin": 9000}
-
-def port(name: str) -> int:
-    return Ports.BY_NAME.get(name) ?? 80
-
-print(port("api"), port("web"))
+print(check(2), count())
+calls = 5
+print(count())
 ```
 
 ```output
-8080 80
+True 0
+5
 ```
 
-It's an ordinary mutable dict, and its value may only be plain list, dict and tuple literals, without enum variants, constructors or sets. For a table that needs those, a function with no parameters that returns it works, though it builds the table again on every call.
+There's no `global`, so a function can't assign to one, though it may change what one holds, as with `table[k] = v`. Calling a function at the top level before a binding it reads is set is a compile error, where Python would raise `NameError` when the program runs:
+
+```taipan
+def check(n: int) -> bool:
+    return n < LIMIT
+
+print(check(2))
+let LIMIT = 3
+```
+
+```error
+main.tpn:4:7: error TP0201: 'check' reads 'LIMIT', which isn't set until line 5
+  help: move this below line 5
+```
 
 ## Annotate functions; the rest is inferred
 

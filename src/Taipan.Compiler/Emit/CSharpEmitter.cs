@@ -126,6 +126,15 @@ public sealed partial class CSharpEmitter
             _globalNames.Add(name);
             _names[definition] = name;
         }
+        // A top-level binding a function reads is a static field, with a flag set once it is (SPEC §4.1, M53).
+        foreach (var shared in program.SharedTopLevel)
+        {
+            var field = UniqueGlobal(shared.Name);
+            _globalNames.Add(field);
+            var ready = UniqueGlobal($"{field}_ready");
+            _globalNames.Add(ready);
+            _shared[shared] = (field, ready);
+        }
         // The built-in exception classes are runtime classes (SPEC §8).
         foreach (var builtin in BuiltinClasses.All)
             _names[builtin] = builtin.RuntimeName!;
@@ -177,7 +186,12 @@ public sealed partial class CSharpEmitter
             Line($"public static {PyObject} @{_names[import.Symbol]} = default!;");
         foreach (var constant in _program.Constants)
             Line($"public static {TypeName(constant.Symbol.Type)} @{_names[constant.Symbol]} = default!;");
-        if (!_program.Constants.IsEmpty || !_program.PythonImports.IsEmpty)
+        foreach (var (symbol, (field, ready)) in _shared)
+        {
+            Line($"public static {TypeName(symbol.Type)} @{field} = default!;");
+            Line($"public static bool @{ready};");
+        }
+        if (!_program.Constants.IsEmpty || !_program.PythonImports.IsEmpty || _shared.Count > 0)
             Line();
 
         EmitTopLevel();
@@ -415,7 +429,9 @@ public sealed partial class CSharpEmitter
                 Line($"@{_names[constant.Symbol]} = {Expr(constant.Value)};");
             }
             _lineSource = _source;
+            _inTopLevel = true;
             EmitStatements(_program.TopLevel.Statements);
+            _inTopLevel = false;
             HiddenDirective();
         });
         _indent--;
@@ -814,13 +830,18 @@ public sealed partial class CSharpEmitter
             case BoundBlock block:
                 EmitStatements(block.Statements);
                 break;
+            case BoundVariableDecl decl when _shared.TryGetValue(decl.Symbol, out var shared):
+                LineDirective(decl.Span);
+                Line($"{SharedField(shared.Field)} = {Expr(decl.Value)};");
+                Line($"{SharedField(shared.Ready)} = true;");
+                break;
             case BoundVariableDecl decl:
                 LineDirective(decl.Span);
                 Line($"{TypeName(decl.Symbol.Type)} @{_locals[decl.Symbol]} = {Expr(decl.Value)};");
                 break;
             case BoundAssign assign:
                 LineDirective(assign.Span);
-                Line($"@{_locals[assign.Target]} = {Expr(assign.Value)};");
+                Line($"{(_shared.TryGetValue(assign.Target, out var sharedTarget) ? SharedField(sharedTarget.Field) : $"@{_locals[assign.Target]}")} = {Expr(assign.Value)};");
                 break;
             case BoundFieldAssign assign:
                 LineDirective(assign.Span);
@@ -1582,6 +1603,7 @@ public sealed partial class CSharpEmitter
             BoundVariable variable when variable.Symbol == _cls => "this",
             BoundVariable { Symbol.RuntimePath: { } path } => $"global::{path}",
             BoundVariable { Symbol.Kind: VariableKind.Constant } variable => Global(_names[variable.Symbol]),
+            BoundVariable variable when _shared.TryGetValue(variable.Symbol, out var shared) => SharedRead(variable.Symbol, shared),
             BoundVariable variable => $"@{_locals[variable.Symbol]}",
             BoundUnary { Op: UnaryOp.Negate, Type: PrimitiveType { Name: "py" } } unary => $"{Interop}.Negate({Expr(unary.Operand)})",
             BoundUnary { Op: UnaryOp.Negate } unary when Concrete(unary.Operand.Type) is ClassType => $"{Operand(unary.Operand)}.@__neg__()",
@@ -2215,6 +2237,19 @@ public sealed partial class CSharpEmitter
         return dict.Keywords.IsEmpty ? made
             : $"{Runtime}.Ops.WithEntries<{value}>({made}, {string.Join(", ", dict.Keywords.Select(k => $"(\"{k.Name}\", {Expr(k.Value)})"))})";
     }
+
+    // ---- Top-level bindings that functions read (SPEC §4.1, M53) ----
+
+    private readonly Dictionary<VariableSymbol, (string Field, string Ready)> _shared = [];
+    private bool _inTopLevel;
+
+    // A local of the same name may hide the field, so it's always qualified.
+    private string SharedField(string name) => $"{_programPath}.@{name}";
+
+    // The top level reads a binding only after it's declared; a function may run first.
+    private string SharedRead(VariableSymbol symbol, (string Field, string Ready) shared) => _inTopLevel
+        ? SharedField(shared.Field)
+        : $"({SharedField(shared.Ready)} ? {SharedField(shared.Field)} : {Runtime}.Ops.Unset<{TypeName(symbol.Type)}>(\"{symbol.Name}\"))";
 
     // Each value of a chained comparison goes into a pattern variable as it's evaluated, so the
     // comparisons after it can read it, and && stops at the first false one (SPEC §2, M52).
