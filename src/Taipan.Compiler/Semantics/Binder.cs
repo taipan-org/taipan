@@ -3715,17 +3715,24 @@ public sealed partial class Binder
         operands.InsertRange(0, [first.Left, first.Right]);
 
         var values = operands.Select(o => BindValue(o)).ToImmutableArray();
+        // An optional value that an ordering compares is reported once, though it may be in two comparisons;
+        // == and != accept optionals (SPEC §3.4).
+        var types = values.Select((value, i) =>
+            (i > 0 && IsOrdering(operators[i - 1]) || i < operators.Count && IsOrdering(operators[i]))
+            && ReportIfOptional(value, operands[i].Span) ? TaipanType.Error : value.Type).ToArray();
         var comparisons = ImmutableArray.CreateBuilder<BoundExpr>();
         for (var i = 0; i < operators.Count; i++)
         {
             var span = new TextSpan(operands[i].Span.Start, operands[i + 1].Span.End - operands[i].Span.Start);
             comparisons.Add(BindBinaryOperation(
-                new BoundChainOperand(i, values[i].Type, operands[i].Span), operators[i],
-                new BoundChainOperand(i + 1, values[i + 1].Type, operands[i + 1].Span), span));
+                new BoundChainOperand(i, types[i], operands[i].Span), operators[i],
+                new BoundChainOperand(i + 1, types[i + 1], operands[i + 1].Span), span));
         }
         var type = comparisons.Any(c => c.Type.ContainsError) ? TaipanType.Error : TaipanType.Bool;
         return new BoundChain(values, comparisons.ToImmutable(), type, chain.Span);
     }
+
+    private static bool IsOrdering(BinaryOp op) => op is BinaryOp.Less or BinaryOp.LessEqual or BinaryOp.Greater or BinaryOp.GreaterEqual;
 
     // A list display being repeated takes the expression's expected type (SPEC §5.3, M48).
     private BoundExpr BindMultiply(BinaryExpr binary, TaipanType? expected)
