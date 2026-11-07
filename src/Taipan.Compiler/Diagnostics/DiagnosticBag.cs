@@ -108,7 +108,7 @@ public sealed class DiagnosticBag
         Add("TP0100", span, "a bare 'except' must be the last except clause");
 
     public void ReportChainedComparison(TextSpan span) =>
-        Add("TP0212", span, "chained comparison not supported", "write 'a < b and b < c'");
+        Add("TP0212", span, "a chained comparison can't include 'in' or 'is'", "split it with 'and'");
 
     // ---- Type checking (SPEC §9.1). Types are passed pre-rendered as source text. ----
 
@@ -422,6 +422,12 @@ public sealed class DiagnosticBag
 
     public void ReportFieldNotMethod(TextSpan span, string field) =>
         Add("TP0200", span, $"'{field}' is a field, not a method");
+
+    public void ReportDictPairs(TextSpan span, object found) =>
+        Add("TP0200", span, $"dict() takes pairs as tuples, found {found}", "use tuples, as in [(\"a\", 1)]");
+
+    public void ReportDictKeywordKeys(TextSpan span, object key) =>
+        Add("TP0200", span, $"keyword arguments give str keys, but this dict's keys are {key}");
 
     public void ReportOrdLength(TextSpan span, int length) =>
         Add("TP0200", span, $"ord() expected a character, but string of length {length} found");

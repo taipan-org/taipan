@@ -1,0 +1,18 @@
+tests/cases/m52/tp0200_dict.tpn:1:7: error TP0206: cannot infer the type of an empty dict
+  help: add a type annotation
+tests/cases/m52/tp0200_dict.tpn:2:13: error TP0200: dict() takes pairs as tuples, found a list
+  help: use tuples, as in [("a", 1)]
+tests/cases/m52/tp0200_dict.tpn:3:12: error TP0200: dict() takes pairs as tuples, found int
+  help: use tuples, as in [("a", 1)]
+tests/cases/m52/tp0200_dict.tpn:4:12: error TP0200: dict() takes pairs as tuples, found int
+  help: use tuples, as in [("a", 1)]
+tests/cases/m52/tp0200_dict.tpn:5:12: error TP0200: dict() takes pairs as tuples, found str
+  help: use tuples, as in [("a", 1)]
+tests/cases/m52/tp0200_dict.tpn:6:12: error TP0200: dict() takes pairs as tuples, found int
+  help: use tuples, as in [("a", 1)]
+tests/cases/m52/tp0200_dict.tpn:7:12: error TP0200: dict keys must be int, str, bool, tuples of those, or plain class instances, found set[int]
+tests/cases/m52/tp0200_dict.tpn:8:20: error TP0200: keyword arguments give str keys, but this dict's keys are int
+tests/cases/m52/tp0200_dict.tpn:9:19: error TP0200: expected int, found str
+tests/cases/m52/tp0200_dict.tpn:10:7: error TP0209: 'dict' takes 0 or 1 arguments, found 2
+tests/cases/m52/tp0200_dict.tpn:12:12: error TP0200: dict() takes pairs as tuples, found tuple[str, int, int]
+  help: use tuples, as in [("a", 1)]

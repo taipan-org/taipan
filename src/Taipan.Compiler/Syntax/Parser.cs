@@ -1781,13 +1781,17 @@ public sealed class Parser
             return left;
         }
 
+        // A chain is Python's (SPEC §2, M52), except with 'in' or 'is' in it.
         var reported = false;
+        var allowed = left is BinaryExpr { Op: not (BinaryOp.In or BinaryOp.NotIn) };
         while (TryParseCompOp(out var op, out var opSpan))
         {
-            if (!reported)
+            if ((!allowed || op is BinaryOp.In or BinaryOp.NotIn) && !reported)
+            {
                 _diagnostics.ReportChainedComparison(opSpan);
-            reported = true;
-            left = Binary(left, op, ParseAdditive());
+                reported = true;
+            }
+            left = Binary(left, op, ParseBitOr()) with { Chained = true };
         }
         return left;
     }

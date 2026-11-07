@@ -9,7 +9,7 @@ Taipan is written in Python's syntax, so most Python code reads the same. The di
 
 ## What stays the same
 
-Indentation, `def`, `class`, `@dataclass`, `for` and `while`, `if`/`elif`/`else`, `try`/`except`/`finally`, `with`, `lambda`, comprehensions, f-strings with format specs, slicing, `*args` and `**kwargs`, generators with `yield`, `async`/`await`, and the built-ins you know: `print`, `len`, `range`, `enumerate`, `zip`, `sorted`, `min`, `max`, `sum`, `any`, `all`, `map`, `filter`, `isinstance`, `open`.
+Indentation, `def`, `class`, `@dataclass`, `for` and `while`, `if`/`elif`/`else`, `try`/`except`/`finally`, `with`, `lambda`, comprehensions, f-strings with format specs, slicing, `*args` and `**kwargs`, generators with `yield`, `async`/`await`, chained comparisons such as `0 < x <= 10`, and the built-ins you know: `print`, `len`, `range`, `enumerate`, `zip`, `sorted`, `reversed`, `min`, `max`, `sum`, `any`, `all`, `map`, `filter`, `dict`, `ord`, `chr`, `isinstance`, `open`.
 
 ```taipan
 @dataclass

@@ -210,7 +210,7 @@ coalesce      = or_expr [ "??" coalesce ] ;                        (* right-asso
 or_expr       = and_expr { "or" and_expr } ;
 and_expr      = not_expr { "and" not_expr } ;
 not_expr      = "not" not_expr | comparison ;
-comparison    = additive [ comp_op additive | "is" [ "not" ] ( "None" | additive ) ] ;   (* no chaining; 'is not None': M15; 'is' between objects: M40 *)
+comparison    = additive [ comp_op additive { comp_op additive } | "is" [ "not" ] ( "None" | additive ) ] ;   (* chains: M52, §2; 'is not None': M15; 'is' between objects: M40 *)
 comp_op       = "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "not" "in" ;
 additive      = term { ( "+" | "-" ) term } ;
 term          = unary { ( "*" | "/" | "//" | "%" ) unary } ;
@@ -236,7 +236,7 @@ comp_for      = "for" ( NAME | names ) "in" coalesce { "for" ( NAME | names ) "i
 ```
 
 **Grammar notes**
-- `a < b < c` is `TP0212`. Write `a < b and b < c`.
+- **Chained comparisons (M52):** `a < b < c`, and any mix of `<`, `<=`, `>`, `>=`, `==` and `!=`, mean `a < b and b < c`, as in Python: the operands are evaluated left to right, each once, and the chain stops at the first comparison that's `False`. Each pair is checked as a comparison of its own (§5.3). Before M52, every chain was `TP0212`.
 - An `arm` may take a simple statement on the same line (`Ok: print("ok")`) or an indented block.
 - **`match` expressions (M19)** were only the whole right-hand side of a `let`, `var` or assignment, or the whole value of a `return`, before M29 (`TP0100`, `'match' can only be the whole value of 'let', 'var', an assignment or 'return'`). Since M29 a `match_expr` is an atom, so it may appear anywhere an expression may (§5.1.1). Its `:` must end its line (`TP0100`, `expected newline, found <token>`), and its arms are indented under it. Outside brackets, a statement whose last expression is a `match_expr` has no `NEWLINE` of its own: the arms' `DEDENT` ends it. A `match` at the start of a statement is always a `match_stmt`.
 - A `value_arm` is an expression or a `raise` on the same line as its pattern, `Ok: "up"`, `_: raise ValueError("bad status")`, or since M29 an indented block (§5.1.1). Before M29 a block was `TP0100`, `expected expression, found newline`.
@@ -264,7 +264,7 @@ comp_for      = "for" ( NAME | names ) "in" coalesce { "for" ( NAME | names ) "i
   - **Y** describes the token found: a keyword or punctuation token in quotes (`':'`, `'else'`), `name 'x'`, `integer`, `float`, `string`, `f-string`, `newline`, `indent`, `dedent`, or `end of file`.
   - The error points at the start of the token found.
   - Specific messages: `cannot assign to this expression` (an `assign_stmt` target that isn't a `target`), `positional argument follows keyword argument`, `parameter without a default follows parameter with a default` (M14), `a bare 'except' must be the last except clause` (M16, at the bare `except`, after which parsing continues normally), `a type alias must be at the top level` (M18, at `type`, until M40), and `'match' can only be the whole value of 'let', 'var', an assignment or 'return'` (M19, at `match`). A `try` with no `except` or `finally`, or an `else` with no `except`, is `expected 'except' or 'finally', found …`.
-- A chained comparison is reported by the parser as `TP0212`, with message `chained comparison not supported` and help `write 'a < b and b < c'`. Parsing continues normally.
+- A chain that includes `in`, `not in`, `is` or `is not` is reported by the parser as `TP0212`, with message `a chained comparison can't include 'in' or 'is'` and help `split it with 'and'`, since what Python makes of `x in xs in ys` surprises most readers. Parsing continues normally.
 - **Recovery:** after a `TP0100`, the parser skips tokens up to and including the next `NEWLINE` at the current block depth. If the next line is indented further (an `INDENT` follows), that whole block is skipped as well. A `DEDENT` that closes the current block stops the skip without being consumed. Parsing then resumes at the next statement. So each statement reports at most one `TP0100`, and independent errors on separate statements are all reported.
 
 ---
@@ -1878,6 +1878,7 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
   - `round(x)` gives the nearest `int`, with ties to the even one (`round(2.5)` is `2`), and `round(x, n)` a `float` rounded to `n` digits after the point, as Python rounds the exact value (`round(2.675, 2)` is `2.67`). On an `int`, `round(x)` is `x` and `round(x, n)` rounds to `-n` tens (`round(1234, -2)` is `1200`). A NaN or infinity raises `ValueError` or `OverflowError`.
   - `divmod(a, b)` is `(a // b, a % b)`, a `tuple[int, int]` or `tuple[float, float]`.
   - `set()` and `set(xs)` (§3.15).
+  - **`dict(…)` (M52)**, as in Python. `dict()` needs an expected type, as `{}` does. `dict(d)` copies a `dict[K, V]`. `dict(pairs)` takes an `Iterable[tuple[K, V]]`, such as `zip(keys, values)`, and a key that repeats keeps its first position and its last value. Keyword arguments give a `dict[str, V]`, after any of those: `dict(a=1, b=2)`, `dict(d, c=3)`. Pairs that aren't two-element tuples, such as `dict([["a", 1]])`, are `TP0200`, `dict() takes pairs as tuples, found <T>`, with help `use tuples, as in [("a", 1)]`, since a list's length is only known at run time. Keyword arguments after a dict or pairs whose keys aren't `str` are `TP0200`, `keyword arguments give str keys, but this dict's keys are <K>`. The keys must be hashable (`TP0200`), as a dict literal's are.
 - `zip(xs: Iterable[A], ys: Iterable[B], …) -> Iterator[tuple[A, B, …]]` (M12) groups the values of two or more iterables, stopping at the shortest, as in Python: `zip(names, ages, cities)` is an `Iterator[tuple[str, int, str]]`. For each tuple it takes a value from each iterable in turn, left to right, and stops at the first that has none, so `zip(naturals(0), ["a", "b"])` ends. Before M26 it took exactly two lists, and before M31 it gave a new list. One iterable, which would need a one-element tuple, is `TP0209`.
 - `sorted(xs: Iterable[T], …)` takes any iterable since M31, and still gives a new list.
 - `sorted`, `map`, `filter`, `enumerate` and `zip` iterate their lists (§5.2), so a function argument that adds to or removes from a list panics with `list mutated during iteration`. Since M31 the lazy ones do so when they're iterated.
@@ -2127,7 +2128,7 @@ The output is one C# compilation unit per program, compiled in-process by Roslyn
 | TP0209 | wrong number of arguments |
 | TP0210 | unknown field or method |
 | TP0211 | function references a top-level variable |
-| TP0212 | chained comparison not supported |
+| TP0212 | a chained comparison that includes `in` or `is` |
 | TP0213 | nested optional |
 | TP0214 | duplicate definition |
 | TP0215 | `break`/`continue` outside loop, `return` outside function, a bare `raise` outside `except`, `return`/`break`/`continue` in `finally`, or a misplaced `yield` or `await` |
@@ -2327,6 +2328,7 @@ Types are written as in source: `int`, `str?`, `list[int]`. The type of `None` i
 ROADMAP.md plans most of these from M35 on. They were never part of v0.1:
 
 - tuple repetition, along with tuple concatenation (M48)
+- `for`/`else` and `while`/`else` aren't planned (M52). Their `else` runs when the loop ends without `break`, which surprises most readers, so it's left out under the design principles' fourth rule. They're `TP0100`.
 - built-ins beyond M35: `frozenset`, `|=` and the other in-place set operators, `str.format` and `%` formatting, `sorted`'s and `min`'s keys on mixed types, and passing sets to Python and .NET
 - I/O beyond §6.1 (M37): binary files and `bytes`, read-write (`+`) modes, `seek` and `tell`, `open`'s `errors=` and `buffering=`, `newline` values other than `None` and `""`, other encodings, `os.path` and the rest of `os` and `sys`, `contextlib`, parenthesized `with` items and targets other than a name, `yield` inside `with`, and `NotADirectoryError` and Python's other `OSError` classes
 - protocols extending other protocols, a check that a class used with a protocol declares it, properties in protocols, and runtime-checkable protocols (`isinstance(x, P)`)

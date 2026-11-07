@@ -771,19 +771,29 @@ public class ParserTests
     [Fact]
     public void ChainedComparison()
     {
-        var result = ParseText("let ok = a < b < c\n");
+        var result = ParseText("let ok = a < b <= c\n");
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(
+            "LetStmt(ok, null, BinaryExpr(BinaryExpr(NameExpr(a), Less, NameExpr(b)), LessEqual, NameExpr(c), True))",
+            Snapshot("let ok = a < b <= c\n"));
+    }
+
+    [Fact]
+    public void ChainWithInOrIs()
+    {
+        var result = ParseText("let ok = a < b in c\n");
         var diagnostic = Assert.Single(result.Diagnostics);
         Assert.Equal("TP0212", diagnostic.Code);
-        Assert.Equal("chained comparison not supported", diagnostic.Message);
-        Assert.Equal("write 'a < b and b < c'", diagnostic.Help);
-        Assert.Equal(new TextSpan(15, 1), diagnostic.Span);
+        Assert.Equal("a chained comparison can't include 'in' or 'is'", diagnostic.Message);
+        Assert.Equal("split it with 'and'", diagnostic.Help);
+        Assert.Equal(new TextSpan(15, 2), diagnostic.Span);
     }
 
     [Fact]
     public void ChainedComparisonReportedOncePerChainAndParsingContinues() =>
         Assert.Equal(
-            ["1:7 TP0212: chained comparison not supported", "2:7 TP0100: expected '=', found integer"],
-            Errors("a < b == c not in d\nlet y 1\n"));
+            ["1:12 TP0212: a chained comparison can't include 'in' or 'is'", "2:7 TP0100: expected '=', found integer"],
+            Errors("a < b == c not in d in e\nlet y 1\n"));
 
     // ---- Recovery ----
 

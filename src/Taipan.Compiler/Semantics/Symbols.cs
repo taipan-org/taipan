@@ -29,7 +29,9 @@ public enum BuiltinFunction { Print, Len, Str, Int, Float, Range, Reversed, Sort
     // M42 (SPEC §3.20): anext, and asyncio's functions.
     Anext, Gather, Sleep, WaitFor, Timeout, Run,
     // M51.
-    Ord, Chr }
+    Ord, Chr,
+    // M52.
+    Dict }
 
 /// <summary>What kind of method a function is (SPEC §4.8, M28); <see cref="Instance"/> for a function.</summary>
 public enum MemberKind { Instance, Property, Static, Class }
@@ -184,6 +186,7 @@ public sealed class FunctionSymbol(
         new("round", [], TaipanType.Error, BuiltinFunction.Round),
         new("divmod", [], TaipanType.Error, BuiltinFunction.DivMod),
         new("set", [], TaipanType.Error, BuiltinFunction.Set),
+        new("dict", [], TaipanType.Error, BuiltinFunction.Dict),
         new("tuple", [], TaipanType.Error, BuiltinFunction.Tuple),
         new("input", [], TaipanType.Str, BuiltinFunction.Input),
         new("open", [], TaipanType.TextIO, BuiltinFunction.Open),

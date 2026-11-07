@@ -118,6 +118,109 @@ public sealed partial class Binder
         }
     }
 
+    /// <summary>
+    /// <c>dict()</c>, <c>dict(d)</c>, <c>dict(pairs)</c>, each with keyword arguments as more entries
+    /// (SPEC §6, M52). An expected dict type gives the key and value types where nothing else does.
+    /// </summary>
+    private BoundExpr BindDict(CallExpr call, FunctionSymbol function, TaipanType? expected)
+    {
+        var expectedDict = TypeChecker.Unwrap(expected ?? TaipanType.Error) as DictOfType;
+        var positional = call.Arguments.Where(a => a.Name is null).Select(a => a.Value).ToList();
+        if (positional.Count > 1)
+        {
+            _diagnostics.ReportWrongArgumentCount(call.Callee.Span, function.Name, "0 or 1 arguments", positional.Count);
+            foreach (var argument in call.Arguments)
+                BindIgnored(argument.Value);
+            return new BoundErrorExpr(call.Span);
+        }
+
+        BoundExpr? source = null;
+        var copiesDict = false;
+        TaipanType? key = expectedDict?.Key, value = expectedDict?.Value;
+        // Pairs written as lists: their length isn't known until run time (SPEC §6, M52).
+        if (positional is [ListExpr { Elements: [ListExpr inner, ..] }])
+        {
+            _diagnostics.ReportDictPairs(inner.Span, "a list");
+            foreach (var argument in call.Arguments.Where(a => a.Name is not null))
+                BindIgnored(argument.Value);
+            return new BoundErrorExpr(call.Span);
+        }
+        if (positional.Count == 1)
+        {
+            var pairType = expectedDict is null ? null : new TupleOfType([expectedDict.Key, expectedDict.Value]);
+            var argument = BindValue(positional[0], positional[0] is ListExpr && pairType is not null ? new ListOfType(pairType) : null);
+            if (argument.Type.ContainsError || ReportIfOptional(argument, positional[0].Span))
+                return new BoundErrorExpr(call.Span);
+            if (argument.Type is DictOfType dict)
+            {
+                (source, copiesDict, key, value) = (argument, true, dict.Key, dict.Value);
+            }
+            else if (TypeChecker.ElementOf(argument.Type) is TupleOfType { Elements.Length: 2 } pair)
+            {
+                (key, value) = (pair.Elements[0], pair.Elements[1]);
+                source = Convert(argument, new IterableOfType(pair));
+            }
+            else
+            {
+                _diagnostics.ReportDictPairs(positional[0].Span, TypeChecker.ElementOf(argument.Type) ?? argument.Type);
+                return new BoundErrorExpr(call.Span);
+            }
+        }
+
+        var entries = new List<(string Name, Expr Syntax)>();
+        var seen = new HashSet<string>();
+        foreach (var argument in call.Arguments.Where(a => a.Name is not null))
+        {
+            var name = argument.Name!;
+            if (!seen.Add(name.Text))
+            {
+                _diagnostics.ReportRepeatedArgument(name.Span, name.Text);
+                BindIgnored(argument.Value);
+            }
+            else if (key is not null && key != TaipanType.Str && !key.ContainsError)
+            {
+                _diagnostics.ReportDictKeywordKeys(name.Span, key);
+                BindIgnored(argument.Value);
+            }
+            else
+            {
+                entries.Add((name.Text, argument.Value));
+            }
+        }
+        var keywords = ImmutableArray.CreateBuilder<(string, BoundExpr)>();
+        if (entries.Count > 0)
+        {
+            key = TaipanType.Str;
+            if (value is not null)
+            {
+                foreach (var (name, syntax) in entries)
+                    keywords.Add((name, BindExpected(syntax, value)));
+            }
+            else
+            {
+                // Without an expected type, the values join as a dict literal's do, so an int and a float give a float (SPEC §4.6).
+                var bound = entries.Select(e => (e.Name, Value: BindValue(e.Syntax), e.Syntax)).ToList();
+                value = bound.All(b => b.Value.Type.IsNumeric) && bound.Any(b => b.Value.Type == TaipanType.Float) ? TaipanType.Float : bound[0].Value.Type;
+                foreach (var (name, entry, syntax) in bound)
+                {
+                    CheckAssignable(entry, value, syntax.Span);
+                    keywords.Add((name, entry));
+                }
+            }
+        }
+
+        if (key is null || value is null)
+        {
+            if (expected is not { IsError: true })
+                _diagnostics.ReportCannotInferEmpty(call.Span, "dict");
+            return new BoundErrorExpr(call.Span);
+        }
+        if (key.ContainsError || value.ContainsError)
+            return new BoundErrorExpr(call.Span);
+        CheckDictKey(positional.Count == 1 ? positional[0].Span : call.Span, key);
+        return new BoundDictCall(source, copiesDict, keywords.ToImmutable(), new DictOfType(key, value), call.Span);
+    }
+
     // An int or float argument; anything else is TP0200.
     private BoundExpr BindNumber(Expr expr)
     {

@@ -1,0 +1,16 @@
+let d: dict[str, int] = dict()
+print(d)
+let base = {"a": 1, "b": 2}
+let copy = dict(base)
+copy["c"] = 3
+print(base, copy, copy == base)
+print(dict([("x", 1), ("y", 2)]), dict(zip(["p", "q"], [1, 2])), dict(enumerate(["a", "b"])))
+print(dict([("k", 1), ("j", 2), ("k", 3)]))
+print(dict(a=1, b=2), dict(base, c=3), dict([("x", 1)], y=2), dict(base, a=9))
+let pairs = [(1, "one"), (2, "two")]
+print(dict(pairs)[2], len(dict(pairs)))
+let typed: dict[str, float] = dict(a=1, b=2.5)
+print(typed)
+print(dict(iter([("i", 1)])), dict((k, len(k)) for k in ["ab", "c"]))
+let empty: dict[int, str] = dict([])
+print(empty)

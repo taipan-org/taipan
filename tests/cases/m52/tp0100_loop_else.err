@@ -1,0 +1,1 @@
+tests/cases/m52/tp0100_loop_else.tpn:3:1: error TP0100: expected statement, found 'else'

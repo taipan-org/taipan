@@ -1,0 +1,18 @@
+True False True True True
+eval a
+eval b
+eval c
+True
+eval a
+eval b
+False
+eval a
+eval b
+eval c
+False
+True False True
+True True True True
+False True
+[1, 2, 3] True False
+2
+True False

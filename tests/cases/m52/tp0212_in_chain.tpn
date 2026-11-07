@@ -1,0 +1,5 @@
+let xs = [1]
+let ys = [[1]]
+print(1 in xs in ys)
+print(1 < 2 in xs)
+print(1 not in xs == True)

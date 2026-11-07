@@ -76,6 +76,8 @@ public static class BoundTree
         BoundCallableObject callable => [callable.Value],
         BoundInPlaceCheck check => [check.Call],
         BoundListExtend extend => [extend.List, extend.Items],
+        BoundChain chain => [.. chain.Values, .. chain.Comparisons],
+        BoundDictCall dict => [.. ((BoundExpr?[])[dict.Source]).OfType<BoundExpr>(), .. dict.Keywords.Select(k => k.Value)],
         BoundPrint print => [.. print.Values, .. ((BoundExpr?[])[print.Sep, print.End, print.File, print.Flush]).OfType<BoundExpr>()],
         BoundMinMax minMax => [minMax.Values, .. ((BoundExpr?[])[minMax.Key, minMax.Default]).OfType<BoundExpr>()],
         BoundListLiteral list => list.Elements,

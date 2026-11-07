@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M51 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M52 are complete.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -417,3 +417,12 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M51 are complete
   - `ord` and `chr` match Python 3.12, including at the limits, and the bad forms raise or are `TP0200`.
   - A file that defines `sum` uses its own everywhere, while another file still sees the built-in.
   - Using the name before the definition is `TP0201`, and `def list` stays `TP0214`.
+
+## M52 — Comparisons and dicts
+- Chained comparisons of `<`, `<=`, `>`, `>=`, `==` and `!=`, as in Python. A chain with `in`, `not in`, `is` or `is not` stays `TP0212`.
+- `dict()`, `dict(d)`, `dict(pairs)` and keyword arguments, as in Python. Pairs written as lists are `TP0200`.
+- `for`/`else` and `while`/`else` are recorded as not planned.
+- Update SPEC first: §2's rule for chains, `TP0212`'s message, `dict`, and §11.
+- **Accept:**
+  - Chains match Python 3.12, side effects included: each middle operand is evaluated once, and one past the first `False` not at all.
+  - Each `dict` form matches Python, and the rejected forms report their errors.
