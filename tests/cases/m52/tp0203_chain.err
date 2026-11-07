@@ -1,0 +1,9 @@
+tests/cases/m52/tp0203_chain.tpn:2:12: error TP0203: int? must be narrowed before use
+  help: narrow it with 'is some', or give a default with '??'
+tests/cases/m52/tp0203_chain.tpn:3:7: error TP0203: int? must be narrowed before use
+  help: narrow it with 'is some', or give a default with '??'
+tests/cases/m52/tp0203_chain.tpn:4:16: error TP0203: int? must be narrowed before use
+  help: narrow it with 'is some', or give a default with '??'
+tests/cases/m52/tp0203_chain.tpn:5:12: error TP0200: cannot compare None and bool
+tests/cases/m52/tp0203_chain.tpn:6:11: error TP0203: int? must be narrowed before use
+  help: narrow it with 'is some', or give a default with '??'
