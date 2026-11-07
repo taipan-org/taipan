@@ -1,0 +1,10 @@
+let d = {"a": 1}
+let name: str? = None
+print(d.get("a") ?? 0 + 1)
+print(d.get("z") ?? 2 * 3 - 1)
+print(name ?? "anon" + "!")
+print((d.get("a") ?? 0) + 1)
+print(d.get("a") ?? (0 + 1))
+print(d.get("a") ?? 0)
+print(d.get("z") ?? d.get("y") ?? 4 + 5)
+print(d.get("a") ?? (2) * 3)
