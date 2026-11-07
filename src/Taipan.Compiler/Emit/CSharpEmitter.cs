@@ -1606,6 +1606,9 @@ public sealed partial class CSharpEmitter
             BoundPrint print => Print(print),
             BoundCallableObject callable => CallableObject(callable),
             BoundListExtend extend => $"{Runtime}.Ops.Extend({Expr(extend.List)}, {Expr(extend.Items)})",
+            BoundChain chain => Chain(chain),
+            BoundDictCall dict => DictCall(dict),
+            BoundChainOperand operand => $"@{_chainOperands.Peek()[operand.Index]}",
             BoundInPlaceCheck check => $"{Runtime}.Ops.InPlace({Expr(check.Target)}, {Expr(check.Call)}, \"{check.Op}\", \"{check.Call.Method.Name}\")",
             BoundDictLiteral dict => DictLiteral(dict),
             BoundConstruct construct => Construct(construct),
@@ -2199,6 +2202,37 @@ public sealed partial class CSharpEmitter
     {
         var text = value.ToString("R", CultureInfo.InvariantCulture);
         return text.Contains('.') || text.Contains('E') ? text : text + ".0";
+    }
+
+    // dict(…): a copy, the pairs, or an empty dict, then the keyword arguments' entries (SPEC §6, M52).
+    private string DictCall(BoundDictCall dict)
+    {
+        var type = (DictOfType)Concrete(dict.Type);
+        var (key, value) = (TypeName(type.Key), TypeName(type.Value));
+        var made = dict.Source is null ? $"new {TypeName(type)}()"
+            : dict.CopiesDict ? $"{Runtime}.Ops.DictCopy({Expr(dict.Source)})"
+            : $"{Runtime}.Ops.DictFrom<{key}, {value}>({Expr(dict.Source)})";
+        return dict.Keywords.IsEmpty ? made
+            : $"{Runtime}.Ops.WithEntries<{value}>({made}, {string.Join(", ", dict.Keywords.Select(k => $"(\"{k.Name}\", {Expr(k.Value)})"))})";
+    }
+
+    // Each value of a chained comparison goes into a pattern variable as it's evaluated, so the
+    // comparisons after it can read it, and && stops at the first false one (SPEC §2, M52).
+    private readonly Stack<string[]> _chainOperands = new();
+
+    private string Chain(BoundChain chain)
+    {
+        var values = chain.Values.Select(Expr).ToList();
+        var names = values.Select(_ => _locals.Fresh("chain")).ToArray();
+        _chainOperands.Push(names);
+        var parts = new List<string> { $"{values[0]} is var @{names[0]}" };
+        for (var i = 0; i < chain.Comparisons.Length; i++)
+        {
+            parts.Add($"{values[i + 1]} is var @{names[i + 1]}");
+            parts.Add($"({Expr(chain.Comparisons[i])})");
+        }
+        _chainOperands.Pop();
+        return $"({string.Join(" && ", parts)})";
     }
 
     private static string Escape(string value)

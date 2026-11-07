@@ -1,0 +1,6 @@
+tests/cases/m52/tp0212_in_chain.tpn:3:15: error TP0212: a chained comparison can't include 'in' or 'is'
+  help: split it with 'and'
+tests/cases/m52/tp0212_in_chain.tpn:4:13: error TP0212: a chained comparison can't include 'in' or 'is'
+  help: split it with 'and'
+tests/cases/m52/tp0212_in_chain.tpn:5:19: error TP0212: a chained comparison can't include 'in' or 'is'
+  help: split it with 'and'

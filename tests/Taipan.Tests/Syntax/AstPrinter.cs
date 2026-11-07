@@ -59,6 +59,7 @@ public static class AstPrinter
             .Where(p => !(p.Name == "Kind" && node is Param { Kind: ParamKind.Normal }))
             .Where(p => !(p.Name == "IsAsync" && node is FuncDef { IsAsync: false } or MethodDef { IsAsync: false } or ForStmt { IsAsync: false } or WithStmt { IsAsync: false }))
             .Where(p => !(p.Name == "Aliases" && node is ClassDef { Aliases.IsEmpty: true }))
+            .Where(p => !(p.Name == "Chained" && node is BinaryExpr { Chained: false }))
             .Select(p => Print(p.GetValue(node)))
             .ToList();
         return children.Count == 0 ? type.Name : $"{type.Name}({string.Join(", ", children)})";

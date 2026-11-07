@@ -728,4 +728,17 @@ public sealed record BoundCallableObject(BoundExpr Value, FunctionType Function,
 /// <summary><c>xs += ys</c> on a list: adds to the list itself and gives it back (SPEC §4.5).</summary>
 public sealed record BoundListExtend(BoundExpr List, BoundExpr Items, TextSpan Span) : BoundExpr(List.Type, Span);
 
+/// <summary>
+/// A chained comparison (SPEC §2, M52): each value evaluated once, in order, with each comparison
+/// between neighbours written over <see cref="BoundChainOperand"/>s, stopping at the first false one.
+/// </summary>
+public sealed record BoundChain(ImmutableArray<BoundExpr> Values, ImmutableArray<BoundExpr> Comparisons, TaipanType Type, TextSpan Span) : BoundExpr(Type, Span);
+
+/// <summary>A chain's <see cref="Index"/>th value, already evaluated.</summary>
+public sealed record BoundChainOperand(int Index, TaipanType Type, TextSpan Span) : BoundExpr(Type, Span);
+
+/// <summary><c>dict(…)</c> (SPEC §6, M52): a copy of a dict, or a dict of pairs, or neither, then the keyword arguments.</summary>
+public sealed record BoundDictCall(BoundExpr? Source, bool CopiesDict, ImmutableArray<(string Name, BoundExpr Value)> Keywords, TaipanType Type, TextSpan Span)
+    : BoundExpr(Type, Span);
+
 public sealed record BoundInPlaceCheck(BoundExpr Target, BoundMethodCall Call, string Op, TextSpan Span) : BoundExpr(TaipanType.Nothing, Span);

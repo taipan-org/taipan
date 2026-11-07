@@ -3474,6 +3474,7 @@ public sealed partial class Binder
         UnaryExpr unary => BindUnary(unary),
         AwaitExpr awaitExpr => BindAwait(awaitExpr, expected),
         YieldExpr yield => BindYieldExpr(yield.Value, yield.From, used: true, yield.Span),
+        BinaryExpr { Chained: true } chain => BindChain(chain),
         BinaryExpr { Op: BinaryOp.Coalesce } binary => BindCoalesce(binary),
         BinaryExpr { Op: BinaryOp.Equal or BinaryOp.NotEqual } equality => BindEquality(equality),
         BinaryExpr { Op: BinaryOp.And or BinaryOp.Or } logical => BindLogical(logical),
@@ -3688,6 +3689,42 @@ public sealed partial class Binder
             return new BoundUnary(unary.Op, operand, TaipanType.Error, unary.Span);
         }
         return new BoundUnary(unary.Op, operand, operand.Type, unary.Span);
+    }
+
+    // a < b < c: each operand bound once, and each neighbouring pair compared (SPEC §2, M52).
+    private BoundExpr BindChain(BinaryExpr chain)
+    {
+        var operators = new List<BinaryOp>();
+        var operands = new List<Expr>();
+        Expr node = chain;
+        while (node is BinaryExpr { Chained: true } link)
+        {
+            operators.Insert(0, link.Op);
+            operands.Insert(0, link.Right);
+            node = link.Left;
+        }
+        if (node is not BinaryExpr first || operators.Append(first.Op).Any(op => op is BinaryOp.In or BinaryOp.NotIn))
+        {
+            // The parser reported it (TP0212); the operands are still checked.
+            BindValue(node);
+            foreach (var operand in operands)
+                BindValue(operand);
+            return new BoundErrorExpr(chain.Span);
+        }
+        operators.Insert(0, first.Op);
+        operands.InsertRange(0, [first.Left, first.Right]);
+
+        var values = operands.Select(o => BindValue(o)).ToImmutableArray();
+        var comparisons = ImmutableArray.CreateBuilder<BoundExpr>();
+        for (var i = 0; i < operators.Count; i++)
+        {
+            var span = new TextSpan(operands[i].Span.Start, operands[i + 1].Span.End - operands[i].Span.Start);
+            comparisons.Add(BindBinaryOperation(
+                new BoundChainOperand(i, values[i].Type, operands[i].Span), operators[i],
+                new BoundChainOperand(i + 1, values[i + 1].Type, operands[i + 1].Span), span));
+        }
+        var type = comparisons.Any(c => c.Type.ContainsError) ? TaipanType.Error : TaipanType.Bool;
+        return new BoundChain(values, comparisons.ToImmutable(), type, chain.Span);
     }
 
     // A list display being repeated takes the expression's expected type (SPEC §5.3, M48).
@@ -4316,6 +4353,9 @@ public sealed partial class Binder
         if (symbol is VariableSymbol { Type: PrimitiveType { Name: "py" } } python)
             return BindPyCall(call, new BoundVariable(python, nameSpan));
         // sorted's keyword arguments may follow its positional one, as in Python (SPEC §2).
+        // dict's keyword arguments are its entries (SPEC §6, M52).
+        if (symbol is FunctionSymbol { Builtin: BuiltinFunction.Dict } dictFunction)
+            return BindDict(call, dictFunction, expected);
         if (symbol is FunctionSymbol { Builtin: BuiltinFunction.Sorted })
             return BindSort(call, name, nameSpan, target: null);
         if (symbol is FunctionSymbol { Builtin: BuiltinFunction.Enumerate } enumerate)

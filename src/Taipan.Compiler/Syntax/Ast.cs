@@ -387,7 +387,11 @@ public enum BinaryOp
     And, Or, Coalesce,
 }
 
-public sealed record BinaryExpr(Expr Left, BinaryOp Op, Expr Right, TextSpan Span) : Expr(Span);
+/// <summary><see cref="Chained"/> marks a comparison after the first in a chain, whose left operand is the one before it (SPEC §2, M52).</summary>
+public sealed record BinaryExpr(Expr Left, BinaryOp Op, Expr Right, TextSpan Span) : Expr(Span)
+{
+    public bool Chained { get; init; }
+}
 
 public sealed record CallExpr(Expr Callee, ImmutableArray<Argument> Arguments, TextSpan Span) : Expr(Span);
 

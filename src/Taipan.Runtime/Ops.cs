@@ -576,6 +576,27 @@ public static class Ops
 
     public static List<T> Concat<T>(List<T> left, List<T> right) => [.. left, .. right];
 
+    // ---- dict(…) (SPEC §6, M52) ----
+
+    public static OrderedDictionary<TKey, TValue> DictCopy<TKey, TValue>(OrderedDictionary<TKey, TValue> dict) where TKey : notnull =>
+        new(dict);
+
+    /// <summary>A key that repeats keeps its first position and its last value, as in Python.</summary>
+    public static OrderedDictionary<TKey, TValue> DictFrom<TKey, TValue>(IEnumerable<(TKey, TValue)> pairs) where TKey : notnull
+    {
+        var dict = new OrderedDictionary<TKey, TValue>();
+        foreach (var (key, value) in pairs)
+            dict[key] = value;
+        return dict;
+    }
+
+    public static OrderedDictionary<string, TValue> WithEntries<TValue>(OrderedDictionary<string, TValue> dict, params (string Key, TValue Value)[] entries)
+    {
+        foreach (var (key, value) in entries)
+            dict[key] = value;
+        return dict;
+    }
+
     // ---- Repetition (SPEC §5.3, M48) ----
 
     private const int MaxStringLength = 0x3FFFFFDF;
