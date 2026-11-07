@@ -1,0 +1,10 @@
+def list() -> int:
+    return 1
+
+class str:
+    pass
+
+def int(x: float) -> float:
+    return x
+
+const set = 1

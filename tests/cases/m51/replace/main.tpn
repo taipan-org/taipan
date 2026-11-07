@@ -1,0 +1,24 @@
+import stats
+from stats import mean as max
+
+def sum(xs: list[int]) -> int:
+    var total = 100
+    for x in xs:
+        total += x
+    return total
+
+def reversed(s: str) -> str:
+    return s[::-1]
+
+class map:
+    pass
+
+const min = 3
+
+def uses() -> int:
+    return sum([1, 2])
+
+print(sum([1, 2]), uses(), stats.total([1, 2]), reversed("abc"), min, max([1, 3]))
+print(len("ab"), sorted([2, 1]))
+let f = lambda: sum([1])
+print(f())

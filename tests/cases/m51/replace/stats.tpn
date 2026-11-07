@@ -1,0 +1,5 @@
+def total(xs: list[int]) -> int:
+    return sum(xs)
+
+def mean(xs: list[int]) -> float:
+    return sum(xs) / len(xs)

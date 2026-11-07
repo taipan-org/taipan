@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M50 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M51 are complete.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -407,3 +407,13 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M50 are complete
 - `%` and `//` on floats, including mixed `int` and `float`, `%=` and `//=`, with Python's signs and rounding.
 - Update SPEC first: the `range` type, `reversed`, and the operator table.
 - **Accept:** results match Python 3.12, including negatives and infinities, and the rejected forms are `TP0200`.
+
+## M51 — Built-in names
+- `ord(c) -> int` and `chr(i) -> str`, as in Python.
+- A top-level definition or import may reuse a built-in function's name, as a local may since M35, and replaces the built-in in that file. Names that are also types stay `TP0214`.
+- A top-level statement that uses such a name before its definition is `TP0201`, since Python would still use the built-in there.
+- Update SPEC first: the two built-ins, the scope rule, the new message, and `chr` of a surrogate in the exceptions.
+- **Accept:**
+  - `ord` and `chr` match Python 3.12, including at the limits, and the bad forms raise or are `TP0200`.
+  - A file that defines `sum` uses its own everywhere, while another file still sees the built-in.
+  - Using the name before the definition is `TP0201`, and `def list` stays `TP0214`.

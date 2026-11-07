@@ -1,0 +1,6 @@
+tests/cases/m51/tp0201_before_definition.tpn:1:7: error TP0201: 'sum' is used before its definition on line 8, where Python would still use the built-in
+  help: move the definition above this use
+tests/cases/m51/tp0201_before_definition.tpn:2:25: error TP0201: 'reversed' is used before its definition on line 11, where Python would still use the built-in
+  help: move the definition above this use
+tests/cases/m51/tp0201_before_definition.tpn:15:7: error TP0201: 'abs' is used before its definition on line 16, where Python would still use the built-in
+  help: move the definition above this use

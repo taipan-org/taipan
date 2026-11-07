@@ -423,6 +423,13 @@ public sealed class DiagnosticBag
     public void ReportFieldNotMethod(TextSpan span, string field) =>
         Add("TP0200", span, $"'{field}' is a field, not a method");
 
+    public void ReportOrdLength(TextSpan span, int length) =>
+        Add("TP0200", span, $"ord() expected a character, but string of length {length} found");
+
+    public void ReportUsedBeforeReplacingBuiltin(TextSpan span, string name, int line) =>
+        Add("TP0201", span, $"'{name}' is used before its definition on line {line}, where Python would still use the built-in",
+            "move the definition above this use");
+
     public void ReportReversedNeedsSequence(TextSpan span, object type) =>
         Add("TP0200", span, $"'reversed' needs a sequence, found {type}", "convert it with 'list(…)' first");
 

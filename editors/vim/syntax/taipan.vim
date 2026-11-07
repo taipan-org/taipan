@@ -68,7 +68,7 @@ syn keyword taipanDeclaration let var const
 syn keyword taipanDel del
 syn keyword taipanSelf self cls
 syn keyword taipanBuiltin print len range reversed repr hash sorted map filter enumerate zip iter next
-syn keyword taipanBuiltin isinstance super abs min max sum any all round divmod input open
+syn keyword taipanBuiltin isinstance super abs min max sum any all round divmod input open ord chr
 
 " `int`, `float`, `str`, `list` and `set` are functions only when called, and types otherwise.
 syn match taipanBuiltinType "\<\%(int\|float\|str\|bool\|list\|dict\|set\|tuple\|Iterator\|Iterable\|Callable\|Awaitable\|TextIO\)\>"

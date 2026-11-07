@@ -1,0 +1,4 @@
+tests/cases/m51/tp0214_type_names.tpn:1:5: error TP0214: duplicate definition of 'list'
+tests/cases/m51/tp0214_type_names.tpn:4:7: error TP0214: duplicate definition of 'str'
+tests/cases/m51/tp0214_type_names.tpn:7:5: error TP0214: duplicate definition of 'int'
+tests/cases/m51/tp0214_type_names.tpn:10:7: error TP0214: duplicate definition of 'set'

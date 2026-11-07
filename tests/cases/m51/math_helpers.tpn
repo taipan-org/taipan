@@ -1,0 +1,2 @@
+def abs(x: int) -> int:
+    return x
