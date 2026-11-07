@@ -1,0 +1,7 @@
+97 233 128512 10 0 1114111
+a é 😀 True True 1
+b [97, 98] ABC
+ord() expected a character, but string of length 2 found
+ord() expected a character, but string of length 0 found
+chr() arg not in range(0x110000)
+chr() arg not in range(0x110000)

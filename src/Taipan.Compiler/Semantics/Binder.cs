@@ -109,6 +109,10 @@ public sealed partial class Binder
     private Module? _mainModule;
     private readonly HashSet<string> _scriptNames = [];
 
+    // Built-in function names a top-level definition or import reuses, with where it starts, for the
+    // use before it that Python would give the built-in (SPEC §4.5, M51).
+    private readonly Dictionary<(Module Module, string Name), int> _replacedBuiltins = [];
+
     // For TP0211's help: how often each script name is bound, the let and var statements directly at
     // the top level, the names assigned anywhere, and the uses, reported once all of them are known.
     private readonly Dictionary<string, int> _scriptNameCounts = [];
@@ -1779,12 +1783,17 @@ public sealed partial class Binder
     /// Declares a name in the module's global scope under <paramref name="name"/> (an import may
     /// rename it). A definition is also exported (SPEC §4.7).
     /// </summary>
-    private bool DeclareGlobal(Identifier name, Symbol symbol, bool isDefinition = true)
+    private bool DeclareGlobal(Identifier name, Symbol symbol, bool isDefinition = true, int? takesEffectAt = null)
     {
-        if (_global.Lookup(name.Text) is not null)
+        if (_global.Lookup(name.Text) is { } existing)
         {
-            _diagnostics.ReportDuplicateDefinition(name.Span, name.Text);
-            return false;
+            // A built-in function's name may be reused, except one that's also a type's (SPEC §4.5, M51).
+            if (!IsShadowableBuiltin(existing) || _global.LookupLocal(name.Text) is not null)
+            {
+                _diagnostics.ReportDuplicateDefinition(name.Span, name.Text);
+                return false;
+            }
+            _replacedBuiltins[(_module!, name.Text)] = takesEffectAt ?? name.Span.Start;
         }
         _global.Declare(name.Text, symbol);
         if (isDefinition)
@@ -1812,12 +1821,22 @@ public sealed partial class Binder
     private bool IsShadowableBuiltin(Symbol symbol) =>
         symbol is FunctionSymbol { Builtin: not null } && _builtins.LookupLocal(symbol.Name) == symbol && !BuiltinTypeNames.Contains(symbol.Name);
 
+    // Top-level code that runs before a definition replacing a built-in would, in Python, still get the
+    // built-in; functions and lambdas run later (SPEC §4.5, M51).
+    private void CheckUsedBeforeReplacing(string name, TextSpan span, Symbol symbol)
+    {
+        if (_inTopLevel && _function is null && _lambdaDepth == 0 && _module is not null
+            && _replacedBuiltins.TryGetValue((_module, name), out var at) && span.Start < at && _global.LookupLocal(name) == symbol)
+            _diagnostics.ReportUsedBeforeReplacingBuiltin(span, name, _source.GetLinePosition(at).Line);
+    }
+
     /// <summary>Looks up a value name, reporting TP0201 or TP0211 if it isn't visible.</summary>
     private Symbol? LookupName(string name, TextSpan span)
     {
         if (_scope.Lookup(name) is { } symbol)
         {
             Index(span, symbol);
+            CheckUsedBeforeReplacing(name, span, symbol);
             return symbol;
         }
         if (_outerFunction is not null && _scriptNames.Contains(name))
@@ -4338,6 +4357,9 @@ public sealed partial class Binder
             case FunctionSymbol { Builtin: BuiltinFunction.Repr or BuiltinFunction.Hash } function:
                 ReportKeywordArguments(call, function.Name);
                 return BindReprOrHash(call, function, function.Builtin!.Value);
+            case FunctionSymbol { Builtin: BuiltinFunction.Ord or BuiltinFunction.Chr } function:
+                ReportKeywordArguments(call, function.Name);
+                return BindOrdOrChr(call, function);
             case FunctionSymbol { Builtin: BuiltinFunction.Print or BuiltinFunction.Input or BuiltinFunction.Open or BuiltinFunction.Exit or BuiltinFunction.GetEnv } io:
                 return BindIoBuiltin(call, io, io.Builtin!.Value);
             case FunctionSymbol { Builtin: BuiltinFunction.Gather or BuiltinFunction.Sleep or BuiltinFunction.WaitFor or BuiltinFunction.Timeout or BuiltinFunction.Run } asyncio:
@@ -5515,6 +5537,24 @@ public sealed partial class Binder
             return new BoundErrorExpr(call.Span);
         }
         return new BoundCall(function, arguments, new IteratorOfType(element), call.Span);
+    }
+
+    // ord(c) and chr(i) (SPEC §6, M51).
+    private BoundExpr BindOrdOrChr(CallExpr call, FunctionSymbol function)
+    {
+        var name = function.Name;
+        if (call.Arguments.Length != 1)
+        {
+            foreach (var argument in call.Arguments)
+                BindValue(argument.Value);
+            _diagnostics.ReportWrongArgumentCount(call.Callee.Span, name, "1 argument", call.Arguments.Length);
+            return new BoundErrorExpr(call.Span);
+        }
+        var value = call.Arguments[0].Value;
+        if (function.Builtin == BuiltinFunction.Ord && value is StringLiteral literal && literal.Value.EnumerateRunes().Count() is var length and not 1)
+            _diagnostics.ReportOrdLength(value.Span, length);
+        var bound = BindExpected(value, function.Builtin == BuiltinFunction.Ord ? TaipanType.Str : TaipanType.Int);
+        return new BoundCall(function, [bound], function.ReturnType, call.Span);
     }
 
     private BoundExpr BindBuiltinCall(CallExpr call, FunctionSymbol function, BuiltinFunction builtin, TaipanType? expected)

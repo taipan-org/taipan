@@ -1,0 +1,18 @@
+print(ord("a"), ord("é"), ord("😀"), ord("\n"), ord("\x00"), ord("\U0010FFFF"))
+print(chr(97), chr(233), chr(128512), chr(0) == "\x00", chr(1114111) == "\U0010FFFF", len(chr(128512)))
+print(chr(ord("a") + 1), [ord(c) for c in "ab"], "".join(chr(n) for n in range(65, 68)))
+let s = "xy"
+try:
+    print(ord(s))
+except TypeError as e:
+    print(e)
+let empty = ""
+try:
+    print(ord(empty))
+except TypeError as e:
+    print(e)
+for n in [-1, 1114112]:
+    try:
+        print(chr(n))
+    except ValueError as e:
+        print(e)

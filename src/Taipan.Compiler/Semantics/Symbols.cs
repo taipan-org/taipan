@@ -27,7 +27,9 @@ public sealed class VariableSymbol(string name, TaipanType type, VariableKind ki
 
 public enum BuiltinFunction { Print, Len, Str, Int, Float, Range, Reversed, Sorted, Map, Filter, Enumerate, Zip, IsInstance, Super, Repr, Hash, List, Iter, Next, Abs, Min, Max, Sum, Any, All, Round, DivMod, Set, Tuple, Input, Open, Exit, GetEnv,
     // M42 (SPEC §3.20): anext, and asyncio's functions.
-    Anext, Gather, Sleep, WaitFor, Timeout, Run }
+    Anext, Gather, Sleep, WaitFor, Timeout, Run,
+    // M51.
+    Ord, Chr }
 
 /// <summary>What kind of method a function is (SPEC §4.8, M28); <see cref="Instance"/> for a function.</summary>
 public enum MemberKind { Instance, Property, Static, Class }
@@ -167,6 +169,8 @@ public sealed class FunctionSymbol(
         new("super", [], TaipanType.Error, BuiltinFunction.Super),
         new("repr", [], TaipanType.Str, BuiltinFunction.Repr),
         new("hash", [], TaipanType.Int, BuiltinFunction.Hash),
+        new("ord", [], TaipanType.Int, BuiltinFunction.Ord),
+        new("chr", [], TaipanType.Str, BuiltinFunction.Chr),
         new("list", [], TaipanType.Error, BuiltinFunction.List),
         new("iter", [], TaipanType.Error, BuiltinFunction.Iter),
         new("next", [], TaipanType.Error, BuiltinFunction.Next),

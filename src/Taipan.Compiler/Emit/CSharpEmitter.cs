@@ -1938,6 +1938,8 @@ public sealed partial class CSharpEmitter
             BuiltinFunction.Str => $"{Runtime}.Display.Format({arguments})",
             BuiltinFunction.Repr => $"{Runtime}.Display.Repr({arguments})",
             BuiltinFunction.Hash => $"{Runtime}.Ops.Hash({arguments})",
+            BuiltinFunction.Ord => $"{Runtime}.Builtins.Ord({arguments})",
+            BuiltinFunction.Chr => $"{Runtime}.Builtins.Chr({arguments})",
             BuiltinFunction.Int when argumentType == TaipanType.Str => $"{Runtime}.Ops.ParseInt({arguments})",
             BuiltinFunction.Float when argumentType == TaipanType.Str => $"{Runtime}.Ops.ParseFloat({arguments})",
             BuiltinFunction.Int when argumentType == TaipanType.Float => $"{Runtime}.Ops.ToInt({arguments})",

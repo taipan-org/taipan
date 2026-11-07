@@ -1,0 +1,8 @@
+tests/cases/m51/tp0200_ord_chr.tpn:1:11: error TP0200: ord() expected a character, but string of length 2 found
+tests/cases/m51/tp0200_ord_chr.tpn:2:11: error TP0200: ord() expected a character, but string of length 0 found
+tests/cases/m51/tp0200_ord_chr.tpn:3:11: error TP0200: expected str, found int
+tests/cases/m51/tp0200_ord_chr.tpn:4:11: error TP0200: expected int, found str
+tests/cases/m51/tp0200_ord_chr.tpn:5:11: error TP0200: expected int, found float
+tests/cases/m51/tp0200_ord_chr.tpn:6:7: error TP0209: 'ord' takes 1 argument, found 0
+tests/cases/m51/tp0200_ord_chr.tpn:7:7: error TP0209: 'chr' takes 1 argument, found 2
+tests/cases/m51/tp0200_ord_chr.tpn:8:11: error TP0218: 'ord' takes no keyword arguments

@@ -1,0 +1,8 @@
+print(ord("ab"))
+print(ord(""))
+print(ord(1))
+print(chr("a"))
+print(chr(1.5))
+print(ord())
+print(chr(1, 2))
+print(ord(c="a"))

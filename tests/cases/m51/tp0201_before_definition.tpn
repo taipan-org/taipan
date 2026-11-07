@@ -1,0 +1,16 @@
+print(sum([1, 2]))
+let early = [x for x in reversed([1])]
+let later = lambda: sum([1])
+
+def helper() -> int:
+    return sum([1])
+
+def sum(xs: list[int]) -> int:
+    return 0
+
+def reversed(xs: list[int]) -> list[int]:
+    return xs
+
+print(sum([1]))
+print(abs(-1))
+from math_helpers import abs

@@ -34,6 +34,23 @@ public static class Builtins
     /// <summary><c>len(s)</c>: the number of Unicode code points.</summary>
     public static long Len(RangeObject range) => range.Length;
 
+    /// <summary><c>ord(c)</c> (SPEC §6, M51).</summary>
+    public static long Ord(string value)
+    {
+        var runes = value.EnumerateRunes().GetEnumerator();
+        if (runes.MoveNext() && runes.Current is var first && !runes.MoveNext())
+            return first.Value;
+        throw new TypeError($"ord() expected a character, but string of length {value.EnumerateRunes().Count()} found");
+    }
+
+    /// <summary><c>chr(i)</c> (SPEC §6, M51); a string can't hold a lone surrogate.</summary>
+    public static string Chr(long code) => code switch
+    {
+        < 0 or > 0x10FFFF => throw new ValueError("chr() arg not in range(0x110000)"),
+        >= 0xD800 and <= 0xDFFF => throw new ValueError("chr() arg is a surrogate, which a Taipan string can't hold"),
+        _ => char.ConvertFromUtf32((int)code),
+    };
+
     public static long Len(string value)
     {
         long count = 0;

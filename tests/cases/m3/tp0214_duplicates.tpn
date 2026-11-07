@@ -4,7 +4,7 @@ def f():
 def f():
     pass
 
-def print(x: int):
+def list(x: int):
     pass
 
 const K = 1
