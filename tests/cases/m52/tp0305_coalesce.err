@@ -1,0 +1,10 @@
+tests/cases/m52/tp0305_coalesce.tpn:3:18: warning TP0305: '??' binds more loosely than '+', so this is 'd.get("a") ?? (0 + 1)'
+  help: write '(d.get("a") ?? 0) + 1' if you meant that, or add the parentheses to keep this
+tests/cases/m52/tp0305_coalesce.tpn:4:18: warning TP0305: '??' binds more loosely than '-', so this is 'd.get("z") ?? (2 * 3 - 1)'
+  help: write '(d.get("z") ?? 2) * 3 - 1' if you meant that, or add the parentheses to keep this
+tests/cases/m52/tp0305_coalesce.tpn:5:12: warning TP0305: '??' binds more loosely than '+', so this is 'name ?? ("anon" + "!")'
+  help: write '(name ?? "anon") + "!"' if you meant that, or add the parentheses to keep this
+tests/cases/m52/tp0305_coalesce.tpn:9:32: warning TP0305: '??' binds more loosely than '+', so this is 'd.get("y") ?? (4 + 5)'
+  help: write '(d.get("y") ?? 4) + 5' if you meant that, or add the parentheses to keep this
+tests/cases/m52/tp0305_coalesce.tpn:10:18: warning TP0305: '??' binds more loosely than '*', so this is 'd.get("a") ?? ((2) * 3)'
+  help: write '(d.get("a") ?? (2)) * 3' if you meant that, or add the parentheses to keep this

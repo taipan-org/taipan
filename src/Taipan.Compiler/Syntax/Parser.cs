@@ -31,6 +31,9 @@ public sealed class Parser
     private int _previousEnd;
     private bool _recovering;
 
+    // Expressions written in parentheses, which TP0305 doesn't warn about (SPEC §3.4).
+    private readonly HashSet<Expr> _parenthesized = new(ReferenceEqualityComparer.Instance);
+
     // Parsing a with item's expression, outside any brackets: `as` ends it rather than converting (SPEC §2).
     private bool _withItem;
 
@@ -1713,9 +1716,42 @@ public sealed class Parser
         var left = ParseOrExpr();
         if (!At(TokenKind.QuestionQuestion))
             return left;
-        Next();
+        var operatorSpan = Next().Span;
+        var rightStart = Current.Span.Start;
         var right = ParseCoalesce();
+        // Arithmetic right after ?? belongs to its right side, which Python users won't expect (SPEC §3.4).
+        if (right is BinaryExpr { Op: BinaryOp.Add or BinaryOp.Subtract or BinaryOp.Multiply or BinaryOp.Divide
+                or BinaryOp.FloorDivide or BinaryOp.Modulo or BinaryOp.Power } arithmetic
+            && !_parenthesized.Contains(arithmetic))
+        {
+            var first = arithmetic.Left;
+            while (first is BinaryExpr { Op: not BinaryOp.Coalesce } inner && !_parenthesized.Contains(inner))
+                first = inner.Left;
+            // A parenthesized operand's span leaves out its parentheses, so the text runs from the token after ??.
+            var firstEnd = ClosingParensAfter(rightStart, first.Span.End);
+            var (a, b) = (_source.ToString(left.Span), _source.ToString(new TextSpan(rightStart, arithmetic.Span.End - rightStart)));
+            var (firstText, rest) = (_source.ToString(new TextSpan(rightStart, firstEnd - rightStart)), _source.ToString(new TextSpan(firstEnd, arithmetic.Span.End - firstEnd)));
+            _diagnostics.ReportCoalescePrecedence(operatorSpan, Semantics.TypeChecker.Display(arithmetic.Op), a, b, firstText, rest);
+        }
         return Binary(left, BinaryOp.Coalesce, right);
+    }
+
+    // Where text from start through end closes the parentheses it opens, for TP0305's message.
+    private int ClosingParensAfter(int start, int end)
+    {
+        var text = _source.ToString(new TextSpan(start, end - start));
+        var open = text.Count(c => c == '(') - text.Count(c => c == ')');
+        var at = end;
+        while (open > 0 && at < _source.Length)
+        {
+            var c = _source.Text[at];
+            at++;
+            if (c == ')')
+                open--;
+            else if (c is not (' ' or '\n'))
+                break;
+        }
+        return at;
     }
 
     // or_expr = and_expr { "or" and_expr }
@@ -2119,6 +2155,7 @@ public sealed class Parser
                 if (!At(TokenKind.Comma))
                 {
                     Expect(TokenKind.CloseParen);
+                    _parenthesized.Add(inner);
                     return inner;
                 }
                 var elements = ImmutableArray.CreateBuilder<Expr>();

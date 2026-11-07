@@ -341,6 +341,7 @@ There are no other implicit conversions. Explicit conversions use the built-ins 
 - **`??`:**
   - The left operand must be optional (`TP0200` otherwise) and is evaluated first. The right operand is evaluated only when the left is `None`.
   - With `x: T?`, the default is checked against `T` as its expected type, and the result is `T`. If the default is itself a `T?`, the result is `T?`, so `a ?? b ?? 0` works.
+  - `??` binds more loosely than every other operator, as in C#, Swift and Kotlin (§2), so `d.get(k) ?? 0 + 1` is `d.get(k) ?? (0 + 1)`. Python has no `??` to set expectations, so an arithmetic operator (`+ - * / // % **`) directly on its right side, outside parentheses, is warning `TP0305`, `'??' binds more loosely than '<op>', so this is '<a> ?? (<b>)'`, with help `write '(<a> ?? <first>)<rest>' if you meant that, or add the parentheses to keep this`. Writing either form's parentheses removes it.
 - **`None` and inference:**
   - `None` has its own type, written `None`, which is assignable to every optional.
   - `None` is spelled as in Python (M13). Lowercase `none` is an ordinary name, so an undefined `none` is `TP0201`, with help `use 'None'`.
@@ -2160,6 +2161,7 @@ The output is one C# compilation unit per program, compiled in-process by Roslyn
 | TP0302 | warning: a library's or extension module's definition can't be exported (M22, M25) |
 | TP0303 | warning: a `test_` function that can't be run as a test (M44, §20; reported only by `taipan test`) |
 | TP0304 | warning: repeating a list whose element is a new list, dict or set (M48, §5.3) |
+| TP0305 | warning: arithmetic directly on the right side of `??`, which binds more loosely (§3.4) |
 
 New codes go into this table before they're implemented.
 
@@ -2260,6 +2262,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0300 | `unreachable match arm` / `unreachable except clause`, with help `'<B>' is already caught above` / `unreachable code` (M16) |
 | TP0301 | `this clause catches every exception and discards it`, with help `catch a specific class, re-raise with 'raise', or bind it with 'as e' and use it` (M16) |
 | TP0303 | `'<f>' takes parameters, so it isn't run as a test` (M44) |
+| TP0305 | `'??' binds more loosely than '<op>', so this is '<a> ?? (<b>)'`, with help `write '(<a> ?? <first>)<rest>' if you meant that, or add the parentheses to keep this` |
 | TP0304 | `every copy shares the same <list\|dict\|set>`, with help `build each one separately, with a comprehension: [… for _ in range(…)]` (M48) |
 | TP0302 | `'<f>' is not exported: <reason>`, where `<reason>` is `its type parameter '<T>' has a bound` / `'<T>?' has no .NET generic form` / `it uses '<g>', which isn't a .NET generic` / `it uses '<C>', which isn't exported` / `it has its module's name` (M22) / `'<T>' can't be passed to Python` / `it's generic` (M25) / `it's used as the protocol '<P>'` (M40) / `'<T>' can't be passed to C` / `it's async` / `it has '*args' or '**kwargs'` / `it has keyword-only parameters` (a native library) (M45), with help `rename it '_<f>' to keep it private` |
 

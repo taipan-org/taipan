@@ -407,6 +407,10 @@ public sealed class DiagnosticBag
     public void ReportUnreachableCode(TextSpan span) =>
         Warn("TP0300", span, "unreachable code");
 
+    public void ReportCoalescePrecedence(TextSpan span, string op, string left, string right, string first, string rest) =>
+        Warn("TP0305", span, $"'??' binds more loosely than '{op}', so this is '{left} ?? ({right})'",
+            $"write '({left} ?? {first}){rest}' if you meant that, or add the parentheses to keep this");
+
     public void ReportRepeatSharesElements(TextSpan span, string kind) =>
         Warn("TP0304", span, $"every copy shares the same {kind}", "build each one separately, with a comprehension: [… for _ in range(…)]");
 
