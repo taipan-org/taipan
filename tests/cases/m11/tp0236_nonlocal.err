@@ -5,6 +5,7 @@ tests/cases/m11/tp0236_nonlocal.tpn:8:9: error TP0236: 'n' belongs to an enclosi
 tests/cases/m11/tp0236_nonlocal.tpn:10:9: error TP0236: 'n' belongs to an enclosing function, so assigning to it needs 'nonlocal'
   help: add 'nonlocal n' at the start of this function, or use 'let' with another name for a new variable
 tests/cases/m11/tp0236_nonlocal.tpn:10:12: error TP0201: undefined name 'm'
+  help: if it's a new variable, declare it with 'let', 'var' or 'const'
 tests/cases/m11/tp0236_nonlocal.tpn:13:9: error TP0236: 'xs' belongs to an enclosing function, so assigning to it needs 'nonlocal'
   help: add 'nonlocal xs' at the start of this function, or use 'let' with another name for a new variable
 tests/cases/m11/tp0236_nonlocal.tpn:16:9: error TP0236: 'nonlocal' must come first in a function's body

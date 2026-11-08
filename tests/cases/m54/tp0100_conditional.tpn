@@ -1,0 +1,9 @@
+let n = 3
+print("big" if n > 2 else "small")
+let label = f(n if n > 0 else 0)
+let doubled = [x * 2 for x in [1, 2] if x > 1]
+let picked = [x if x > 1 else 0 for x in [1, 2]]
+let run: Callable[[], int] = lambda: 1 if n > 0 else 2
+
+def f(x: int) -> int:
+    return x

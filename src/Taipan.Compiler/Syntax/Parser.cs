@@ -1684,7 +1684,48 @@ public sealed class Parser
     // ---- Expressions ----
 
     // expr = lambda_expr | coalesce
-    private Expr ParseExpr() => At(TokenKind.LambdaKeyword) ? ParseLambdaExpr() : ParseCoalesce();
+    private Expr ParseExpr()
+    {
+        var expr = At(TokenKind.LambdaKeyword) ? ParseLambdaExpr() : ParseCoalesce();
+        // Python's `a if c else b` isn't Taipan; it's reported, then read past (SPEC §9, TP0100).
+        if (At(TokenKind.IfKeyword) && ElseFollows())
+        {
+            if (!_recovering)
+                _diagnostics.ReportConditionalExpression(Current.Span);
+            Next();
+            ParseCoalesce();
+            if (At(TokenKind.ElseKeyword))
+            {
+                Next();
+                ParseExpr();
+            }
+        }
+        return expr;
+    }
+
+    // Whether an `else` comes before the end of the line or of the enclosing brackets, as in a
+    // conditional expression; a comprehension's `if` never has one.
+    private bool ElseFollows()
+    {
+        var depth = 0;
+        for (var i = 1; ; i++)
+        {
+            switch (Peek(i).Kind)
+            {
+                case TokenKind.ElseKeyword when depth == 0:
+                    return true;
+                case TokenKind.OpenParen or TokenKind.OpenBracket or TokenKind.OpenBrace:
+                    depth++;
+                    break;
+                case TokenKind.CloseParen or TokenKind.CloseBracket or TokenKind.CloseBrace when depth == 0:
+                case TokenKind.Newline or TokenKind.EndOfFile or TokenKind.Comma or TokenKind.ForKeyword or TokenKind.Colon when depth == 0:
+                    return false;
+                case TokenKind.CloseParen or TokenKind.CloseBracket or TokenKind.CloseBrace:
+                    depth--;
+                    break;
+            }
+        }
+    }
 
     // lambda_expr = "lambda" [ lambda_param { "," lambda_param } ] ":" expr ; lambda_param = NAME | "_"
     private Expr ParseLambdaExpr()

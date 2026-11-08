@@ -30,6 +30,7 @@ Taipan is a statically typed, compiled language with Python's surface syntax. Th
 - **Comparing an `int` with a `float` converts the `int`** (§5.3), so `2 ** 53 + 1 == 2.0 ** 53` is `True`, since an exact comparison would slow every mixed comparison.
 - **A string can't hold a lone surrogate** (§1, §6), since Taipan's strings are made of code points: `"\ud83d"` is `TP0005`, and `chr(0xD800)` raises `ValueError`, where Python allows both.
 - **Case conversion and number parsing follow .NET and ASCII** (§6): `"ß".upper()` is `ß`, where Python gives `SS`, and `int("٣")` is `None`, where Python gives `3`.
+- **`isinstance(v, int)` on a Python `bool` is `False`** (§10.4), where Python gives `True`, since Taipan's `bool` isn't an `int`. `v as int` raises for it, so the difference only shows in the test.
 - **A class without `__str__` or `__repr__` displays as `<C object>`** (§4.8), without Python's module name and memory address.
 - **Strings display with double quotes in containers and `repr`** (§6), as Taipan writes string literals, so `print(["a"])` is `["a"]`, where Python gives `['a']`.
 
@@ -97,7 +98,7 @@ Taipan is a statically typed, compiled language with Python's surface syntax. Th
 | TP0001 | `tab in indentation` |
 | TP0002 | `dedent does not match any outer indentation level` |
 | TP0003 | `unterminated string` |
-| TP0004 | `invalid character '<c>'`, or `invalid character U+XXXX` for control and whitespace characters |
+| TP0004 | `invalid character '<c>'`, or `invalid character U+XXXX` for control and whitespace characters; for `;`, with help `write each statement on its own line`, since Python allows `;` between statements |
 | TP0005 | `invalid escape sequence '\<c>'` (with help `write '{{' in an f-string, or '{' elsewhere` for `\{`, and likewise for `\}`) / `'\<c>' needs <n> hex digits` / `'\<c><hex>' isn't a character a string can hold` (M49) |
 | TP0006 | `single '}' is not allowed in an f-string` / `empty f-string hole` / `f-strings cannot be nested` / `invalid conversion '!<c>'`, with help `use '!r' or '!s'` / `format specs can't be nested` / `invalid format spec '<spec>'` (M26) |
 | TP0007 | `invalid number literal` |
@@ -600,6 +601,7 @@ finally:
 
 **`except` clauses**
 - `except C` matches an exception of class `C` or a class deriving from it. `C` must be `Exception` or derive from it (since M37, `BaseException` or derive from it), and may be qualified with a module: `except zoo.NotFound`. A bare `except:` is `except Exception:`. `except (A, B)` matches either.
+- **A Python exception is a `PythonError` (M54):** Taipan's built-in classes such as `KeyError` are its own, so `except KeyError` doesn't catch a `KeyError` from Python code. To catch Python's, name its class through its module, as below: `from python import builtins`, then `except builtins.KeyError`. Or catch `PythonError`. Where a `try` body uses a `py` value and an `except` names a built-in class that Python also has, with no clause of the `try` catching `PythonError`, `Exception`, `BaseException` or a Python class, it's warning `TP0306`. `TypeError` is left out when the body converts a `py` value with `as`, which raises Taipan's own (§10.4). The warning is `a Python '<C>' arrives as PythonError, which this doesn't catch`, with help `catch 'builtins.<C>' after 'from python import builtins', or 'PythonError'`.
 - `except m.E` where `m` is a Python module (`py`, §10) takes a Python exception class: `except json.JSONDecodeError`. It matches a `PythonError` whose `value` is an instance of that class, as tested by Python's `isinstance`. The class is looked up when an exception reaches the clause.
 - Anything else, such as a class not deriving from `Exception`, an enum or a type parameter, is `TP0200`.
 - `except … as e` binds `e`, a `let` visible only in that clause's block. Its type is the clause's class, `PythonError` for a Python class, or the nearest class all of the listed classes derive from (§3.3), so `except (KeyError, IndexError) as e` gives a `LookupError`.
@@ -1081,7 +1083,7 @@ NotFound: db
   - First its cause, printed the same way, then `\nThe above exception was the direct cause of the following exception:\n\n`. Without a cause, its context, unless `__suppress_context__` is set, then `\nDuring handling of the above exception, another exception occurred:\n\n`. An exception already printed in this chain isn't printed again.
   - Then, if its traceback has entries, `Traceback (most recent call last):`, and for each entry `  File "<file>", line <n>, in <name>` followed by the line's text, stripped of leading and trailing whitespace, indented four spaces. `<file>` is the source path as given on the command line (§9). The text is read from the file when the traceback is printed, as Python's is, and left out if the file can't be read.
   - The same entry (file, line and name) more than three times in a row prints three times, then `  [Previous line repeated <k> more times]` (`time` when `<k>` is 1), as in Python.
-  - Last, the exception: `<class>: <str(e)>`, or `<class>` alone when `str(e)` is empty. `<class>` is the class's name, qualified with its module (`zoo.NotFound`) unless it's a built-in class or in the main file. A `PythonError` (§10.5) prints its Python class as Python would, `json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)`, and a `DotNetError` (§13.6) its .NET class's full name, `System.FormatException: …`. If the class's `__str__` raises, the text is `<exception str() failed>`, as in Python.
+  - Last, the exception: `<class>: <str(e)>`, or `<class>` alone when `str(e)` is empty. `<class>` is the class's name, qualified with its module (`zoo.NotFound`) unless it's a built-in class or in the main file. A `PythonError` (§10.5) prints its Python class as Python would, `json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)`, and since M54 a note on the next line, as Python prints an exception's notes: `(raised in Python: catch it with 'except PythonError', or by its Python class, as in 'except builtins.KeyError')`, and a `DotNetError` (§13.6) its .NET class's full name, `System.FormatException: …`. If the class's `__str__` raises, the text is `<exception str() failed>`, as in Python.
   - The program then exits with 101 (§7, §9). Python exits with 1.
 - A Python exception's own frames, inside Python code, aren't printed.
 
@@ -2168,6 +2170,7 @@ The output is one C# compilation unit per program, compiled in-process by Roslyn
 | TP0303 | warning: a `test_` function that can't be run as a test (M44, §20; reported only by `taipan test`) |
 | TP0304 | warning: repeating a list whose element is a new list, dict or set (M48, §5.3) |
 | TP0305 | warning: arithmetic directly on the right side of `??`, which binds more loosely (§3.4) |
+| TP0306 | warning: an `except` that names a built-in class around Python code, missing Python's own (M54, §3.10) |
 
 New codes go into this table before they're implemented.
 
@@ -2213,7 +2216,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0200 | `'<T>' does not satisfy '<P>': it has no method '<m>'` / `'<T>' does not satisfy '<P>': '<m>' must be 'def <m>(self, …) -> <R>'` (the protocol's signature with `Self` replaced; `-> <R>` left out when it returns nothing), at a call's callee or a declared protocol, with ` (declared by '<B>')` after `'<P>'` for an inherited declaration / `'...' can only be the body of a protocol method` / `'<m>' cannot be called directly`, with help `use '<'` (M17) |
 | TP0200 | `'super()' can only be used as 'super().<method>(…)'` / `'super()' can only be used in a method` / `'<C>' has no base class` / `'__init__' cannot be called directly` / `'__init__' cannot have a return type` (M15) |
 | TP0200 | `'<m>' cannot be called directly`, with help `use '<form>'` (a special method, as M17's `__lt__`) / `dict keys must be hashable, found <C>`, with help as §4.8 says / `cannot hash <T>` / `'+' on <A> and <B> is ambiguous: '<C>.__add__' would run when it fits` / `'<p>' is a property; read it from an instance` / `'<m>' needs an instance of '<C>'` / `'cls' can only be called, or used to reach static and class methods and class attributes` / `'ClassVar' can only annotate a class attribute` / `'<B>.<m>' is abstract` (M28) |
-| TP0201 | `'<f>' reads '<x>', which isn't set until line <n>`, with help `move this below line <n>` (M53) / `'<x>' is used before its definition on line <n>, where Python would still use the built-in`, with help `move the definition above this use` (M51) / `undefined name '<x>'` (with help `use 'None'` for `none`, and `infinite recursion ends the process, as in .NET, so nothing can catch it` for `RecursionError`) / `undefined type '<T>'` / `module '<m>' has no definition '<x>'` / `.NET namespace '<ns>' has no type '<x>'` (M21) |
+| TP0201 | `'<f>' reads '<x>', which isn't set until line <n>`, with help `move this below line <n>` (M53) / `'<x>' is used before its definition on line <n>, where Python would still use the built-in`, with help `move the definition above this use` (M51) / `undefined name '<x>'` (with help `use 'None'` for `none`, `infinite recursion ends the process, as in .NET, so nothing can catch it` for `RecursionError`, `Taipan has no '__name__': a main file can't be imported, so put code to share in a module` for `__name__`, and `if it's a new variable, declare it with 'let', 'var' or 'const'` when it's assigned with `=`, as Python's first assignment declares a name) / `undefined type '<T>'` / `module '<m>' has no definition '<x>'` / `.NET namespace '<ns>' has no type '<x>'` (M21) |
 | TP0202 | `cannot assign to '<x>': it is a <let binding\|parameter\|loop variable\|constant\|function\|method>`, with help `declare it with 'var'` for a `let` binding / `cannot assign to an element of str` / `cannot assign to an element of a tuple` / `cannot use '<op>' on a slice` / `cannot delete '<x>'`, with help `assign it a new value instead` / `cannot delete a field` / `cannot delete an element of <T>` (M26) / `cannot assign to '<p>': it is a read-only property` / `cannot assign to '<a>' through '<x>'`, with help `assign '<C>.<a>'` (M28) |
 | TP0202 | `cannot assign to '<f>': '<C>' is frozen` (M39) |
 | TP0203 | help `the change to a <T> on line <n> could have changed it; copy it to a 'let' first` (an element, M40) |
@@ -2235,7 +2238,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0213 | `optional types cannot be nested` |
 | TP0214 | `duplicate definition of '<x>'` |
 | TP0214 | `key <k> appears twice in a mapping pattern` (M38) |
-| TP0100 | `'**' must come last in a mapping pattern` / `'**_' can't be used; leave it out` / `a tuple pattern can have only one '*'` (M38) |
+| TP0100 | `Taipan has no conditional expression`, at the `if` of Python's `a if c else b`, with help `use a 'match' expression or an 'if' statement` / `'**' must come last in a mapping pattern` / `'**_' can't be used; leave it out` / `a tuple pattern can have only one '*'` (M38) |
 | TP0215 | `'yield' can't be inside a 'with'` (M37) / `'await' can't be inside a comprehension` (M36) / `'await' outside an async function` / `'yield' in an async function` (M33) / `'yield' outside a function` / `'yield' can't be inside a 'try' with 'except', or in 'finally'` (M31) / `'<k>' can't leave a 'match' expression`, with help `use a 'match' statement` (M29) / `'break' outside a loop` / `'continue' outside a loop` / `'return' outside a function` / `'raise' without an exception outside an except block` / `'return' cannot be used in a finally block` (and `'break'`, `'continue'`) (M16) |
 | TP0216 | `'<v>' is ambiguous: it is a variant of <E1> and <E2>`, with help `qualify it, e.g. '<E1>.<v>'` |
 | TP0217 | `const initializer must be a constant expression` / `class attribute value must be a constant expression` (M28) |
@@ -2268,6 +2271,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0300 | `unreachable match arm` / `unreachable except clause`, with help `'<B>' is already caught above` / `unreachable code` (M16) |
 | TP0301 | `this clause catches every exception and discards it`, with help `catch a specific class, re-raise with 'raise', or bind it with 'as e' and use it` (M16) |
 | TP0303 | `'<f>' takes parameters, so it isn't run as a test` (M44) |
+| TP0306 | `a Python '<C>' arrives as PythonError, which this doesn't catch`, with help `catch 'builtins.<C>' after 'from python import builtins', or 'PythonError'` (M54) |
 | TP0305 | `'??' binds more loosely than '<op>', so this is '<a> ?? (<b>)'`, with help `write '(<a> ?? <first>)<rest>' if you meant that, or add the parentheses to keep this` |
 | TP0304 | `every copy shares the same <list\|dict\|set>`, with help `build each one separately, with a comprehension: [… for _ in range(…)]` (M48) |
 | TP0302 | `'<f>' is not exported: <reason>`, where `<reason>` is `its type parameter '<T>' has a bound` / `'<T>?' has no .NET generic form` / `it uses '<g>', which isn't a .NET generic` / `it uses '<C>', which isn't exported` / `it has its module's name` (M22) / `'<T>' can't be passed to Python` / `it's generic` (M25) / `it's used as the protocol '<P>'` (M40) / `'<T>' can't be passed to C` / `it's async` / `it has '*args' or '**kwargs'` / `it has keyword-only parameters` (a native library) (M45), with help `rename it '_<f>' to keep it private` |

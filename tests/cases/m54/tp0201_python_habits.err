@@ -1,0 +1,12 @@
+tests/cases/m54/tp0201_python_habits.tpn:1:1: error TP0201: undefined name 'USAGE'
+  help: if it's a new variable, declare it with 'let', 'var' or 'const'
+tests/cases/m54/tp0201_python_habits.tpn:2:1: error TP0201: undefined name 'first'
+  help: if it's a new variable, declare it with 'let', 'var' or 'const'
+tests/cases/m54/tp0201_python_habits.tpn:2:8: error TP0201: undefined name 'second'
+  help: if it's a new variable, declare it with 'let', 'var' or 'const'
+tests/cases/m54/tp0201_python_habits.tpn:3:33: error TP0200: expected int, found str
+  help: a dict's values share one type; use a dataclass, or 'dict[str, py]' for JSON
+tests/cases/m54/tp0201_python_habits.tpn:5:4: error TP0201: undefined name '__name__'
+  help: Taipan has no '__name__': a main file can't be imported, so put code to share in a module
+tests/cases/m54/tp0201_python_habits.tpn:9:5: error TP0201: undefined name 'total'
+  help: if it's a new variable, declare it with 'let', 'var' or 'const'

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "tests/cases/m54/panic_python_note.tpn", line 3, in <module>
+    print(data["status"])
+KeyError: 'status'
+(raised in Python: catch it with 'except PythonError', or by its Python class, as in 'except builtins.KeyError')

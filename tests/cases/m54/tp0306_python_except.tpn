@@ -1,0 +1,40 @@
+from python import json
+from python import builtins
+
+let data = json.loads("{\"a\": 1}")
+
+try:
+    print(data["a"])
+except (KeyError, TypeError) as e:
+    print("missed")
+except ValueError as e:
+    print("missed too")
+
+try:
+    print(data["status"])
+except KeyError as e:
+    print("caught by the next clause")
+except PythonError as e:
+    print("caught", e.type)
+
+try:
+    print(data["status"])
+except builtins.KeyError as e:
+    print("caught", e.type)
+
+let d = {"a": 1}
+try:
+    print(d["b"])
+except KeyError as e:
+    print("a Taipan KeyError", e)
+
+try:
+    let f: Callable[[], py] = lambda: data["status"]
+except KeyError as e:
+    print("the lambda runs later")
+
+try:
+    let n = json.loads("\"three\"") as int
+    print(n)
+except TypeError as e:
+    print("Taipan's TypeError, from 'as'")

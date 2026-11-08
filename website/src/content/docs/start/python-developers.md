@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-Taipan is written in Python's syntax, so most Python code reads the same. The differences come from one decision: **types are checked when you compile, not when a line runs**. This page lists what that changes.
+Taipan is written in Python's syntax, so most Python code reads the same. The differences come from one decision: **types are checked when you compile, not when a line runs**. This page lists what that changes. [Differences from Python](../../reference/python-differences/) has the complete list.
 
 ## What stays the same
 
@@ -47,6 +47,7 @@ for word in ["a", "b"]:
 
 ```error
 main.tpn:3:5: error TP0201: undefined name 'cuont'
+  help: if it's a new variable, declare it with 'let', 'var' or 'const'
 ```
 
 `const` declares a top-level constant. Blocks have their own scope, as in C#, and a name in an inner block can't shadow one in an outer block.
@@ -170,6 +171,8 @@ print(area(Rect(2.0, 3.0)))
 - **A nested function needs `nonlocal` to assign to an outer variable**, as in Python, but a new local of the same name isn't possible, so forgetting it is a compile error (`TP0236`). Top-level variables have no `global`: a nested function can read them but not assign to them.
 - **`*=` isn't supported on a list**: write `xs = xs * n`, which makes a new list. `[0] * n` and `"-" * n` work as in Python.
 - **A hole in a triple-quoted f-string stays on one line**, where Python 3.12 allows several. `\N{…}` escapes and `bytes` aren't supported. String prefixes are lowercase.
+- **A main file can't be imported**, and there's no `__name__`. To test a command-line tool, put its code in a module that the main file and the test file both import.
+- **A Python exception is a `PythonError`**: `except KeyError` catches Taipan's `KeyError`, not one from Python code. Catch Python's with `from python import builtins` and `except builtins.KeyError`, or catch `PythonError`.
 - **Each loop iteration has its own variable**, so `[lambda: i for i in range(3)]` gives functions returning 0, 1 and 2.
 - **No conditional expression**: `a if c else b` is written as an `if` statement or a `match` expression.
 - **Strings in containers print with double quotes**: `print(["a"])` is `["a"]`.

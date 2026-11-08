@@ -2,3 +2,4 @@ Traceback (most recent call last):
   File "tests/cases/m10/panic_import.tpn", line 2, in <module>
     from python import no_such_module_xyz
 ModuleNotFoundError: No module named 'no_such_module_xyz'
+(raised in Python: catch it with 'except PythonError', or by its Python class, as in 'except builtins.KeyError')

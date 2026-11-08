@@ -2530,6 +2530,14 @@ public sealed partial class Binder
     private BoundStmt BindVariableAssign(AssignStmt assign, NameExpr target, BoundExpr? preset)
     {
         _assignedNames.Add(target.Name);
+        // Python's first assignment declares a name; Taipan's doesn't (SPEC §9, TP0201).
+        if (assign.Op == AssignOp.Assign && _scope.Lookup(target.Name) is null && SharedBinding(target.Name) is null
+            && !(_outerFunction is not null && _scriptNames.Contains(target.Name)))
+        {
+            _diagnostics.ReportAssignedUndeclared(target.Span, target.Name);
+            Unresolved(target.Span, inType: false);
+            return OrphanAssign(assign, preset);
+        }
         var symbol = LookupName(target.Name, target.Span);
         if (symbol is not VariableSymbol variable)
         {
@@ -2881,8 +2889,46 @@ public sealed partial class Binder
             _finallyLoopDepth = outer;
         }
         _narrowing = start;
+        WarnOfMissedPythonExceptions(tryStmt, body, handlers);
         return new BoundTry(body, handlers, elseBlock, finallyBlock, tryStmt.Span);
     }
+
+    // The built-in classes Python has too, whose Python instances arrive as PythonError (SPEC §3.10, M54).
+    private static readonly HashSet<string> PythonBuiltinExceptions =
+    [
+        "ArithmeticError", "ZeroDivisionError", "OverflowError", "LookupError", "IndexError", "KeyError", "ValueError",
+        "TypeError", "RuntimeError", "NameError", "StopIteration", "AssertionError", "EOFError", "OSError",
+        "FileNotFoundError", "FileExistsError", "PermissionError", "IsADirectoryError", "TimeoutError",
+        "UnicodeError", "UnicodeDecodeError", "UnicodeEncodeError", "StopAsyncIteration",
+    ];
+
+    private void WarnOfMissedPythonExceptions(TryStmt tryStmt, BoundBlock body, ImmutableArray<BoundHandler> handlers)
+    {
+        if (!UsesPython(body) || handlers.Any(h => !h.PythonClasses.IsEmpty || h.Classes.Any(c => BuiltinClasses.PythonError.DerivesFrom(c))))
+            return;
+        // Converting a py value with `as` raises Taipan's own TypeError (SPEC §10.4), which the clause may be for.
+        var converts = Any(body, e => e is BoundCast { Value.Type: PrimitiveType { Name: "py" } });
+        foreach (var (clause, handler) in tryStmt.Handlers.Zip(handlers))
+        {
+            foreach (var type in clause.Types.OfType<NameExpr>())
+            {
+                if (PythonBuiltinExceptions.Contains(type.Name) && !(converts && type.Name == "TypeError")
+                    && handler.Classes.Any(c => c.Name == type.Name && BuiltinClasses.All.Contains(c)))
+                    _diagnostics.ReportPythonExceptionMissed(type.Span, type.Name);
+            }
+        }
+    }
+
+    // Whether a block works with a py value itself, not in a lambda or nested function, which run later.
+    private static bool UsesPython(BoundStmt stmt) => Any(stmt, e => e.Type == TaipanType.Py);
+
+    // Whether any expression a statement evaluates itself, outside lambdas and nested functions, matches.
+    private static bool Any(BoundStmt stmt, Func<BoundExpr, bool> test) =>
+        BoundTree.Expressions(stmt).Any(e => Any(e, test))
+        || stmt is not BoundLocalFunction && BoundTree.Statements(stmt).Any(s => Any(s, test));
+
+    private static bool Any(BoundExpr expr, Func<BoundExpr, bool> test) =>
+        expr is not BoundLambda && (test(expr) || BoundTree.Children(expr).Any(e => Any(e, test)));
 
     private BoundHandler BindHandler(ExceptClause clause, List<ClassSymbol> caught, List<Microsoft.CodeAnalysis.INamedTypeSymbol> caughtDotNet)
     {
@@ -4264,7 +4310,7 @@ public sealed partial class Binder
             ReportInvalidKey(dict.Entries[0].Key.Span, keyType);
             keyType = TaipanType.Error;
         }
-        var valueType = InferElementType([.. entries.Select(e => e.Value)]);
+        var valueType = InferElementType([.. entries.Select(e => e.Value)], "a dict's values share one type; use a dataclass, or 'dict[str, py]' for JSON");
         return new BoundDictLiteral([.. entries.Select(e => (e.Key, e.Value))], new DictOfType(keyType, valueType), dict.Span);
     }
 
@@ -4272,7 +4318,7 @@ public sealed partial class Binder
     /// The common type of literal elements (SPEC §4.6, §3.4): all equal, int and float mixing to
     /// float, and none or T? mixing with T to T?.
     /// </summary>
-    private TaipanType InferElementType(ImmutableArray<BoundExpr> elements)
+    private TaipanType InferElementType(ImmutableArray<BoundExpr> elements, string? mismatchHelp = null)
     {
         TaipanType? common = null;
         var optional = false;
@@ -4300,7 +4346,7 @@ public sealed partial class Binder
                 common = join;
             else
             {
-                _diagnostics.ReportTypeMismatch(element.Span, optional ? new OptionalOf(common) : common, element.Type);
+                _diagnostics.ReportTypeMismatch(element.Span, optional ? new OptionalOf(common) : common, element.Type, mismatchHelp);
                 return TaipanType.Error;
             }
         }

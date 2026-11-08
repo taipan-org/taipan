@@ -1,0 +1,8 @@
+tests/cases/m54/tp0100_conditional.tpn:2:13: error TP0100: Taipan has no conditional expression
+  help: use a 'match' expression or an 'if' statement
+tests/cases/m54/tp0100_conditional.tpn:3:17: error TP0100: Taipan has no conditional expression
+  help: use a 'match' expression or an 'if' statement
+tests/cases/m54/tp0100_conditional.tpn:5:17: error TP0100: Taipan has no conditional expression
+  help: use a 'match' expression or an 'if' statement
+tests/cases/m54/tp0100_conditional.tpn:6:40: error TP0100: Taipan has no conditional expression
+  help: use a 'match' expression or an 'if' statement
