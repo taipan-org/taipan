@@ -1,0 +1,7 @@
+def read() -> int:
+    return LATER
+
+let call_it: Callable[[], int] = lambda: read()
+print("before")
+print(call_it())
+let LATER = 1

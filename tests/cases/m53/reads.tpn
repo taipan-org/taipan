@@ -1,0 +1,51 @@
+from dotnet.System.Text.RegularExpressions import Regex
+
+let LIMIT = 3
+let TABLE = {"py": "Python", "tpn": "Taipan"}
+let PATTERN = Regex(r"(\d+)-(\d+)")
+var counter = 0
+let services = ["api", "worker"]
+var sum = 100
+
+def language(ext: str) -> str:
+    return TABLE.get(ext) ?? "unknown"
+
+def span(text: str) -> int:
+    let m = PATTERN.Match(text)
+    return (int(m.Groups[2].Value) ?? 0) - (int(m.Groups[1].Value) ?? 0)
+
+def under(n: int) -> bool:
+    return n < LIMIT
+
+def seen() -> int:
+    return counter
+
+def find(services: list[str], name: str) -> bool:
+    return name in services
+
+def total() -> int:
+    return sum + len(services)
+
+def nested() -> list[bool]:
+    def inner(n: int) -> bool:
+        return n < LIMIT
+    let check: Callable[[int], bool] = lambda n: n < LIMIT
+    return [inner(2), check(5)]
+
+def numbers() -> Iterator[int]:
+    for i in range(LIMIT):
+        yield i
+
+def record(name: str):
+    TABLE.get(name)
+
+class Counter:
+    def now(self) -> int:
+        return counter
+
+print(language("tpn"), language("x"), under(2), under(3))
+print(seen())
+counter = 5
+print(seen(), Counter().now())
+print(find(["db"], "api"), find(services, "api"), total())
+print(nested(), list(numbers()), span("3-10"))

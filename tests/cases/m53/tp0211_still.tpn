@@ -1,0 +1,13 @@
+if True:
+    let inside = 1
+let first, second = (1, 2)
+let limit = 3
+
+def f() -> int:
+    return inside
+
+def g() -> int:
+    return first + second
+
+def h(n: int = limit) -> int:
+    return n

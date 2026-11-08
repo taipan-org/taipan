@@ -1,0 +1,8 @@
+tests/cases/m53/tp0211_still.tpn:7:12: error TP0211: 'f' cannot use top-level variable 'inside'
+  help: it's bound inside a block or by unpacking; give it its own top-level 'let' or 'var'
+tests/cases/m53/tp0211_still.tpn:10:12: error TP0211: 'g' cannot use top-level variable 'first'
+  help: it's bound inside a block or by unpacking; give it its own top-level 'let' or 'var'
+tests/cases/m53/tp0211_still.tpn:10:20: error TP0211: 'g' cannot use top-level variable 'second'
+  help: it's bound inside a block or by unpacking; give it its own top-level 'let' or 'var'
+tests/cases/m53/tp0211_still.tpn:12:16: error TP0211: 'h' cannot use top-level variable 'limit'
+  help: pass it as a parameter, or make it a const

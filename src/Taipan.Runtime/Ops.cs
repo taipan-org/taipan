@@ -576,6 +576,9 @@ public static class Ops
 
     public static List<T> Concat<T>(List<T> left, List<T> right) => [.. left, .. right];
 
+    /// <summary>A top-level binding read before it's set, as Python raises it (SPEC §4.1, M53).</summary>
+    public static T Unset<T>(string name) => throw new NameError($"name '{name}' is not defined");
+
     // ---- dict(…) (SPEC §6, M52) ----
 
     public static OrderedDictionary<TKey, TValue> DictCopy<TKey, TValue>(OrderedDictionary<TKey, TValue> dict) where TKey : notnull =>

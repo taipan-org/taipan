@@ -13,10 +13,10 @@ tests/cases/m11/tp0236_nonlocal.tpn:20:18: error TP0236: 'p' is declared in this
 tests/cases/m11/tp0236_nonlocal.tpn:23:9: error TP0236: 'nonlocal' must come first in a function's body
 tests/cases/m11/tp0236_nonlocal.tpn:24:5: error TP0236: 'nonlocal' can only be used in a nested function
 tests/cases/m11/tp0236_nonlocal.tpn:26:1: error TP0236: 'nonlocal' can only be used in a nested function
-tests/cases/m11/tp0236_nonlocal.tpn:30:9: error TP0236: a nested function can't assign to the top-level variable 'total'
+tests/cases/m11/tp0236_nonlocal.tpn:30:9: error TP0236: a function can't assign to the top-level variable 'total'
   help: pass it in and return the new value
 tests/cases/m11/tp0236_nonlocal.tpn:32:18: error TP0236: no binding for nonlocal 'total' found
-tests/cases/m11/tp0236_nonlocal.tpn:33:9: error TP0236: a nested function can't assign to the top-level variable 'total'
+tests/cases/m11/tp0236_nonlocal.tpn:33:9: error TP0236: a function can't assign to the top-level variable 'total'
   help: pass it in and return the new value
 tests/cases/m11/tp0236_nonlocal.tpn:39:9: error TP0202: cannot assign to 'k': it is a let binding
   help: declare it with 'var'

@@ -7,6 +7,7 @@ namespace Taipan.Compiler.Semantics;
 // The bound tree: names resolved to symbols, every expression typed. The emitter works from
 // this tree only. Spans point back at the source for #line mapping.
 
+/// <summary><see cref="SharedTopLevel"/>: the top-level bindings a function reads (SPEC §4.1, M53).</summary>
 public sealed record BoundProgram(
     ImmutableArray<BoundPythonImport> PythonImports,
     ImmutableArray<EnumSymbol> Enums,
@@ -26,6 +27,8 @@ public sealed record BoundProgram(
 
     /// <summary>For <c>taipan test</c>, the main file's test functions, which its entry point runs (SPEC §20); default otherwise.</summary>
     public ImmutableArray<FunctionSymbol> Tests { get; init; }
+
+    public ImmutableArray<VariableSymbol> SharedTopLevel { get; init; } = [];
 
     /// <summary>How a program bound as a library is exported (SPEC §14); null for a program.</summary>
     public BoundLibrary? Library { get; init; }

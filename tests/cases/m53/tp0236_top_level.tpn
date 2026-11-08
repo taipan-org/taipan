@@ -1,0 +1,19 @@
+var count = 0
+let xs = [1]
+
+def bump():
+    count = count + 1
+
+def add():
+    count += 1
+
+def extend():
+    xs += [2]
+
+def mutate():
+    xs.append(2)
+
+var other = 0
+
+def swap():
+    count, other = 1, 2

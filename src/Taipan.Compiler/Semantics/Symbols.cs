@@ -537,6 +537,8 @@ public static class BuiltinClasses
             value,
             Builtin("TypeError", Exception),
             Builtin("RuntimeError", Exception),
+            // M53 (SPEC §4.1).
+            Builtin("NameError", Exception),
             CreateStopIteration(),
             // M42 (SPEC §3.20).
             Builtin("GeneratorExit", BaseException),

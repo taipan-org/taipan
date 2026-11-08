@@ -407,12 +407,12 @@ There are no other implicit conversions. Explicit conversions use the built-ins 
   - Its name is a `let` binding, visible from the `def` to the end of the block and inside its own body, so it may recurse. It follows the usual shadowing rules.
   - A nested function can't have type parameters (`TP0223`), but it may use those of an enclosing generic function.
   - `return`, `break` and `continue` in its body belong to the nested function. A loop around the `def` isn't its loop (`TP0215`).
-- **Capture:** a lambda or nested function may use any binding visible where it's written. That includes parameters, `self`, and top-level `let`/`var` bindings when it's written at the top level. A function nested inside a top-level function still can't see top-level variables (`TP0211`).
+- **Capture:** a lambda or nested function may use any binding visible where it's written. That includes parameters, `self`, and top-level `let`/`var` bindings, which since M53 any function of the main file reads (§4.1).
   - A captured `var` is shared, not copied. The function sees later assignments to it.
   - **`nonlocal`:** a nested function assigns to a binding of an enclosing function only after declaring it, as in Python: `nonlocal n`. Without that, assigning to it, including with `op=` and a list's `+=`, is `TP0236`, since Python would make a new local variable there. Taipan's locals are declared with `let` or `var`, and one can't reuse the outer name (`TP0207`), so a new local needs another name.
     - `nonlocal` statements come first in the nested function's body, after any docstring, and may be repeated. Elsewhere, or in a function that isn't nested or at the top level, it's `TP0236`.
     - The name must be a binding of an enclosing function, and not one the function itself declares (`TP0236`). `nonlocal` changes nothing else: assigning to a `let`, a parameter or a loop variable is still `TP0202`, though a `let` or a parameter holding a list may use `+=` (§4.5).
-    - A nested function in a top-level block can't assign to a top-level variable, with or without `nonlocal` (`TP0236`). Python would need `global`, which Taipan doesn't have.
+    - No function can assign to a top-level variable, with or without `nonlocal` (`TP0236`), since Python would need `global`, which Taipan doesn't have.
   - A `let`, a parameter or a loop variable can't change, so capturing one captures its value.
   - Each loop iteration gets its own loop variable and its own body bindings. So the functions made by `for i in range(3): fs.append(lambda: i)` return 0, 1 and 2, where in Python they'd all return 2.
 - **Equality and display:**
@@ -558,6 +558,7 @@ finally:
   | `KeyError` | `LookupError` | a missing dict key; a missing set value in `remove` and `pop` from an empty set (M35) |
   | `ValueError` | `Exception` | `int(x)` of a NaN, `split("")`, and a slice step of 0; since M35, `min`/`max` of an empty iterable, a missing value in `list.remove`/`index` and `str.index`, a `range` step of 0, and a negative `int` exponent |
   | `TypeError` | `Exception` | a failed `as` (§4.3, §10.4) |
+  | `NameError` | `Exception` | reading a top-level binding before it's set, through a call the compiler can't trace (M53, §4.1) |
   | `RuntimeError` | `Exception` | changing a list, dict or set (M35) while iterating over it; `StopIteration` escaping a generator (M31) |
   | `StopIteration` | `Exception` | `next()` on an exhausted iterator, or a class's `__next__` ending (M31, §3.13), and a generator's `send` when it finishes (M42) |
   | `GeneratorExit` (M42) | `BaseException` | a generator's `close()` (§3.20) |
@@ -1198,8 +1199,13 @@ print(await asyncio.gather(consume("a"), consume("b")))   # a0 b0 a1 b1, then [2
 - **Shadowing** a name from an enclosing block is `TP0207`. Redeclaring a name in the same block is `TP0214`.
 - **Top level:**
   - `def`, `class`, `enum`, and `const` are hoisted and visible everywhere.
-  - Top-level `let` and `var` are script locals. They're visible only to later top-level statements. Referencing one from inside a function is `TP0211`.
-  - `TP0211`'s help offers `const` only when the binding could be one: a `let` or `var` statement directly at the top level, not in a block, whose initializer is a constant expression (§4.5), with no other top-level binding of the name, and for a `var`, no assignment to the name anywhere in the file.
+  - Top-level `let` and `var` bindings belong to the script's top level. They're visible to later top-level statements, and since M53 to every function and method of the main file, as Python's module variables are (below). Other files don't see them.
+  - **Functions read top-level bindings (M53):** a function or method of the main file, and a lambda or nested function inside one, reads a `let` or `var` written directly at the top level, not inside a block or by unpacking, and sees its current value.
+    - It finds the binding before a built-in of the same name, as Python finds a module variable before a built-in. Its own parameters and locals come first, and may have the same name, as in Python, so `def find(services: list[Service])` beside a top-level `let services` isn't `TP0207`.
+    - Assigning to the binding from a function, including with `op=` or a list's `+=`, is `TP0236`, since Taipan has no `global`. Changing what it holds, as in `table[k] = v` or `xs.append(x)`, is allowed, as in Python.
+    - **Before it's set:** a top-level statement that calls a function, constructs a class or uses a function as a value, before a binding the callee reads is set, is `TP0201`, `'<f>' reads '<x>', which isn't set until line <n>`, with help `move this below line <n>`. That covers what the callee reads itself and through the functions, methods and constructors it calls by name, and a call in the binding's own initializer. A read the compiler can't trace, such as through an overridden method or a function stored and called later, raises `NameError`, `name '<x>' is not defined`, if it happens before the binding is set, as in Python.
+    - A name bound inside a top-level block or by unpacking, and any top-level binding used by a default value (§4.2), is still `TP0211`.
+  - For a default value, `TP0211`'s help offers `const` only when the binding could be one: a `let` or `var` statement directly at the top level, not in a block, whose initializer is a constant expression (§4.5), with no other top-level binding of the name, and for a `var`, no assignment to the name anywhere in the file.
 
 ### 4.2 Functions
 - `def` declares a function. Recursion and mutual recursion are allowed, since functions are hoisted. A `def` inside a block is a nested function, which isn't hoisted (§3.7).
@@ -2207,7 +2213,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0200 | `'<T>' does not satisfy '<P>': it has no method '<m>'` / `'<T>' does not satisfy '<P>': '<m>' must be 'def <m>(self, …) -> <R>'` (the protocol's signature with `Self` replaced; `-> <R>` left out when it returns nothing), at a call's callee or a declared protocol, with ` (declared by '<B>')` after `'<P>'` for an inherited declaration / `'...' can only be the body of a protocol method` / `'<m>' cannot be called directly`, with help `use '<'` (M17) |
 | TP0200 | `'super()' can only be used as 'super().<method>(…)'` / `'super()' can only be used in a method` / `'<C>' has no base class` / `'__init__' cannot be called directly` / `'__init__' cannot have a return type` (M15) |
 | TP0200 | `'<m>' cannot be called directly`, with help `use '<form>'` (a special method, as M17's `__lt__`) / `dict keys must be hashable, found <C>`, with help as §4.8 says / `cannot hash <T>` / `'+' on <A> and <B> is ambiguous: '<C>.__add__' would run when it fits` / `'<p>' is a property; read it from an instance` / `'<m>' needs an instance of '<C>'` / `'cls' can only be called, or used to reach static and class methods and class attributes` / `'ClassVar' can only annotate a class attribute` / `'<B>.<m>' is abstract` (M28) |
-| TP0201 | `'<x>' is used before its definition on line <n>, where Python would still use the built-in`, with help `move the definition above this use` (M51) / `undefined name '<x>'` (with help `use 'None'` for `none`, and `infinite recursion ends the process, as in .NET, so nothing can catch it` for `RecursionError`) / `undefined type '<T>'` / `module '<m>' has no definition '<x>'` / `.NET namespace '<ns>' has no type '<x>'` (M21) |
+| TP0201 | `'<f>' reads '<x>', which isn't set until line <n>`, with help `move this below line <n>` (M53) / `'<x>' is used before its definition on line <n>, where Python would still use the built-in`, with help `move the definition above this use` (M51) / `undefined name '<x>'` (with help `use 'None'` for `none`, and `infinite recursion ends the process, as in .NET, so nothing can catch it` for `RecursionError`) / `undefined type '<T>'` / `module '<m>' has no definition '<x>'` / `.NET namespace '<ns>' has no type '<x>'` (M21) |
 | TP0202 | `cannot assign to '<x>': it is a <let binding\|parameter\|loop variable\|constant\|function\|method>`, with help `declare it with 'var'` for a `let` binding / `cannot assign to an element of str` / `cannot assign to an element of a tuple` / `cannot use '<op>' on a slice` / `cannot delete '<x>'`, with help `assign it a new value instead` / `cannot delete a field` / `cannot delete an element of <T>` (M26) / `cannot assign to '<p>': it is a read-only property` / `cannot assign to '<a>' through '<x>'`, with help `assign '<C>.<a>'` (M28) |
 | TP0202 | `cannot assign to '<f>': '<C>' is frozen` (M39) |
 | TP0203 | help `the change to a <T> on line <n> could have changed it; copy it to a 'let' first` (an element, M40) |
@@ -2225,7 +2231,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0209 | `'<f>' takes <n> positional arguments, found <m>` / `missing keyword-only argument '<x>'` / `'*<e>' can only fill '*<args>'` / `'<f>' has no '*args' for '*<e>'` / `'<f>' has no '**kwargs' for '**<e>'` / `'**<e>' can't fill '<x>'` (M30) |
 | TP0209 | `expected a lambda with <n> parameters, found <m>` (`parameter` when n is 1) / `'Callable' takes a parameter list and a result type` |
 | TP0210 | `<T> has no field '<x>'` / `<T> has no method '<x>'` / `<E> has no variant '<x>'` |
-| TP0211 | `'<f>' cannot use top-level variable '<x>'`, with help `pass it as a parameter, or make it a const` when `<x>` could be a constant (§4.1), and `pass it as a parameter` otherwise |
+| TP0211 | `'<f>' cannot use top-level variable '<x>'`, with help `pass it as a parameter, or make it a const` when `<x>` could be a constant (§4.1), `pass it as a parameter` otherwise, and since M53 `it's bound inside a block or by unpacking; give it its own top-level 'let' or 'var'` for those |
 | TP0213 | `optional types cannot be nested` |
 | TP0214 | `duplicate definition of '<x>'` |
 | TP0214 | `key <k> appears twice in a mapping pattern` (M38) |
@@ -2249,7 +2255,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0228 | `'<B>.<m>' is final` / `'<m>' must return Self, as '<B>.<m>' does` (M39) |
 | TP0228 | `'<m>' must be 'def <m>(self, <params>) -> <R>', as in '<I>.<m>'` (implementing a .NET interface's method, or overriding a .NET class's) (M43) |
 | TP0235 | `this awaitable is never awaited`, with help `write 'await …'` (M33) |
-| TP0236 | `'<x>' belongs to an enclosing function, so assigning to it needs 'nonlocal'`, with help `add 'nonlocal <x>' at the start of this function, or use 'let' with another name for a new variable` / `a nested function can't assign to the top-level variable '<x>'`, with help `pass it in and return the new value` / `'nonlocal' can only be used in a nested function` / `'nonlocal' must come first in a function's body` / `no binding for nonlocal '<x>' found` / `'<x>' is declared in this function, so it can't be nonlocal` |
+| TP0236 | `'<x>' belongs to an enclosing function, so assigning to it needs 'nonlocal'`, with help `add 'nonlocal <x>' at the start of this function, or use 'let' with another name for a new variable` / `a function can't assign to the top-level variable '<x>'`, with help `pass it in and return the new value` / `'nonlocal' can only be used in a nested function` / `'nonlocal' must come first in a function's body` / `no binding for nonlocal '<x>' found` / `'<x>' is declared in this function, so it can't be nonlocal` |
 | TP0234 | `cannot instantiate abstract class '<C>'`, with help `it does not implement '<B>.<m>'` (`'<B>.<m>' and '<B>.<n>'` for more) / `'cls(…)' may construct the abstract class '<C>'` / `'<C>' cannot add abstract method '<m>', since '<B>.<cm>' calls 'cls(…)'` (M28) |
 | TP0220 | `a bound can't use type parameters` (M40) |
 | TP0220 | `a constraint needs at least two types` / `'<T>' is listed twice in the constraint` / `a constraint cannot be optional or generic` / `constraints are only supported on functions` / `'<T>' is not a protocol` (with help `class bounds are not supported`, for a class) / `bounds are only supported on functions` (M17) |

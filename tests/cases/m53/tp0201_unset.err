@@ -1,0 +1,12 @@
+tests/cases/m53/tp0201_unset.tpn:13:7: error TP0201: 'limit' reads 'LIMIT', which isn't set until line 18
+  help: move this below line 18
+tests/cases/m53/tp0201_unset.tpn:14:7: error TP0201: 'twice' reads 'LIMIT', which isn't set until line 18
+  help: move this below line 18
+tests/cases/m53/tp0201_unset.tpn:15:9: error TP0201: '__init__' reads 'LIMIT', which isn't set until line 18
+  help: move this below line 18
+tests/cases/m53/tp0201_unset.tpn:16:9: error TP0201: 'limit' reads 'LIMIT', which isn't set until line 18
+  help: move this below line 18
+tests/cases/m53/tp0201_unset.tpn:17:13: error TP0201: 'twice' reads 'LIMIT', which isn't set until line 18
+  help: move this below line 18
+tests/cases/m53/tp0201_unset.tpn:19:9: error TP0201: 'uses_x' reads 'x', which isn't set until line 19
+  help: move this below line 19
