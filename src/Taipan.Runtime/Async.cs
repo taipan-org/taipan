@@ -54,6 +54,9 @@ internal sealed class Frame : Owner
 {
     internal Task? Task;
 
+    // Set once something awaits or gathers the task, which then sees its exception (SPEC §3.14, M55).
+    internal bool Observed;
+
     internal override bool IsDone => Task is { IsCompleted: true };
 }
 
@@ -90,6 +93,7 @@ public static class Async
         var task = RunAs(frame, body);
         frame.Task = task;
         Own(task, frame);
+        WatchFailure(task, frame);
         return task;
     }
 
@@ -99,7 +103,52 @@ public static class Async
         var task = RunAs(frame, body);
         frame.Task = task;
         Own(task, frame);
+        WatchFailure(task, frame);
         return task;
+    }
+
+    // ---- Failures nothing awaits (SPEC §3.14, M55) ----
+
+    private static readonly List<Frame> s_unretrieved = [];
+
+    // A task that fails before anything awaits it is kept, until something does or the program ends.
+    private static void WatchFailure(Task task, Frame frame) =>
+        task.ContinueWith(static (t, state) =>
+        {
+            var frame = (Frame)state!;
+            lock (s_unretrieved)
+            {
+                if (!frame.Observed && Exceptions.From(t.Exception!.InnerException!) is not CancelledError)
+                    s_unretrieved.Add(frame);
+            }
+        }, frame, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+    /// <summary>Marks a task as awaited, gathered or run, so its exception is seen there.</summary>
+    internal static void Observe(Task task)
+    {
+        if (OwnerOf(task) is not Frame frame)
+            return;
+        lock (s_unretrieved)
+        {
+            frame.Observed = true;
+            s_unretrieved.Remove(frame);
+        }
+    }
+
+    /// <summary>Writes each failure nothing awaited, as Python does when a task's exception is never retrieved.</summary>
+    internal static void ReportUnretrieved()
+    {
+        Frame[] failed;
+        lock (s_unretrieved)
+        {
+            failed = [.. s_unretrieved];
+            s_unretrieved.Clear();
+        }
+        foreach (var frame in failed)
+        {
+            Io.Error.WriteLine("Task exception was never retrieved");
+            Io.Error.Write(Tracebacks.Format(Exceptions.From(frame.Task!.Exception!.InnerException!)));
+        }
     }
 
     /// <summary>Runs code as its owner's, so the awaits in it are that owner's.</summary>
@@ -132,9 +181,17 @@ public static class Async
     }
 
     /// <summary><c>await e</c>: resumes on the event loop when <c>e</c> is done, or with <c>CancelledError</c> if the owner is cancelled.</summary>
-    public static Waiting<T> Await<T>(Task<T> task) => new(task, t_current);
+    public static Waiting<T> Await<T>(Task<T> task)
+    {
+        Observe(task);
+        return new(task, t_current);
+    }
 
-    public static Waiting Await(Task task) => new(task, t_current);
+    public static Waiting Await(Task task)
+    {
+        Observe(task);
+        return new(task, t_current);
+    }
 }
 
 /// <summary>An <c>await</c> of a task (SPEC §8): it resumes its owner on the event loop, and can be cancelled.</summary>
@@ -348,6 +405,8 @@ public sealed class EventLoop
     public static void Main(Func<Task> topLevel)
     {
         var task = Async.Start(topLevel);
+        // Its exception is the program's, so it's retrieved here (SPEC §3.14, M55).
+        Async.Observe(task);
         Instance?.RunUntil(task);
         task.GetAwaiter().GetResult();
     }

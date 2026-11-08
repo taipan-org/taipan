@@ -109,6 +109,10 @@ public sealed partial class Binder
     private Module? _mainModule;
     private readonly HashSet<string> _scriptNames = [];
 
+    // Variables holding awaitables, and every variable read, for TP0307 (SPEC §3.14, M55).
+    private readonly Dictionary<VariableSymbol, TextSpan> _awaitables = [];
+    private readonly HashSet<VariableSymbol> _readVariables = [];
+
     // The main file's top-level scope, which its functions read (SPEC §4.1, M53); set once the top level is bound.
     private Scope? _scriptScope;
     private readonly HashSet<VariableSymbol> _sharedBindings = [];
@@ -372,6 +376,8 @@ public sealed partial class Binder
         }
         Enter(main);
         CheckSharedReadOrder(new BoundBlock(topLevel, unit.Span), functions, classes);
+        foreach (var (awaitable, span) in _awaitables.Where(a => !_readVariables.Contains(a.Key)))
+            _diagnostics.ReportNeverAwaited(span, awaitable.Name);
         // A default can't see top-level bindings, nor can anything see one bound in a block or by unpacking (SPEC §4.1).
         foreach (var (span, function, name) in _topLevelUses)
         {
@@ -1938,6 +1944,8 @@ public sealed partial class Binder
     private Symbol? LookupName(string name, TextSpan span)
     {
         var found = _scope.Lookup(name);
+        if (found is VariableSymbol read)
+            _readVariables.Add(read);
         // A function of the main file reads its top-level bindings, before a built-in of the same name (SPEC §4.1, M53).
         if ((found is null || _builtins.LookupLocal(name) == found) && SharedBinding(name) is { } shared)
         {
@@ -2505,6 +2513,8 @@ public sealed partial class Binder
         }
         var symbol = new VariableSymbol(name.Text, declared ?? value.Type, kind);
         DeclareLocal(name, symbol);
+        if (TypeChecker.Unwrap(symbol.Type) is AwaitableOfType)
+            _awaitables[symbol] = name.Span;
         // A var starts narrowed to its value's type, if that's narrower than its declared one (SPEC §3.9).
         AfterAssigning(symbol, value, span);
         return new BoundVariableDecl(symbol, value, span);
@@ -5820,6 +5830,9 @@ public sealed partial class Binder
             case BuiltinFunction.Int or BuiltinFunction.Float when argument.Type == TaipanType.Str:
                 // Parsing returns none on failure (SPEC §6).
                 return new BoundCall(function, arguments, new OptionalOf(function.ReturnType), call.Span);
+            // A .NET enum's value is its number (SPEC §6, M55).
+            case BuiltinFunction.Int when argument.Type is DotNetType { Symbol.TypeKind: Microsoft.CodeAnalysis.TypeKind.Enum }:
+                break;
             case BuiltinFunction.Int or BuiltinFunction.Float:
                 // Both accept int and float (SPEC §6); int widens to float.
                 CheckAssignable(argument, TaipanType.Float, argumentSpan);

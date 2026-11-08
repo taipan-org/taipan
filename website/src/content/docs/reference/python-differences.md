@@ -47,7 +47,7 @@ These compile, and they're the only places where Taipan quietly does something o
 - **Defaults, field defaults and loop variables are new each time.** `def f(xs: list[int] = [])` gets a new list on each call, and `[lambda: i for i in range(3)]` gives functions returning 0, 1 and 2.
 - **An `int` that widens to a `float` is a `float`.** `let x: float = 1` prints `1.0`.
 - **`int(s)` and `float(s)` give an optional**, `None` when the text isn't a number, rather than raising.
-- **Calling an async function starts it**, as a .NET task starts.
+- **Calling an async function starts it**, as a .NET task starts. If one fails and nothing awaits it, the failure is reported when the program ends, as Python reports a task exception that's never retrieved.
 - **`keys()`, `values()` and `items()` give new lists**, not live views.
 - **Adding to or removing from a list during a loop over it raises `RuntimeError`.** Writing to its elements is fine.
 - **Some exception messages are Taipan's own**, though the common ones, such as a missing key or an index out of range, are Python's.

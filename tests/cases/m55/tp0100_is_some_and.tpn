@@ -1,0 +1,6 @@
+let m: int? = int("3")
+let n = 5
+if n > 0 and m is some v and v < 9:
+    print(v)
+while m is some w or n > 9:
+    pass

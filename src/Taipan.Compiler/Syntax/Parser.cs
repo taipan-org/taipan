@@ -1217,10 +1217,23 @@ public sealed class Parser
         if (!At(TokenKind.IsKeyword))
             return new ExprCondition(expr, SpanFrom(start));
 
-        Next();
+        var isSpan = Next().Span;
         Expect(TokenKind.SomeKeyword);
         var binding = ExpectIdentifier();
-        return new IsSomeCondition(expr, binding, SpanFrom(start));
+        // `is some` binds a name, so it's the whole condition (SPEC §2): an `and` or `or` before it or after
+        // it is reported, at the first, naming what's tested, and what follows is read past.
+        var tested = expr;
+        while (tested is BinaryExpr { Op: BinaryOp.And or BinaryOp.Or } joined)
+            tested = joined.Right;
+        var trailing = At(TokenKind.AndKeyword) || At(TokenKind.OrKeyword);
+        if ((tested != expr || trailing) && !_recovering)
+            _diagnostics.ReportIsSomeNotWhole(tested != expr ? isSpan : Current.Span, _source.ToString(tested.Span));
+        while (At(TokenKind.AndKeyword) || At(TokenKind.OrKeyword))
+        {
+            Next();
+            ParseExpr();
+        }
+        return new IsSomeCondition(tested, binding, SpanFrom(start));
     }
 
     // while_stmt = "while" condition ":" block

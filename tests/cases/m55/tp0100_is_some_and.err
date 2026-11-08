@@ -1,0 +1,4 @@
+tests/cases/m55/tp0100_is_some_and.tpn:3:16: error TP0100: 'is some' must be the whole condition
+  help: nest another 'if', or use 'm is not None and …', which narrows 'm'
+tests/cases/m55/tp0100_is_some_and.tpn:5:19: error TP0100: 'is some' must be the whole condition
+  help: nest another 'if', or use 'm is not None and …', which narrows 'm'

@@ -815,6 +815,8 @@ print(await first, await second)
 - **Where `await` may appear:** in the body of an `async def`, and at the main file's top level, whose statements then run as an async entry point. Anywhere else, including a lambda, a generator, a nested `def` that isn't `async`, and a `const`, is `TP0215`, `'await' outside an async function`.
 - **Display:** an awaitable displays as `<awaitable>`, and equality is identity.
 - **An awaitable is awaited.** An expression statement whose value is an `Awaitable` is `TP0235`, `this awaitable is never awaited`, with help `write 'await …'`, since its exceptions would be lost. Store it to await it later (`let pending = fetch(url)`).
+  - Since M55, a `let` or `var` holding an `Awaitable` that's never read is warning `TP0307`, `'<x>' is never awaited`, with help `await it, or pass it to 'asyncio.gather'`.
+  - An awaitable can still be stored where the compiler can't follow it, such as in a list. So when the program ends, each awaitable that failed with nothing awaiting or gathering it prints `Task exception was never retrieved` and its traceback to stderr, as Python prints it, and the exit code doesn't change. A cancellation isn't reported, as in Python.
 - **Since M42**, async generators, `async for`, `async with` and the `asyncio` module exist, and async code runs on one thread (§3.20). Before, a `yield` in an `async def` was `TP0215`. Async lambdas are deferred.
 
 ### 3.15 Sets (M35)
@@ -1858,7 +1860,7 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
 - `ord(c: str) -> int` (M51) gives the code point of a one-character string. A string literal of another length is `TP0200`, `ord() expected a character, but string of length <n> found`, and another string raises `TypeError` with that message, as Python does.
 - `chr(i: int) -> str` (M51) gives the character with that code point. Outside `0` to `0x10FFFF` it raises `ValueError`, `chr() arg not in range(0x110000)`, as Python does, and for a surrogate `ValueError`, `chr() arg is a surrogate, which a Taipan string can't hold`, where Python gives a lone surrogate.
 - `hash(x) -> int` (M28) takes any value that can be a dict key (§3.1), and is `TP0200` otherwise, `cannot hash <T>`. Equal values hash equally. For an `int` or `bool` it's Python's (`hash(-1)` is `-2`), for a class with `__hash__` it's that method's result reduced as Python reduces it (§4.8), and otherwise its value is unspecified and may differ between runs, as `str` hashes do in Python.
-- `int(x: float) -> int` truncates toward zero. An `int` argument is returned unchanged. `int(x: str) -> int?` parses, returning `None` on failure. It accepts an optional sign and decimal digits with `_` only between digits (as in §1.3), with surrounding whitespace allowed. A value outside the int range gives `None`.
+- `int(x: float) -> int` truncates toward zero. An `int` argument is returned unchanged. Since M55, a .NET enum's value gives its underlying number, as `int()` does for Python's `IntEnum`: `int(response.StatusCode)` is `404`. `int(x: str) -> int?` parses, returning `None` on failure. It accepts an optional sign and decimal digits with `_` only between digits (as in §1.3), with surrounding whitespace allowed. A value outside the int range gives `None`.
 - `float(x: int) -> float`. A `float` argument is returned unchanged. `float(x: str) -> float?` accepts the same forms as `int(str)`, plus an optional fraction and exponent (`1.5`, `2e-3`, `.5`, `5.`), and `inf`, `infinity` and `nan` in any case. Otherwise it returns `None`.
 - `range` can only be used as the iterable of a `for` loop. Any other use is `TP0200`.
 - `sorted(xs: list[T], key=…, reverse=False) -> list[T]` (M11) returns a new list in ascending order.
@@ -2170,6 +2172,7 @@ The output is one C# compilation unit per program, compiled in-process by Roslyn
 | TP0304 | warning: repeating a list whose element is a new list, dict or set (M48, §5.3) |
 | TP0305 | warning: arithmetic directly on the right side of `??`, which binds more loosely (§3.4) |
 | TP0306 | warning: an `except` that names a built-in class around Python code, missing Python's own (M54, §3.10) |
+| TP0307 | warning: a `let` or `var` holding an awaitable that's never read (M55, §3.14) |
 
 New codes go into this table before they're implemented.
 
@@ -2232,12 +2235,12 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0209 | `'<f>' takes <n> arguments, found <m>` (`argument` when n is 1; `1 or 2 arguments` for `range`; `<a> to <b> arguments` for a function with defaults, M14; `2 or more arguments` for `zip`, M26; `function takes …` when the callee isn't a name) / `missing argument '<x>'` (M14) / `missing field '<f>' in '<S>'` / `field '<f>' is given more than once` / `argument '<k>' is given more than once` |
 | TP0209 | `'<f>' takes <n> positional arguments, found <m>` / `missing keyword-only argument '<x>'` / `'*<e>' can only fill '*<args>'` / `'<f>' has no '*args' for '*<e>'` / `'<f>' has no '**kwargs' for '**<e>'` / `'**<e>' can't fill '<x>'` (M30) |
 | TP0209 | `expected a lambda with <n> parameters, found <m>` (`parameter` when n is 1) / `'Callable' takes a parameter list and a result type` |
-| TP0210 | `<T> has no field '<x>'` / `<T> has no method '<x>'` / `<E> has no variant '<x>'` |
+| TP0210 | `<T> has no field '<x>'`, and for `message` on a .NET exception with help `a .NET exception's text is 'Message'` (M55) / `<T> has no method '<x>'` / `<E> has no variant '<x>'` |
 | TP0211 | `'<f>' cannot use top-level variable '<x>'`, with help `pass it as a parameter, or make it a const` when `<x>` could be a constant (§4.1), `pass it as a parameter` otherwise, and since M53 `it's bound inside a block or by unpacking; give it its own top-level 'let' or 'var'` for those |
 | TP0213 | `optional types cannot be nested` |
 | TP0214 | `duplicate definition of '<x>'` |
 | TP0214 | `key <k> appears twice in a mapping pattern` (M38) |
-| TP0100 | `Taipan has no conditional expression`, at the `if` of Python's `a if c else b`, with help `use a 'match' expression or an 'if' statement` / `'**' must come last in a mapping pattern` / `'**_' can't be used; leave it out` / `a tuple pattern can have only one '*'` (M38) |
+| TP0100 | `'is some' must be the whole condition`, at an `and` or `or` after it or at the `is` after one, with help `nest another 'if', or use '<x> is not None and …', which narrows '<x>'` (M55) / `Taipan has no conditional expression`, at the `if` of Python's `a if c else b`, with help `use a 'match' expression or an 'if' statement` / `'**' must come last in a mapping pattern` / `'**_' can't be used; leave it out` / `a tuple pattern can have only one '*'` (M38) |
 | TP0215 | `'yield' can't be inside a 'with'` (M37) / `'await' can't be inside a comprehension` (M36) / `'await' outside an async function` / `'yield' in an async function` (M33) / `'yield' outside a function` / `'yield' can't be inside a 'try' with 'except', or in 'finally'` (M31) / `'<k>' can't leave a 'match' expression`, with help `use a 'match' statement` (M29) / `'break' outside a loop` / `'continue' outside a loop` / `'return' outside a function` / `'raise' without an exception outside an except block` / `'return' cannot be used in a finally block` (and `'break'`, `'continue'`) (M16) |
 | TP0216 | `'<v>' is ambiguous: it is a variant of <E1> and <E2>`, with help `qualify it, e.g. '<E1>.<v>'` |
 | TP0217 | `const initializer must be a constant expression` / `class attribute value must be a constant expression` (M28) |
@@ -2270,6 +2273,7 @@ Each diagnostic points at the expression, name or keyword at fault. TP0208 point
 | TP0300 | `unreachable match arm` / `unreachable except clause`, with help `'<B>' is already caught above` / `unreachable code` (M16) |
 | TP0301 | `this clause catches every exception and discards it`, with help `catch a specific class, re-raise with 'raise', or bind it with 'as e' and use it` (M16) |
 | TP0303 | `'<f>' takes parameters, so it isn't run as a test` (M44) |
+| TP0307 | `'<x>' is never awaited`, with help `await it, or pass it to 'asyncio.gather'` (M55) |
 | TP0306 | `a Python '<C>' arrives as PythonError, which this doesn't catch`, with help `catch 'builtins.<C>' after 'from python import builtins', or 'PythonError'` (M54) |
 | TP0305 | `'??' binds more loosely than '<op>', so this is '<a> ?? (<b>)'`, with help `write '(<a> ?? <first>)<rest>' if you meant that, or add the parentheses to keep this` |
 | TP0304 | `every copy shares the same <list\|dict\|set>`, with help `build each one separately, with a comprehension: [… for _ in range(…)]` (M48) |

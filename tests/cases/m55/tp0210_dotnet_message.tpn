@@ -1,0 +1,6 @@
+from dotnet.System import InvalidOperationException
+
+try:
+    raise InvalidOperationException("boom")
+except InvalidOperationException as e:
+    print(e.message)

@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M54 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M55 are complete.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -446,3 +446,10 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M54 are complete
 - `isinstance(v, int)` on a Python `bool` goes into the exceptions.
 - Update SPEC first: the help texts, the warning's code and text, and the traceback's note.
 - **Accept:** each form gets its help, the warning fires only where a Python exception could be missed, and the note appears only for Python exceptions.
+
+## M55 — Async and .NET follow-ups
+- A stored awaitable that's never read is warning `TP0307`, and one that fails with nothing awaiting it is reported when the program ends, as Python reports it.
+- `int()` takes a .NET enum.
+- Help lines for `is some` followed by `and` or `or`, and for `message` on a .NET exception.
+- Update SPEC first: §3.14's rule, `int`, and the messages.
+- **Accept:** a never-awaited awaitable's failure is reported at compile time or at the end, a cancelled one isn't, an awaited one isn't, and `int(HttpStatusCode.NotFound)` is `404`.

@@ -1,0 +1,8 @@
+from dotnet.System import InvalidOperationException, DayOfWeek
+from dotnet.System.Net import HttpStatusCode
+
+print(int(HttpStatusCode.NotFound), int(DayOfWeek.Friday), int(HttpStatusCode.OK) + 1)
+try:
+    raise InvalidOperationException("boom")
+except InvalidOperationException as e:
+    print(e.Message)

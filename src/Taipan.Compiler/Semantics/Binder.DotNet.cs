@@ -667,6 +667,8 @@ public sealed partial class Binder
         {
             if (Methods(owner.Symbol, name, target is null).Count > 0)
                 _diagnostics.ReportMethodAsValue(member.Member.Span, name);
+            else if (name == "message" && IsDotNetException(owner.Symbol))
+                _diagnostics.ReportNoDotNetExceptionMessage(member.Member.Span, owner);
             else
                 _diagnostics.ReportNoField(member.Member.Span, owner, name);
             return new BoundErrorExpr(member.Span);
