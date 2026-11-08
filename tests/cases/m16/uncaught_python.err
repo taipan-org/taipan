@@ -1,4 +1,7 @@
+tests/cases/m16/uncaught_python.tpn:6:8: warning TP0306: a Python 'KeyError' arrives as PythonError, which this doesn't catch
+  help: catch 'builtins.KeyError' after 'from python import builtins', or 'PythonError'
 Traceback (most recent call last):
   File "tests/cases/m16/uncaught_python.tpn", line 5, in <module>
     print(json.loads("{"))
 json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+(raised in Python: catch it with 'except PythonError', or by its Python class, as in 'except builtins.KeyError')

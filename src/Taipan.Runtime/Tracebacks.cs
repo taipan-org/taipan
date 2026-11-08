@@ -135,6 +135,9 @@ public static class Tracebacks
             FormatEntries(traceback, text);
         }
         text.Append(LastLine(exception)).Append('\n');
+        // Where a Python exception came from, as Python prints an exception's notes (SPEC §3.19, M54).
+        if (exception is PythonError)
+            text.Append("(raised in Python: catch it with 'except PythonError', or by its Python class, as in 'except builtins.KeyError')\n");
     }
 
     private static void FormatEntries(Traceback? entry, StringBuilder text)

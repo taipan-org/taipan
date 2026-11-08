@@ -1,0 +1,10 @@
+USAGE = "usage: todo"
+first, second = 1, 2
+let record = {"id": 1, "title": "x"}
+let scores = {"a": 1, "b": 2.5}
+if __name__ == "__main__":
+    pass
+
+def f(x: int) -> int:
+    total = x
+    return x

@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M53 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M54 are complete.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -437,3 +437,12 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M53 are complete
   - A parameter named like a top-level binding is its own, and `examples/health.tpn` runs unchanged.
   - A top-level call before the binding is set is `TP0201`, and an untraced read raises `NameError`.
   - Assigning to a top-level binding from a function is `TP0236`.
+
+## M54 — The boundary with Python
+- Every Python form Taipan rejects says what to write instead: a conditional expression, `;` between statements, a first assignment without `let`, a dict literal mixing value types, and `__name__`.
+- A warning for an `except` that names a built-in class Python could raise, around Python code, since a Python exception arrives as `PythonError`.
+- A traceback for an uncaught Python exception says it came from Python and how to catch it.
+- A website page on how Taipan differs from Python, from the spec's exceptions and the Python boundary.
+- `isinstance(v, int)` on a Python `bool` goes into the exceptions.
+- Update SPEC first: the help texts, the warning's code and text, and the traceback's note.
+- **Accept:** each form gets its help, the warning fires only where a Python exception could be missed, and the note appears only for Python exceptions.

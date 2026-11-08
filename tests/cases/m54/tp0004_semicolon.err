@@ -1,0 +1,2 @@
+tests/cases/m54/tp0004_semicolon.tpn:1:10: error TP0004: invalid character ';'
+  help: write each statement on its own line

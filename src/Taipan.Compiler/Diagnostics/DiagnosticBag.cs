@@ -46,7 +46,7 @@ public sealed class DiagnosticBag
         Add("TP0003", span, "unterminated string");
 
     public void ReportInvalidCharacter(TextSpan span, Rune character) =>
-        Add("TP0004", span, $"invalid character {Describe(character)}");
+        Add("TP0004", span, $"invalid character {Describe(character)}", character.Value == ';' ? "write each statement on its own line" : null);
 
     public void ReportInvalidEscape(TextSpan span, Rune character) =>
         Add("TP0005", span, $"invalid escape sequence '\\{character}'",
@@ -112,8 +112,14 @@ public sealed class DiagnosticBag
 
     // ---- Type checking (SPEC §9.1). Types are passed pre-rendered as source text. ----
 
-    public void ReportTypeMismatch(TextSpan span, object expected, object found) =>
-        Add("TP0200", span, $"expected {expected}, found {found}");
+    public void ReportTypeMismatch(TextSpan span, object expected, object found, string? help = null) =>
+        Add("TP0200", span, $"expected {expected}, found {found}", help);
+
+    public void ReportConditionalExpression(TextSpan span) =>
+        Add("TP0100", span, "Taipan has no conditional expression", "use a 'match' expression or an 'if' statement");
+
+    public void ReportAssignedUndeclared(TextSpan span, string name) =>
+        Add("TP0201", span, $"undefined name '{name}'", "if it's a new variable, declare it with 'let', 'var' or 'const'");
 
     public void ReportBinaryOperatorTypes(TextSpan span, string op, object left, object right, string? help = null) =>
         Add("TP0200", span, $"operator '{op}' cannot be applied to {left} and {right}", help);
@@ -407,6 +413,10 @@ public sealed class DiagnosticBag
     public void ReportUnreachableCode(TextSpan span) =>
         Warn("TP0300", span, "unreachable code");
 
+    public void ReportPythonExceptionMissed(TextSpan span, string name) =>
+        Warn("TP0306", span, $"a Python '{name}' arrives as PythonError, which this doesn't catch",
+            $"catch 'builtins.{name}' after 'from python import builtins', or 'PythonError'");
+
     public void ReportCoalescePrecedence(TextSpan span, string op, string left, string right, string first, string rest) =>
         Warn("TP0305", span, $"'??' binds more loosely than '{op}', so this is '{left} ?? ({right})'",
             $"write '({left} ?? {first}){rest}' if you meant that, or add the parentheses to keep this");
@@ -492,6 +502,7 @@ public sealed class DiagnosticBag
     {
         "none" => "use 'None'",
         "RecursionError" => "infinite recursion ends the process, as in .NET, so nothing can catch it",
+        "__name__" => "Taipan has no '__name__': a main file can't be imported, so put code to share in a module",
         _ => null,
     };
 
