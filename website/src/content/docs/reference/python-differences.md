@@ -50,8 +50,7 @@ These compile, and they're the only places where Taipan quietly does something o
 - **Calling an async function starts it**, as a .NET task starts.
 - **`keys()`, `values()` and `items()` give new lists**, not live views.
 - **Adding to or removing from a list during a loop over it raises `RuntimeError`.** Writing to its elements is fine.
-- **Exception messages are Taipan's own.**
-- **Comparing an `int` with a `float` converts the `int`**, so very large numbers can compare equal.
+- **Some exception messages are Taipan's own**, though the common ones, such as a missing key or an index out of range, are Python's.
 - **A string can't hold a lone surrogate.**
 - **Case conversion and number parsing follow .NET**: `"ß".upper()` is `ß`, and only ASCII digits parse.
 - **`isinstance(v, int)` on a Python `bool` is `False`.**

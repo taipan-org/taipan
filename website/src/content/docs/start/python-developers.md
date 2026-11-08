@@ -179,7 +179,7 @@ print(area(Rect(2.0, 3.0)))
 - **An `int` that widens to a `float` is a `float`**: `let x: float = 1` prints `1.0`, and `[1, 2.5]` prints `[1.0, 2.5]`.
 - **Calling an async function starts it**, as a .NET task starts, rather than waiting to be awaited.
 - **`keys()`, `values()` and `items()` give new lists**, not live views.
-- **Exception messages are Taipan's own**, so `str(e)` can differ from Python's.
+- **Some exception messages are Taipan's own**, so `str(e)` can differ from Python's for rarer errors.
 - **Infinite recursion ends the process**, as in .NET, and can't be caught, so there's no `RecursionError`. Recursion can go much deeper than Python's limit of 1,000.
 - **Lists are invariant**: a `list[Dog]` isn't a `list[Animal]`, since code holding it as one could add a `Cat`.
 - **Imports are of Taipan modules**, files beside the main file. Python modules are imported with `from python import json` and .NET namespaces with `from dotnet.System.IO import File`.

@@ -39,8 +39,34 @@ public static class Ops
     public static double Div(double left, double right)
     {
         if (right == 0.0)
-            throw new ZeroDivisionError("division by zero");
+            throw new ZeroDivisionError("float division by zero");
         return left / right;
+    }
+
+    public static double Div(long left, long right)
+    {
+        if (right == 0)
+            throw new ZeroDivisionError("division by zero");
+        return (double)left / right;
+    }
+
+    /// <summary>
+    /// How an int compares with a float, exactly, as in Python: negative, zero or positive, or NaN for a
+    /// NaN float, which every comparison but != then rejects (SPEC §5.3). Below 2**53 the conversion is exact.
+    /// </summary>
+    public static double Mixed(long left, double right)
+    {
+        if (double.IsNaN(right))
+            return double.NaN;
+        if (left is >= -(1L << 53) and <= 1L << 53)
+            return ((double)left).CompareTo(right);
+        if (right >= 9.2233720368547758E18)
+            return -1;
+        if (right < -9.2233720368547758E18)
+            return 1;
+        var floor = Math.Floor(right);
+        var whole = (long)floor;
+        return left != whole ? left.CompareTo(whole) : floor < right ? -1 : 0;
     }
 
     /// <summary><c>range(…)</c> as a comprehension's iterable (SPEC §3.16, M36).</summary>
@@ -97,7 +123,7 @@ public static class Ops
     public static long FloorDiv(long left, long right)
     {
         if (right == 0)
-            throw new ZeroDivisionError("division by zero");
+            throw new ZeroDivisionError("integer division or modulo by zero");
         if (left == long.MinValue && right == -1)
             throw new OverflowException();
         var quotient = left / right;
@@ -109,16 +135,16 @@ public static class Ops
     /// <summary><c>%</c>: the result takes the divisor's sign, as in Python.</summary>
     /// <summary><c>a // b</c> with a float, as CPython computes it (SPEC §5.3, M50).</summary>
     public static double FloorDiv(double left, double right) =>
-        right != 0 ? Numbers.DivMod(left, right).Item1 : throw new ZeroDivisionError("division by zero");
+        right != 0 ? Numbers.DivMod(left, right).Item1 : throw new ZeroDivisionError("float floor division by zero");
 
     /// <summary><c>a % b</c> with a float, as CPython computes it (SPEC §5.3, M50).</summary>
     public static double Mod(double left, double right) =>
-        right != 0 ? Numbers.DivMod(left, right).Item2 : throw new ZeroDivisionError("division by zero");
+        right != 0 ? Numbers.DivMod(left, right).Item2 : throw new ZeroDivisionError("float modulo");
 
     public static long Mod(long left, long right)
     {
         if (right == 0)
-            throw new ZeroDivisionError("division by zero");
+            throw new ZeroDivisionError("integer modulo by zero");
         if (right == -1)
             return 0;
         var remainder = left % right;
@@ -161,7 +187,7 @@ public static class Ops
 
     // ---- Indexing (SPEC §5.4) ----
 
-    public static T Index<T>(List<T> list, long index) => list[(int)Normalize(index, list.Count)];
+    public static T Index<T>(List<T> list, long index) => list[(int)Normalize(index, list.Count, "list index out of range")];
 
     public static T Index<T>(VarTuple<T> tuple, long index) => tuple.At(index);
 
@@ -174,16 +200,16 @@ public static class Ops
     public static bool In(long item, RangeObject range) => range.Contains(item);
 
     public static TValue Index<TKey, TValue>(OrderedDictionary<TKey, TValue> dict, TKey key) where TKey : notnull =>
-        dict.TryGetValue(key, out var value) ? value : throw new KeyError($"missing key {Display.Repr(key)}");
+        dict.TryGetValue(key, out var value) ? value : throw new KeyError(Display.Repr(key));
 
     /// <summary><c>s[i]</c>: the code point at <paramref name="index"/>, as a str.</summary>
     public static string Index(string value, long index)
     {
         var runes = value.EnumerateRunes().ToList();
-        return runes[(int)Normalize(index, runes.Count)].ToString();
+        return runes[(int)Normalize(index, runes.Count, "string index out of range")].ToString();
     }
 
-    public static void SetIndex<T>(List<T> list, long index, T value) => list[(int)Normalize(index, list.Count)] = value;
+    public static void SetIndex<T>(List<T> list, long index, T value) => list[(int)Normalize(index, list.Count, "list assignment index out of range")] = value;
 
     /// <summary><c>d[k] = v</c> inserts or updates; an update keeps the key's position.</summary>
     public static void SetIndex<TKey, TValue>(OrderedDictionary<TKey, TValue> dict, TKey key, TValue value) where TKey : notnull =>
@@ -214,13 +240,13 @@ public static class Ops
     }
 
     /// <summary><c>del xs[i]</c>.</summary>
-    public static void DelItem<T>(List<T> list, long index) => list.RemoveAt((int)Normalize(index, list.Count));
+    public static void DelItem<T>(List<T> list, long index) => list.RemoveAt((int)Normalize(index, list.Count, "list assignment index out of range"));
 
     /// <summary><c>del d[k]</c>, keeping the other entries in order.</summary>
     public static void DelItem<TKey, TValue>(OrderedDictionary<TKey, TValue> dict, TKey key) where TKey : notnull
     {
         if (!dict.Remove(key))
-            throw new KeyError($"missing key {Display.Repr(key)}");
+            throw new KeyError(Display.Repr(key));
     }
 
     /// <summary><c>del xs[a:b:c]</c>: out-of-range bounds clamp, so only a step of 0 raises.</summary>
@@ -239,12 +265,12 @@ public static class Ops
         return (first, Math.Max(first, end));
     }
 
-    // A negative index counts from the end.
-    private static long Normalize(long index, int count)
+    // A negative index counts from the end; one out of range raises Python's message (SPEC §7).
+    private static long Normalize(long index, int count, string outOfRange)
     {
         var normalized = index < 0 ? index + count : index;
         if (normalized < 0 || normalized >= count)
-            throw new IndexError($"index {index} out of range for length {count}");
+            throw new IndexError(outOfRange);
         return normalized;
     }
 

@@ -10,6 +10,6 @@ FAIL tests/cases/m44/testing/main.tpn::test_raises
 Traceback (most recent call last):
   File "tests/cases/m44/testing/main.tpn", line 18, in test_raises
     print(xs[helper()])
-IndexError: index 1 out of range for length 0
+IndexError: list index out of range
 PASS tests/cases/m44/testing/main.tpn::test_last
 2 passed, 2 failed

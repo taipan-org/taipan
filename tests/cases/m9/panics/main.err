@@ -3,4 +3,4 @@ Traceback (most recent call last):
     print(mathx.unsafe(1, 0))
   File "tests/cases/m9/panics/mathx.tpn", line 7, in unsafe
     return a // b
-ZeroDivisionError: division by zero
+ZeroDivisionError: integer division or modulo by zero

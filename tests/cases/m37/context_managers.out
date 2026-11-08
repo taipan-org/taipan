@@ -25,5 +25,5 @@ enter nested
 suppressed IndexError deep
 still here
 exit nested None False
-suppressed IndexError index 5 out of range for length 1
+suppressed IndexError list index out of range
 fallback

@@ -5,4 +5,4 @@ Traceback (most recent call last):
     return inner(1)
   File "tests/cases/m11/panic_nested.tpn", line 4, in inner
     return y // d
-ZeroDivisionError: division by zero
+ZeroDivisionError: integer division or modulo by zero

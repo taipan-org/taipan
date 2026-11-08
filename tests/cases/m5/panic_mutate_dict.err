@@ -1,4 +1,4 @@
 Traceback (most recent call last):
   File "tests/cases/m5/panic_mutate_dict.tpn", line 2, in <module>
     for k in d:
-RuntimeError: dict mutated during iteration
+RuntimeError: dictionary changed size during iteration

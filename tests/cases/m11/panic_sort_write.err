@@ -5,4 +5,4 @@ Traceback (most recent call last):
     ws.sort(key=lambda w: write(ws, w))
   File "tests/cases/m11/panic_sort_write.tpn", line 21, in write
     ys[0] = y
-IndexError: index 0 out of range for length 0
+IndexError: list assignment index out of range

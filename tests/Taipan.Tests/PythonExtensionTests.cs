@@ -71,10 +71,10 @@ public class PythonExtensionTests
         builtins.TypeError: area() got multiple values for argument 'r'
         builtins.TypeError: scale() argument 'xs' must be list[float], not str
         geometry.BadShape: unknown shape hexagon
-        builtins.KeyError: missing key "missing"
+        builtins.KeyError: "missing"
         builtins.OverflowError: integer overflow
         builtins.OverflowError: int too big to convert
-        builtins.IndexError: index 0 out of range for length 0
+        builtins.IndexError: list index out of range
         builtins.TypeError: resize() takes 1 positional argument but 2 were given
         builtins.TypeError: resize() got some positional-only arguments passed as keyword arguments: 'w'
         builtins.TypeError: resize() missing required keyword-only argument 'round'

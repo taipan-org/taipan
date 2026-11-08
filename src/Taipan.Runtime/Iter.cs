@@ -13,7 +13,7 @@ public static class Iter
         for (var i = 0; ; i++)
         {
             if (list.Count != count)
-                throw new RuntimeError("list mutated during iteration");
+                throw new RuntimeError("list changed size during iteration");
             if (i == count)
                 yield break;
             yield return list[i];
@@ -55,7 +55,7 @@ public static class Iter
             }
             catch (InvalidOperationException)
             {
-                throw new RuntimeError($"{kind} mutated during iteration");
+                throw new RuntimeError(kind switch { "dict" => "dictionary changed size during iteration", "set" => "Set changed size during iteration", _ => $"{kind} changed size during iteration" });
             }
             yield return enumerator.Current;
         }

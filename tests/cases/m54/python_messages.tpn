@@ -1,0 +1,57 @@
+let big = 2 ** 53 + 1
+let f = 2.0 ** 53
+print(big == f, big != f, big < f, big > f, f < big, f == big, 2 ** 53 == f, 1 == 1.0, 3 < 3.5, -big < -f)
+let nan = 1e308 * 10 - 1e308 * 10
+print(1 == nan, 1 != nan, 1 < nan, nan > 1, 9223372036854775807 < 9.3e18, -9223372036854775807 > -9.3e18)
+print(0 < 0.5 < 1, 2 ** 62 == 4.611686018427388e18, 2 ** 62 + 1 == 4.611686018427388e18)
+
+let d = {"a": 1}
+let n = {1: "one"}
+let xs = [1]
+let s = "a"
+let t: tuple[int, ...] = tuple([1])
+let r = range(1)
+let zero = 0
+let fzero = 0.0
+def show(label: str, action: Callable[[], None]):
+    try:
+        action()
+    except KeyError as e:
+        print(label, "KeyError", e)
+    except IndexError as e:
+        print(label, "IndexError", e)
+    except ZeroDivisionError as e:
+        print(label, "ZeroDivisionError", e)
+    except RuntimeError as e:
+        print(label, "RuntimeError", e)
+
+show("d[b]", lambda: print(d["b"]))
+show("n[2]", lambda: print(n[2]))
+show("xs[5]", lambda: print(xs[5]))
+show("s[5]", lambda: print(s[5]))
+show("t[5]", lambda: print(t[5]))
+show("r[5]", lambda: print(r[5]))
+show("1/0", lambda: print(1 / zero))
+show("1.0/0", lambda: print(1.0 / zero))
+show("1//0", lambda: print(1 // zero))
+show("1%0", lambda: print(1 % zero))
+show("1.0//0.0", lambda: print(1.0 // fzero))
+show("1.0%0.0", lambda: print(1.0 % fzero))
+
+def set_item():
+    xs[5] = 1
+
+def del_item():
+    del xs[5]
+
+def del_key():
+    del d["z"]
+
+def grow():
+    for k in d:
+        d["new"] = 1
+
+show("xs[5]=", set_item)
+show("del xs[5]", del_item)
+show("del d[z]", del_key)
+show("grow", grow)

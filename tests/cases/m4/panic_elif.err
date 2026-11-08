@@ -3,4 +3,4 @@ Traceback (most recent call last):
     print(check(0))
   File "tests/cases/m4/panic_elif.tpn", line 4, in check
     elif 10 // n > 1:
-ZeroDivisionError: division by zero
+ZeroDivisionError: integer division or modulo by zero

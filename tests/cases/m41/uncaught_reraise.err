@@ -5,4 +5,4 @@ Traceback (most recent call last):
     return load({})
   File "tests/cases/m41/uncaught_reraise.tpn", line 3, in load
     return d["port"]
-KeyError: missing key "port"
+KeyError: "port"

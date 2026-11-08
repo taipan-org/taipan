@@ -18,16 +18,15 @@ Taipan is a statically typed, compiled language with Python's surface syntax. Th
 4. **One obvious way to do things.** Fewer features with simple rules, even where Python offers several.
 5. **Use .NET honestly.** Performance and easy deployment are reasons to differ from Python, but the difference has to be visible, as with a 64-bit `int` that raises on overflow rather than wrapping.
 
-**Exceptions to principle 1** are listed here, each with its reason. If the list grows long, the principle isn't true and has to be rewritten.
+**Exceptions to principle 1** are listed here, each with its reason. If the list grows long, the principle isn't true and has to be rewritten. That's judged by how often an entry affects real programs, not by how many there are: each should be a deliberate design choice or an edge case that programs rarely meet.
 - **Defaults, field defaults and loop variables are new each time** (§4.2, §4.3, §3.7), since Python's sharing is a well-known trap.
 - **An `int` that widens to a `float` is a `float`,** so `let x: float = 1` displays as `1.0`, and `[1, 2.5]` as `[1.0, 2.5]`, and `min(1, 2.5)` is `1.0` (§3.3, §6), since a value has its static type.
 - **`int(s)` and `float(s)` give an optional** (§6), so that a failed parse can't go unhandled. Displaying the result without narrowing it shows `None`, where Python raises `ValueError`.
 - **Calling an async function starts it** (§3.14), as a .NET task starts, where a Python coroutine waits to be awaited. A forgotten `await` is a compile error (`TP0235`).
 - **`keys()`, `values()` and `items()` give new lists** (§6), not live views, which is simpler. Adding to a dict while looping over one of them works, where Python raises `RuntimeError`.
 - **Adding to or removing from a list during a loop over it raises `RuntimeError`** (§5.2), since Python's behaviour silently skips or repeats elements.
-- **Exception messages are Taipan's own** (§7), so `str(e)` can differ from Python's. They aren't meant to be parsed.
+- **Rarer exception messages are Taipan's own** (§7), so `str(e)` can differ from Python's for them. The common ones a program prints are Python's: a missing key, an index out of range, division by zero, and a dict or set changing size in a loop.
 - **Infinite recursion ends the process** (§7), as a stack overflow does in .NET, and nothing can catch it. Checking for it on every call would slow every program. There's no `RecursionError`, so `except RecursionError` is a compile error (`TP0201`), and recursion can go much deeper than Python's limit of 1,000, how deep depending on the platform's stack size.
-- **Comparing an `int` with a `float` converts the `int`** (§5.3), so `2 ** 53 + 1 == 2.0 ** 53` is `True`, since an exact comparison would slow every mixed comparison.
 - **A string can't hold a lone surrogate** (§1, §6), since Taipan's strings are made of code points: `"\ud83d"` is `TP0005`, and `chr(0xD800)` raises `ValueError`, where Python allows both.
 - **Case conversion and number parsing follow .NET and ASCII** (§6): `"ß".upper()` is `ß`, where Python gives `SS`, and `int("٣")` is `None`, where Python gives `3`.
 - **`isinstance(v, int)` on a Python `bool` is `False`** (§10.4), where Python gives `True`, since Taipan's `bool` isn't an `int`. `v as int` raises for it, so the difference only shows in the test.
@@ -832,7 +831,7 @@ print(seen | tags, "a" in seen, len(seen & {"b", "c"}))   # {"a", "b", "x"} True
 - **Display:** `{1, 2, 3}`, with elements as inside a list (§6); `set()` when empty. **Equality** ignores order.
 - **Operators:** `a | b` (union), `a & b` (intersection), `a - b` (difference), `a ^ b` (symmetric difference), each a new set in the order of `a`'s values, then `b`'s; `a <= b` and `a < b` (subset, proper subset), `a >= b` and `a > b` (superset); `x in a`, `x not in a`. Both operands must be sets of the same element type.
 - **Methods:** `add(x)`, `remove(x)` (`KeyError` if absent), `discard(x)`, `pop() -> T` (the first value; `KeyError` if empty), `clear()`, `copy() -> set[T]`, `update(xs)`, `union(xs)`, `intersection(xs)`, `difference(xs)`, `symmetric_difference(xs)` (each taking any `Iterable[T]`, giving a new set), `issubset(xs)`, `issuperset(xs)`, `isdisjoint(xs) -> bool`.
-- `len`, `for`, `sorted`, `list`, `min`, `max`, `sum`, `any` and `all` take sets as iterables (§3.13). Changing a set while iterating over it raises `RuntimeError`, `set mutated during iteration`, as for a list or dict.
+- `len`, `for`, `sorted`, `list`, `min`, `max`, `sum`, `any` and `all` take sets as iterables (§3.13). Changing a set's size while iterating over it raises `RuntimeError`, `Set changed size during iteration`, as in Python.
 - Sets aren't passed to Python (§10.3) or .NET (§13.3) yet.
 
 ### 3.16 Comprehensions (M36)
@@ -1040,7 +1039,7 @@ prints to stderr, and exits with 101:
 Traceback (most recent call last):
   File "lookup.tpn", line 7, in lookup
     return services[name]
-KeyError: missing key "db"
+KeyError: "db"
 
 The above exception was the direct cause of the following exception:
 
@@ -1782,7 +1781,7 @@ def area(s: Shape) -> float:
 | `**` | numeric, with a float | float | M35: as Python's: `0.0 ** -1` raises `ZeroDivisionError`, and a negative base with a fractional exponent raises `ValueError` (Python would give a complex number) |
 | `**` | a class with `__pow__` (or `__rpow__`) | the method's | M35, §4.8 |
 | `\| & - ^`, `<= < >= >` | set[T], set[T] | set[T], bool | M35, §3.15 |
-| `== !=` | same type, int/float, or related classes | bool | structural for dataclasses, enums, lists, dicts, tuples; identity for plain classes (§4.3) and functions (§3.7); a class's `__eq__` since M28 (§4.8) |
+| `== !=` | same type, int/float (compared exactly, as in Python, since M54), or related classes | bool | structural for dataclasses, enums, lists, dicts, tuples; identity for plain classes (§4.3) and functions (§3.7); a class's `__eq__` since M28 (§4.8) |
 | `is None`, `is not None` | T? | bool | M15; narrows (§3.9) |
 | `< <= > >=` | numeric, or str (by code point, as in Python), or tuples of those (M12) | bool | tuples compare lexicographically |
 | `< >` | a class with `__lt__`, or a type parameter bounded by a protocol with `__lt__` (M17) | bool | `a < b` is `a.__lt__(b)`, `a > b` is `b.__lt__(a)` (§3.11) |
@@ -1828,9 +1827,9 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
   - The value is copied first, so `xs[1:] = xs` works.
   - Compound assignment to a slice (`xs[1:3] += [1]`) is `TP0202`, `cannot use '+=' on a slice`. A slice of a `str` or a tuple is `TP0202`, as an element of one is (§4.6).
 - **`del`** removes list elements and dict entries: `del xs[0]`, `del xs[1:3]`, `del xs[::2]`, `del d["k"]`, and `del xs[0], d["k"]`, which deletes left to right.
-  - `del xs[i]` follows indexing's rules (§5.4): a negative index counts from the end, and one out of range is `IndexError` (`index 5 out of range for length 3`).
+  - `del xs[i]` follows indexing's rules (§5.4): a negative index counts from the end, and one out of range is `IndexError` (`list assignment index out of range`).
   - `del xs[a:b:c]` removes the slice's elements. Out-of-range bounds clamp, so it never raises, except for a step of 0.
-  - `del d[k]` removes the entry, keeping the others in order. A missing key is `KeyError` (`missing key "k"`), as for reading one.
+  - `del d[k]` removes the entry, keeping the others in order. A missing key is `KeyError` (`"k"`), as for reading one.
   - `del x[k]` and `del x[a:b]` on a `py` value delete in Python.
   - Deleting anything else is `TP0202`: a name (`cannot delete 'x'`, with help `assign it a new value instead`), a field, or an element or slice of a `str` or tuple. An expression that isn't a target at all (`del f()`) is `TP0100`, `cannot delete this expression`, as for assignment.
   - Deleting from a list or dict while iterating over it is `RuntimeError`, as any change is (§5.2).
@@ -1890,7 +1889,7 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
   - **`dict(…)` (M52)**, as in Python. `dict()` needs an expected type, as `{}` does. `dict(d)` copies a `dict[K, V]`. `dict(pairs)` takes an `Iterable[tuple[K, V]]`, such as `zip(keys, values)`, and a key that repeats keeps its first position and its last value. Keyword arguments give a `dict[str, V]`, after any of those: `dict(a=1, b=2)`, `dict(d, c=3)`. Pairs that aren't two-element tuples, such as `dict([["a", 1]])`, are `TP0200`, `dict() takes pairs as tuples, found <T>`, with help `use tuples, as in [("a", 1)]`, since a list's length is only known at run time. Keyword arguments after a dict or pairs whose keys aren't `str` are `TP0200`, `keyword arguments give str keys, but this dict's keys are <K>`. The keys must be hashable (`TP0200`), as a dict literal's are.
 - `zip(xs: Iterable[A], ys: Iterable[B], …) -> Iterator[tuple[A, B, …]]` (M12) groups the values of two or more iterables, stopping at the shortest, as in Python: `zip(names, ages, cities)` is an `Iterator[tuple[str, int, str]]`. For each tuple it takes a value from each iterable in turn, left to right, and stops at the first that has none, so `zip(naturals(0), ["a", "b"])` ends. Before M26 it took exactly two lists, and before M31 it gave a new list. One iterable, which would need a one-element tuple, is `TP0209`.
 - `sorted(xs: Iterable[T], …)` takes any iterable since M31, and still gives a new list.
-- `sorted`, `map`, `filter`, `enumerate` and `zip` iterate their lists (§5.2), so a function argument that adds to or removes from a list panics with `list mutated during iteration`. Since M31 the lazy ones do so when they're iterated.
+- `sorted`, `map`, `filter`, `enumerate` and `zip` iterate their lists (§5.2), so a function argument that adds to or removes from a list panics with `list changed size during iteration`. Since M31 the lazy ones do so when they're iterated.
 
 **Methods**
 - `list[T]`: `append(x: T)`, `pop() -> T` (removes and returns the last element; `IndexError` if empty), `insert(i: int, x: T)` (Python semantics: a negative `i` counts from the end, and out-of-range indices clamp), `contains(x: T) -> bool`, `sort(key=…, reverse=False)` (M11: sorts in place, with the same rules as `sorted`; as in Python, the list is empty while it's being sorted, so a key or `__lt__` that reads it sees it empty, and if one adds to it, the sort still finishes and then raises `ValueError`, `list modified during sort`)
@@ -1920,7 +1919,7 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
 | class with `__str__` or `__repr__` | as §4.8 says (M28): `__str__` at top level, `__repr__` inside a container |
 | enum | `Ok`, `Degraded(healthy=1, total=4)` |
 | function | `<function name>`, `<function <lambda>>` (M11) |
-| exception | its message, as Python's `str(e)` (M16). Inside a container, its class and message: `[KeyError("missing key \"a\"")]` |
+| exception | its message, as Python's `str(e)` (M16). Inside a container, its class and message: `[KeyError("\"a\"")]` |
 | `TextIO` (M37) | Python's: `<_io.TextIOWrapper name='data.txt' mode='r' encoding='utf-8'>` |
 | `type[C]` (M37) | `<class 'ValueError'>`, `<class '__main__.Timer'>` (§3.17) |
 | `TracebackType` (M37) | `<traceback object>` |
@@ -1990,12 +1989,12 @@ print("done", file=sys.stderr)
 - **Panic sources and messages:**
   - repetition: `repeated sequence is too long` (M48, §5.3). (`OverflowError`)
   - int overflow: `integer overflow`. This includes `-x` and `x // -1` for the most negative int. (`OverflowError`)
-  - division by zero (`/`, `//`, `%`): `division by zero` (`ZeroDivisionError`)
+  - division by zero, with Python's messages since M54 (`ZeroDivisionError`): `division by zero` for `/` on ints, `float division by zero` for `/` with a float, `integer division or modulo by zero` for `//` on ints, `integer modulo by zero` for `%` on ints, `float floor division by zero` for `//` with a float, and `float modulo` for `%` with a float
   - `int(x)` of a float that is NaN, infinite, or outside the int range: `cannot convert <x> to int`, with `<x>` in display form (`ValueError` for NaN, `OverflowError` otherwise, as in Python)
-  - index out of range: `index <i> out of range for length <n>` (`IndexError`)
-  - missing dict key: `missing key <k>`, with `<k>` as written inside a container (strings quoted) (`KeyError`)
+  - index out of range, with Python's messages since M54 (`IndexError`): `list index out of range`, `list assignment index out of range` (for `xs[i] = v` and `del xs[i]`), `string index out of range`, `tuple index out of range` and `range object index out of range`
+  - missing dict key: the key as written inside a container, `"db"` for a string, as Python's `str(e)` gives it since M54 (`KeyError`)
   - `pop()` on an empty list: `pop from empty list` (`IndexError`)
-  - mutation during iteration: `list mutated during iteration` / `dict mutated during iteration`. Only a change of size counts, as §5.2 says. (`RuntimeError`)
+  - mutation during iteration: `list changed size during iteration`, and Python's `dictionary changed size during iteration` and `Set changed size during iteration` since M54. Only a change of size counts, as §5.2 says. (`RuntimeError`)
   - `split("")`: `empty separator` (`ValueError`)
   - a slice step of 0: `slice step cannot be zero` (M12) (`ValueError`)
   - `**e` at a call with a key naming a parameter, or one the call already gives (M30, §4.2): `<f>() got multiple values for argument '<k>'` / `… for keyword argument '<k>'` (`TypeError`)

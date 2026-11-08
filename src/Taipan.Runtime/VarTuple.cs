@@ -29,7 +29,7 @@ public sealed class VarTuple<T> : IReadOnlyList<T>, ITuple
     {
         var i = index < 0 ? index + _items.Length : index;
         if (i < 0 || i >= _items.Length)
-            throw new IndexError($"index {index} out of range for length {_items.Length}");
+            throw new IndexError("tuple index out of range");
         return _items[i];
     }
 

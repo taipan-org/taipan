@@ -118,11 +118,11 @@ public static class Iterators
         for (var i = count - 1; i >= 0; i--)
         {
             if (dict.Count != count)
-                throw new RuntimeError("dict mutated during iteration");
+                throw new RuntimeError("dictionary changed size during iteration");
             yield return dict.GetAt(i).Key;
         }
         if (dict.Count != count)
-            throw new RuntimeError("dict mutated during iteration");
+            throw new RuntimeError("dictionary changed size during iteration");
     }
 
     /// <summary><c>iter(xs)</c>: an iterator over an iterable, or the iterator itself.</summary>
