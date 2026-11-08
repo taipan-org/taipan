@@ -115,6 +115,13 @@ public sealed class DiagnosticBag
     public void ReportTypeMismatch(TextSpan span, object expected, object found, string? help = null) =>
         Add("TP0200", span, $"expected {expected}, found {found}", help);
 
+    public void ReportIsSomeNotWhole(TextSpan span, string tested) =>
+        Add("TP0100", span, "'is some' must be the whole condition",
+            $"nest another 'if', or use '{tested} is not None and …', which narrows '{tested}'");
+
+    public void ReportNeverAwaited(TextSpan span, string name) =>
+        Warn("TP0307", span, $"'{name}' is never awaited", "await it, or pass it to 'asyncio.gather'");
+
     public void ReportConditionalExpression(TextSpan span) =>
         Add("TP0100", span, "Taipan has no conditional expression", "use a 'match' expression or an 'if' statement");
 
@@ -486,6 +493,9 @@ public sealed class DiagnosticBag
 
     public void ReportNoField(TextSpan span, object type, string name, string? whyNotNarrowed = null) =>
         Add("TP0210", span, $"{type} has no field '{name}'", whyNotNarrowed);
+
+    public void ReportNoDotNetExceptionMessage(TextSpan span, object type) =>
+        Add("TP0210", span, $"{type} has no field 'message'", "a .NET exception's text is 'Message'");
 
     public void ReportNoMethod(TextSpan span, object type, string name, string? whyNotNarrowed = null) =>
         Add("TP0210", span, $"{type} has no method '{name}'", whyNotNarrowed);

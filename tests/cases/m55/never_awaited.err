@@ -1,0 +1,12 @@
+tests/cases/m55/never_awaited.tpn:14:9: warning TP0307: 'stored' is never awaited
+  help: await it, or pass it to 'asyncio.gather'
+Task exception was never retrieved
+Traceback (most recent call last):
+  File "tests/cases/m55/never_awaited.tpn", line 4, in fail
+    raise ValueError(f"lost {name}")
+ValueError: lost stored
+Task exception was never retrieved
+Traceback (most recent call last):
+  File "tests/cases/m55/never_awaited.tpn", line 4, in fail
+    raise ValueError(f"lost {name}")
+ValueError: lost in a list

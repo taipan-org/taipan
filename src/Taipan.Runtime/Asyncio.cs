@@ -7,7 +7,11 @@ public readonly struct Awaited<T>
 
     private readonly Func<Task, T> _result;
 
-    private Awaited(Task task, Func<Task, T> result) => (Task, _result) = (task, result);
+    private Awaited(Task task, Func<Task, T> result)
+    {
+        (Task, _result) = (task, result);
+        Async.Observe(task);
+    }
 
     public Awaited(Task<T> task) : this(task, static t => ((Task<T>)t).Result)
     {
@@ -200,12 +204,14 @@ public static class Asyncio
     /// <summary><c>run(aw)</c>: runs the event loop until <c>aw</c> finishes, and gives its result.</summary>
     public static T run<T>(Task<T> aw)
     {
+        Async.Observe(aw);
         EventLoop.Instance?.RunUntil(aw);
         return aw.GetAwaiter().GetResult();
     }
 
     public static void run(Task aw)
     {
+        Async.Observe(aw);
         EventLoop.Instance?.RunUntil(aw);
         aw.GetAwaiter().GetResult();
     }

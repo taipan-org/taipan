@@ -1976,6 +1976,7 @@ public sealed partial class CSharpEmitter
             BuiltinFunction.Int when argumentType == TaipanType.Str => $"{Runtime}.Ops.ParseInt({arguments})",
             BuiltinFunction.Float when argumentType == TaipanType.Str => $"{Runtime}.Ops.ParseFloat({arguments})",
             BuiltinFunction.Int when argumentType == TaipanType.Float => $"{Runtime}.Ops.ToInt({arguments})",
+            BuiltinFunction.Int when argumentType is DotNetType { Symbol.TypeKind: Microsoft.CodeAnalysis.TypeKind.Enum } => $"global::System.Convert.ToInt64({arguments})",
             BuiltinFunction.Int => arguments,
             BuiltinFunction.Float when argumentType == TaipanType.Int => $"(double){Operand(call.Arguments[0])}",
             BuiltinFunction.Float => arguments,

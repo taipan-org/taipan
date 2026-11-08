@@ -1,0 +1,2 @@
+tests/cases/m55/tp0210_dotnet_message.tpn:6:13: error TP0210: InvalidOperationException has no field 'message'
+  help: a .NET exception's text is 'Message'

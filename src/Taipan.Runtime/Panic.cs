@@ -53,6 +53,9 @@ public static class Panic
         }
         finally
         {
+            // Python reports a task's exception that nothing retrieved when the program ends (SPEC §3.14, M55).
+            Io.Out.Flush();
+            Async.ReportUnretrieved();
             TextFile.CloseAll();
         }
     }

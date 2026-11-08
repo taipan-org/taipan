@@ -1,0 +1,30 @@
+import asyncio
+
+async def fail(name: str) -> int:
+    raise ValueError(f"lost {name}")
+
+async def fine() -> int:
+    return 1
+
+async def slow() -> int:
+    await asyncio.sleep(10)
+    return 2
+
+async def main() -> None:
+    let stored = fail("stored")
+    let pending = [fail("in a list")]
+    let awaited = fail("awaited")
+    try:
+        await awaited
+    except ValueError as e:
+        print("caught", e)
+    let gathered = fail("gathered")
+    try:
+        await asyncio.gather(gathered, fine())
+    except ValueError as e:
+        print("caught", e)
+    let ok = fine()
+    print(await ok)
+    print("done")
+
+asyncio.run(main())
