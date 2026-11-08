@@ -13,4 +13,4 @@ Traceback (most recent call last):
     return f(y)
   File "tests/cases/m41/frames.tpn", line 15, in <lambda>
     let f: Callable[[int], int] = lambda z: 100 // z
-ZeroDivisionError: division by zero
+ZeroDivisionError: integer division or modulo by zero

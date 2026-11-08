@@ -93,7 +93,7 @@ public class LibraryTests
         Assert.Equal("unknown shape: hexagon", unknown.Message);
         Assert.IsAssignableFrom<TaipanException>(unknown);
 
-        Assert.Equal("missing key \"circle\"", Assert.Throws<KeyError>(() => shapes.corners("circle")).message);
+        Assert.Equal("\"circle\"", Assert.Throws<KeyError>(() => shapes.corners("circle")).message);
         Assert.Throws<OverflowException>(() => shapes.doubled(long.MaxValue));
     }
 

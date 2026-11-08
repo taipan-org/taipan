@@ -1,0 +1,19 @@
+False True False True True False True True True True
+False True False False True True
+True True False
+d[b] KeyError "b"
+n[2] KeyError 2
+xs[5] IndexError list index out of range
+s[5] IndexError string index out of range
+t[5] IndexError tuple index out of range
+r[5] IndexError range object index out of range
+1/0 ZeroDivisionError division by zero
+1.0/0 ZeroDivisionError float division by zero
+1//0 ZeroDivisionError integer division or modulo by zero
+1%0 ZeroDivisionError integer modulo by zero
+1.0//0.0 ZeroDivisionError float floor division by zero
+1.0%0.0 ZeroDivisionError float modulo
+xs[5]= IndexError list assignment index out of range
+del xs[5] IndexError list assignment index out of range
+del d[z] KeyError "z"
+grow RuntimeError dictionary changed size during iteration

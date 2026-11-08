@@ -1,23 +1,23 @@
-KeyError: missing key "b"
+KeyError: "b"
 1 -1
 OverflowError: integer overflow
 9223372036854775807
-div ZeroDivisionError: division by zero
-mod ZeroDivisionError: division by zero
-float ZeroDivisionError: division by zero
-index IndexError: index 5 out of range for length 3
+div ZeroDivisionError: integer division or modulo by zero
+mod ZeroDivisionError: integer modulo by zero
+float ZeroDivisionError: float division by zero
+index IndexError: list index out of range
 pop IndexError: pop from empty list
 nan ValueError: cannot convert nan to int
 inf OverflowError: cannot convert inf to int
 split ValueError: empty separator
 slice ValueError: slice step cannot be zero
 cast TypeError: cannot convert Animal to Dog
-mutate RuntimeError: list mutated during iteration
+mutate RuntimeError: list changed size during iteration
 1
 fine ok
-lookup: missing key "missing" True False
-either: index -4 out of range for length 3
-arithmetic: division by zero
-exception: index 9 out of range for length 3
+lookup: "missing" True False
+either: list index out of range
+arithmetic: integer division or modulo by zero
+exception: list index out of range
 missing key "a" [KeyError("missing key \"a\"")] bad port
 |x

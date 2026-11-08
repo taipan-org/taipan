@@ -57,9 +57,9 @@ public class RuntimeTests
     [Fact]
     public void DivisionByZeroPanics()
     {
-        Assert.Equal("division by zero", Assert.Throws<ZeroDivisionError>(() => Ops.FloorDiv(1, 0)).Message);
-        Assert.Equal("division by zero", Assert.Throws<ZeroDivisionError>(() => Ops.Mod(1, 0)).Message);
-        Assert.Equal("division by zero", Assert.Throws<ZeroDivisionError>(() => Ops.Div(1.0, -0.0)).Message);
+        Assert.Equal("integer division or modulo by zero", Assert.Throws<ZeroDivisionError>(() => Ops.FloorDiv(1, 0)).Message);
+        Assert.Equal("integer modulo by zero", Assert.Throws<ZeroDivisionError>(() => Ops.Mod(1, 0)).Message);
+        Assert.Equal("float division by zero", Assert.Throws<ZeroDivisionError>(() => Ops.Div(1.0, -0.0)).Message);
     }
 
     [Theory]

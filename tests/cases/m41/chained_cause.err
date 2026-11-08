@@ -1,7 +1,7 @@
 Traceback (most recent call last):
   File "tests/cases/m41/chained_cause.tpn", line 8, in lookup
     return services[name]
-KeyError: missing key "db"
+KeyError: "db"
 
 The above exception was the direct cause of the following exception:
 

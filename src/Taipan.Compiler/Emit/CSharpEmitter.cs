@@ -1868,6 +1868,14 @@ public sealed partial class CSharpEmitter
             return binary.Op is BinaryOp.And or BinaryOp.Or
                 ? $"{Operand(binary.Left)} {(binary.Op == BinaryOp.And ? "&&" : "||")} {Operand(binary.Right)}"
                 : $"{Interop}.Binary(\"{TypeChecker.Display(binary.Op)}\", {l}, {r})";
+        // An int and a float compare exactly, as in Python (SPEC §5.3).
+        if (binary.Op is BinaryOp.Equal or BinaryOp.NotEqual or BinaryOp.Less or BinaryOp.LessEqual or BinaryOp.Greater or BinaryOp.GreaterEqual
+            && (leftType, Concrete(binary.Right.Type)) is var (lt, rt)
+            && (lt == TaipanType.Int && rt == TaipanType.Float || lt == TaipanType.Float && rt == TaipanType.Int))
+        {
+            var sign = lt == TaipanType.Int ? $"{Runtime}.Ops.Mixed({l}, {r})" : $"-{Runtime}.Ops.Mixed({r}, {l})";
+            return $"{sign} {TypeChecker.Display(binary.Op)} 0";
+        }
         var left = Operand(binary.Left);
         var right = Operand(binary.Right);
         var compared = TypeChecker.Unwrap(leftType) is NoneType ? TypeChecker.Unwrap(Concrete(binary.Right.Type)) : TypeChecker.Unwrap(leftType);

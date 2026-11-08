@@ -37,7 +37,7 @@ public sealed class RangeObject : IEnumerable<long>
         var length = Length;
         var at = index < 0 ? index + length : index;
         if (at < 0 || at >= length)
-            throw new IndexError($"index {index} out of range for length {length}");
+            throw new IndexError("range object index out of range");
         return (long)(_start + (Int128)at * _step);
     }
 

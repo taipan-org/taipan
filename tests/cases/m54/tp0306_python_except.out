@@ -1,5 +1,5 @@
 1
 caught KeyError
 caught KeyError
-a Taipan KeyError missing key "b"
+a Taipan KeyError "b"
 Taipan's TypeError, from 'as'

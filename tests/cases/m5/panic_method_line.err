@@ -3,4 +3,4 @@ Traceback (most recent call last):
     print(s.top())
   File "tests/cases/m5/panic_method_line.tpn", line 6, in top
     return self.items[-1]
-IndexError: index -1 out of range for length 0
+IndexError: list index out of range
