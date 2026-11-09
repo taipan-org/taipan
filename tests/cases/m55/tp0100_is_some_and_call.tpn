@@ -1,0 +1,8 @@
+let args = ["wordfreq", "sample.txt", "5"]
+if int(args[2]) is some n and n > 0:
+    print(n)
+let counts = {"the": 10}
+if counts.get("the") is some c and c > 1:
+    print(c)
+if args[1] is some f and f != "":
+    print(f)

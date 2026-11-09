@@ -115,9 +115,13 @@ public sealed class DiagnosticBag
     public void ReportTypeMismatch(TextSpan span, object expected, object found, string? help = null) =>
         Add("TP0200", span, $"expected {expected}, found {found}", help);
 
-    public void ReportIsSomeNotWhole(TextSpan span, string tested) =>
+    // `is not None` narrows only what SPEC §3.9 can narrow, so for anything else, such as a call,
+    // the help suggests a `let` instead.
+    public void ReportIsSomeNotWhole(TextSpan span, string tested, bool narrowable) =>
         Add("TP0100", span, "'is some' must be the whole condition",
-            $"nest another 'if', or use '{tested} is not None and …', which narrows '{tested}'");
+            narrowable
+                ? $"nest another 'if', or use '{tested} is not None and …', which narrows '{tested}'"
+                : $"nest another 'if', or bind '{tested}' with 'let' first");
 
     public void ReportNeverAwaited(TextSpan span, string name) =>
         Warn("TP0307", span, $"'{name}' is never awaited", "await it, or pass it to 'asyncio.gather'");

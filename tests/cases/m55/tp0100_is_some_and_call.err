@@ -1,0 +1,6 @@
+tests/cases/m55/tp0100_is_some_and_call.tpn:2:27: error TP0100: 'is some' must be the whole condition
+  help: nest another 'if', or bind 'int(args[2])' with 'let' first
+tests/cases/m55/tp0100_is_some_and_call.tpn:5:32: error TP0100: 'is some' must be the whole condition
+  help: nest another 'if', or bind 'counts.get("the")' with 'let' first
+tests/cases/m55/tp0100_is_some_and_call.tpn:7:22: error TP0100: 'is some' must be the whole condition
+  help: nest another 'if', or use 'args[1] is not None and …', which narrows 'args[1]'

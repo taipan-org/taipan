@@ -1227,7 +1227,7 @@ public sealed class Parser
             tested = joined.Right;
         var trailing = At(TokenKind.AndKeyword) || At(TokenKind.OrKeyword);
         if ((tested != expr || trailing) && !_recovering)
-            _diagnostics.ReportIsSomeNotWhole(tested != expr ? isSpan : Current.Span, _source.ToString(tested.Span));
+            _diagnostics.ReportIsSomeNotWhole(tested != expr ? isSpan : Current.Span, _source.ToString(tested.Span), Narrowable(tested));
         while (At(TokenKind.AndKeyword) || At(TokenKind.OrKeyword))
         {
             Next();
@@ -1235,6 +1235,18 @@ public sealed class Parser
         }
         return new IsSomeCondition(tested, binding, SpanFrom(start));
     }
+
+    // Whether an expression is written as something narrowing can apply to (SPEC §3.9): a name, a path
+    // of fields, or an element whose key is a literal or a name. Whether its root can change is the
+    // binder's to check; this only chooses the help for TP0100.
+    private static bool Narrowable(Expr expr) => expr switch
+    {
+        NameExpr => true,
+        MemberExpr member => Narrowable(member.Target),
+        IndexExpr index => Narrowable(index.Target) && index.Index is IntLiteral or StringLiteral or NameExpr
+            or UnaryExpr { Op: UnaryOp.Negate, Operand: IntLiteral },
+        _ => false,
+    };
 
     // while_stmt = "while" condition ":" block
     private WhileStmt ParseWhileStmt()
