@@ -130,7 +130,7 @@ public sealed record UnpackedTarget(Expr Target, bool Starred, TextSpan Span) : 
 /// <summary><c>(a, b)</c> inside an unpacking: unpacks that element in turn (M29).</summary>
 public sealed record UnpackedGroup(ImmutableArray<Unpacked> Items, TextSpan Span) : Unpacked(Span);
 
-public enum AssignOp { Assign, Add, Subtract, Multiply, Divide, FloorDivide, Modulo, Power }
+public enum AssignOp { Assign, Add, Subtract, Multiply, Divide, FloorDivide, Modulo, Power, Union, Intersection, SymmetricDifference }
 
 /// <summary><see cref="Target"/> is a <see cref="NameExpr"/>, <see cref="MemberExpr"/> or <see cref="IndexExpr"/>.</summary>
 public sealed record AssignStmt(Expr Target, AssignOp Op, Expr Value, TextSpan Span) : Stmt(Span);

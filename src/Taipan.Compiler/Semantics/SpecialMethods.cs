@@ -213,6 +213,9 @@ public static class SpecialMethods
         Syntax.AssignOp.FloorDivide => "__ifloordiv__",
         Syntax.AssignOp.Modulo => "__imod__",
         Syntax.AssignOp.Power => "__ipow__",
+        Syntax.AssignOp.Union => "__ior__",
+        Syntax.AssignOp.Intersection => "__iand__",
+        Syntax.AssignOp.SymmetricDifference => "__ixor__",
         _ => null,
     };
 

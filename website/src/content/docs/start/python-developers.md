@@ -169,7 +169,7 @@ print(area(Rect(2.0, 3.0)))
 
 - **Defaults are evaluated on every call**, so `def f(xs: list[int] = [])` gets a new list each time. Python's shared-default trap doesn't exist.
 - **A nested function needs `nonlocal` to assign to an outer variable**, as in Python, but a new local of the same name isn't possible, so forgetting it is a compile error (`TP0236`). Top-level variables have no `global`: a nested function can read them but not assign to them.
-- **`*=` isn't supported on a list**: write `xs = xs * n`, which makes a new list. `[0] * n` and `"-" * n` work as in Python.
+- **`*=` isn't supported on a list, nor `-=`, `|=`, `&=` or `^=` on a set**: write `xs = xs * n` or `s = s | t`, which make a new collection. `[0] * n` and `"-" * n` work as in Python.
 - **A hole in a triple-quoted f-string stays on one line**, where Python 3.12 allows several. `\N{…}` escapes and `bytes` aren't supported. String prefixes are lowercase.
 - **A main file can't be imported**, and there's no `__name__`. To test a command-line tool, put its code in a module that the main file and the test file both import.
 - **A Python exception is a `PythonError`**: `except KeyError` catches Taipan's `KeyError`, not one from Python code. Catch Python's with `from python import builtins` and `except builtins.KeyError`, or catch `PythonError`.

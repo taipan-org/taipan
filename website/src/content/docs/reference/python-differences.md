@@ -34,6 +34,8 @@ These are Taipan's own, so they can't be mistaken for Python:
 | `if __name__ == "__main__":` | nothing: a main file can't be imported, so shared code goes in a module |
 | `for …: … else:` | a flag, or a `return` from a function |
 | `xs *= 2` on a list | `xs = xs * 2` |
+| `s -= t`, `s \|= t` on a set | `s = s - t`, `s = s \| t` |
+| `import random`, `from dataclasses import dataclass` | `from python import random`; nothing, since `@dataclass`, `Callable`, `ABC` and `Protocol` are built in |
 | `"{}".format(x)`, `"%d" % x` | an f-string |
 | `x in xs in ys`, `a is b is c` | two comparisons joined by `and` |
 | `except RecursionError:` | nothing: infinite recursion ends the process, as in .NET |

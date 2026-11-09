@@ -503,6 +503,10 @@ public sealed partial class Binder
                     }
                     break;
                 case ImportStmt import when byName.TryGetValue(import.Module.Text, out var target):
+                    // The main file runs once and exports nothing (SPEC §4.7, M57); the names still
+                    // bind, so nothing else is reported.
+                    if (target == _mainModule)
+                        _diagnostics.ReportImportMain(import.Module.Span);
                     var alias = import.Alias ?? import.Module;
                     var moduleSymbol = target.Symbol(alias.Text);
                     // A module's definition is the start of its file (SPEC §16.3).
@@ -511,6 +515,8 @@ public sealed partial class Binder
                     DeclareGlobal(alias, moduleSymbol, isDefinition: false);
                     break;
                 case FromImportStmt from when byName.TryGetValue(from.Module.Text, out var source):
+                    if (source == _mainModule)
+                        _diagnostics.ReportImportMain(from.Module.Span);
                     var fromModule = source.Symbol(from.Module.Text);
                     _index.Locate(fromModule, source.File.Source, default);
                     Index(from.Module.Span, fromModule);
@@ -2724,6 +2730,9 @@ public sealed partial class Binder
         // Python's *= changes a list in place, and it's too rare to carry (SPEC §5.3, M48).
         if (assign.Op == AssignOp.Multiply && value is BoundBinary { Type: ListOfType } && current.Type is ListOfType)
             _diagnostics.ReportListRepeatAssign(assign.Span);
+        // Python changes the set in place, so every name for it sees the change (SPEC §4.5, M57).
+        if (assign.Op is AssignOp.Subtract or AssignOp.Union or AssignOp.Intersection or AssignOp.SymmetricDifference && current.Type is SetOfType)
+            _diagnostics.ReportSetOpAssign(assign.Span, TypeChecker.Display(TypeChecker.ToBinaryOp(assign.Op)));
         // A list's += adds to the list itself, as in Python (SPEC §4.5).
         if (assign.Op == AssignOp.Add && value is BoundBinary { Op: BinaryOp.Add, Type: ListOfType } add)
             return new BoundListExtend(add.Left, add.Right, assign.Span);

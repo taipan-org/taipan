@@ -330,6 +330,9 @@ public static class TypeChecker
         AssignOp.FloorDivide => BinaryOp.FloorDivide,
         AssignOp.Modulo => BinaryOp.Modulo,
         AssignOp.Power => BinaryOp.Power,
+        AssignOp.Union => BinaryOp.Union,
+        AssignOp.Intersection => BinaryOp.Intersection,
+        AssignOp.SymmetricDifference => BinaryOp.SymmetricDifference,
         _ => throw new ArgumentOutOfRangeException(nameof(op), op, null),
     };
 

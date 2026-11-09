@@ -1,0 +1,6 @@
+import helper
+
+def greet() -> str:
+    return "hi"
+
+print(helper.shout())

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Numerics;
 using System.Text;
+using Taipan.Compiler.Syntax;
 using Taipan.Compiler.Text;
 
 namespace Taipan.Compiler.Diagnostics;
@@ -85,6 +86,9 @@ public sealed class DiagnosticBag
 
     public void ReportInvalidNumber(TextSpan span) =>
         Add("TP0007", span, "invalid number literal");
+
+    public void ReportEnumImport(TextSpan span) =>
+        Add("TP0100", span, "Taipan has no 'enum' module", "declare an enum with 'enum Name:', which needs no import");
 
     public void ReportExpected(TextSpan span, string expected, string found) =>
         Add("TP0100", span, $"expected {expected}, found {found}");
@@ -323,7 +327,10 @@ public sealed class DiagnosticBag
     }
 
     public void ReportModuleNotFound(TextSpan span, string module, string path) =>
-        Add("TP0221", span, $"module '{module}' not found", $"looked for {path}");
+        Add("TP0221", span, $"module '{module}' not found", ModuleLoader.NotFoundHelp(module, path));
+
+    public void ReportImportMain(TextSpan span) =>
+        Add("TP0222", span, "the main file can't be imported", "move what both files need into a module that each imports");
 
     public void ReportStatementInModule(TextSpan span) =>
         Add("TP0222", span, "only the main file can have top-level statements");
@@ -437,6 +444,9 @@ public sealed class DiagnosticBag
 
     public void ReportListRepeatAssign(TextSpan span) =>
         Add("TP0200", span, "'*=' isn't supported on a list", "write 'xs = xs * n', which makes a new list");
+
+    public void ReportSetOpAssign(TextSpan span, string op) =>
+        Add("TP0200", span, $"'{op}=' isn't supported on a set", $"write 's = s {op} t', which makes a new set");
 
     public void ReportBroadHandler(TextSpan span) =>
         Warn("TP0301", span, "this clause catches every exception and discards it",

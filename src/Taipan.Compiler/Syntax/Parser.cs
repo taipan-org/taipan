@@ -191,6 +191,7 @@ public sealed class Parser
     private ImportStmt ParseImportStmt()
     {
         var start = Next().Span.Start;
+        CheckEnumImport();
         var module = ParseModulePath();
         var alias = ParseImportAlias();
         var span = SpanFrom(start);
@@ -202,6 +203,7 @@ public sealed class Parser
     private FromImportStmt ParseFromImportStmt()
     {
         var start = Next().Span.Start;
+        CheckEnumImport();
         var module = ParseModulePath();
         Expect(TokenKind.ImportKeyword);
         var names = ImmutableArray.CreateBuilder<ImportName>();
@@ -214,6 +216,13 @@ public sealed class Parser
         var span = SpanFrom(start);
         Expect(TokenKind.Newline);
         return new FromImportStmt(module, names.ToImmutable(), span);
+    }
+
+    // Python's `from enum import Enum` meets the `enum` keyword; one error says what to write (SPEC §4.7, M57).
+    private void CheckEnumImport()
+    {
+        if (At(TokenKind.EnumKeyword))
+            ReportSyntaxError(bag => bag.ReportEnumImport(Current.Span));
     }
 
     // module_path = NAME { "." NAME }, as one identifier spanning the path (SPEC §13.1)
@@ -878,7 +887,7 @@ public sealed class Parser
         return ParseType();
     }
 
-    // assign_stmt = target ( "=" | "+=" | "-=" | "*=" | "/=" ) expr
+    // assign_stmt = target ( "=" | "+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "|=" | "&=" | "^=" ) expr
     //             | target "," target { "," target } "=" expr_list ;  also the bare `expr` statement
     private Stmt ParseAssignStmt()
     {
@@ -900,6 +909,9 @@ public sealed class Parser
             TokenKind.SlashSlashEquals => AssignOp.FloorDivide,
             TokenKind.PercentEquals => AssignOp.Modulo,
             TokenKind.StarStarEquals => AssignOp.Power,
+            TokenKind.PipeEquals => AssignOp.Union,
+            TokenKind.AmpersandEquals => AssignOp.Intersection,
+            TokenKind.CaretEquals => AssignOp.SymmetricDifference,
             _ => null,
         };
         if (op is null)

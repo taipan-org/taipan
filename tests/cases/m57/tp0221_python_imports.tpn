@@ -1,0 +1,8 @@
+import random
+from dataclasses import dataclass
+from typing import Callable, Optional
+from abc import ABC
+from __future__ import annotations
+import typing_extensions
+
+print(1)

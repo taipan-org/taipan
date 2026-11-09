@@ -1,0 +1,2 @@
+tests/cases/m57/tp0222_import_self.tpn:1:8: error TP0222: the main file can't be imported
+  help: move what both files need into a module that each imports

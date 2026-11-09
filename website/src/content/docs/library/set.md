@@ -133,7 +133,17 @@ print(u.issubset([1, 2, 3, 4]), u.issuperset([1]), u.isdisjoint([7, 8]))
 True True True
 ```
 
-The operators that change a set in place, such as `|=` and `&=`, aren't supported yet. Use `s.update(xs)` to add values, or assign a new set, as `s = s & other`.
+The operators that would change a set in place, `-=`, `|=`, `&=` and `^=`, are compile errors, because they'd make a new set where Python changes the shared one. The error says what to write: `s = s & other`, which makes a new set, or `s.update(xs)` and the other methods above, which change the set itself.
+
+```taipan
+var seen = {1, 2}
+seen |= {3}
+```
+
+```error
+main.tpn:2:1: error TP0200: '|=' isn't supported on a set
+  help: write 's = s | t', which makes a new set
+```
 
 ## Removing duplicates
 

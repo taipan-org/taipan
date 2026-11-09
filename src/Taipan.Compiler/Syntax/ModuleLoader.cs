@@ -24,6 +24,14 @@ public static class ModuleLoader
     public const string DotNetModule = "dotnet";
 
     /// <summary>Whether an import names .NET rather than a Taipan module: <c>dotnet</c> or <c>dotnet.&lt;namespace&gt;</c>.</summary>
+    /// <summary>
+    /// Python modules whose names Taipan has built in: Callable, @dataclass, ABC, Protocol (SPEC §4.7, M57).
+    /// </summary>
+    public static bool IsPythonBuiltIn(string module) => module is "typing" or "typing_extensions" or "dataclasses" or "abc" or "__future__";
+
+    /// <summary>The help for a module that isn't found: where it was looked for, and how a Python module is imported (SPEC §4.7).</summary>
+    public static string NotFoundHelp(string module, string path) => $"looked for {path}; a Python module is imported with 'from python import {module}'";
+
     public static bool IsDotNet(string module) => module == DotNetModule || module.StartsWith(DotNetModule + ".", StringComparison.Ordinal);
 
     /// <summary>
@@ -51,8 +59,14 @@ public static class ModuleLoader
             var importer = modules[i];
             foreach (var import in Imports(importer.Unit))
             {
-                if (import.Text == PythonModule || IsDotNet(import.Text) || Semantics.BuiltinModules.IsBuiltin(import.Text) || !loaded.Add(import.Text))
+                // An empty name is a recovered parse error, already reported.
+                if (import.Text == "" || import.Text == PythonModule || IsDotNet(import.Text) || Semantics.BuiltinModules.IsBuiltin(import.Text) || !loaded.Add(import.Text))
                     continue;
+                if (IsPythonBuiltIn(import.Text))
+                {
+                    syntax.Add(new Diagnostic("TP0221", import.Span, $"'{import.Text}' is Python's, and what Taipan needs from it is built in", "delete this import") { Source = importer.Source });
+                    continue;
+                }
                 // Modules aren't dotted; only .NET namespaces are (SPEC §4.7).
                 if (import.Text.Contains('.'))
                 {
@@ -62,7 +76,7 @@ public static class ModuleLoader
                 var path = ModulePath(mainPath, import.Text);
                 if (Read(path) is not { } text)
                 {
-                    syntax.Add(new Diagnostic("TP0221", import.Span, $"module '{import.Text}' not found", $"looked for {path}")
+                    syntax.Add(new Diagnostic("TP0221", import.Span, $"module '{import.Text}' not found", NotFoundHelp(import.Text, path))
                     {
                         Source = importer.Source,
                     });

@@ -1,0 +1,9 @@
+var seen = {1, 2, 3}
+let same = seen
+seen -= {1}
+seen |= {4}
+seen &= {2, 4}
+seen ^= {2}
+var n = 10
+n -= 3
+print(n, same)

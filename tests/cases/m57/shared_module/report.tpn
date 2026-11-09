@@ -1,0 +1,4 @@
+import words
+
+def title() -> str:
+    return words.shout("report")
