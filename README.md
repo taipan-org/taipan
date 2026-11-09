@@ -46,6 +46,14 @@ worker degraded (3/4)
 found worker
 ```
 
+## Status
+
+Taipan is young: it's at version 0.x, ready for small programs and experiments rather than production, and the language may still change between versions.
+
+- **Works today:** the language in the [tour](https://taipan-lang.org/tour/basics/), .NET libraries, Python libraries through `from python import`, native executables, a formatter, a test runner, and editor support for VS Code, Vim and Neovim. CI runs on Linux, Windows and macOS.
+- **Differs from Python on purpose:** listed on [Differences from Python](https://taipan-lang.org/reference/python-differences/).
+- **Feedback is welcome:** if Python-looking code didn't work, or Taipan did something surprising, please [open an issue](https://github.com/taipan-org/taipan/issues/new/choose). There's a template for each.
+
 ## Getting started
 
 Install the `taipan` command as a .NET tool, with the [.NET 10 SDK](https://dotnet.microsoft.com/download):

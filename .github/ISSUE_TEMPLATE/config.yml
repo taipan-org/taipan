@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://taipan-lang.org
+    about: The tour, the guides, and how Taipan differs from Python.
