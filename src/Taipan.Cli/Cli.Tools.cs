@@ -22,7 +22,7 @@ public static partial class Cli
         foreach (var path in paths)
         {
             if (Directory.Exists(path))
-                files.AddRange(Directory.EnumerateFiles(path, "*.tpn", SearchOption.AllDirectories).Order(StringComparer.Ordinal));
+                files.AddRange(Directory.EnumerateFiles(path, "*.tpn", SearchOption.AllDirectories).Select(f => Compiler.Text.SourcePaths.LikeGiven(path, f)).Order(StringComparer.Ordinal));
             else if (File.Exists(path))
                 files.Add(path);
             else
@@ -124,7 +124,7 @@ public static partial class Cli
     private static IEnumerable<string> TestFiles(string directory) =>
         Directory.EnumerateFiles(directory, "*.tpn", SearchOption.AllDirectories)
             .Where(f => Path.GetFileName(f) is var name && (name.StartsWith("test_", StringComparison.Ordinal) || name.EndsWith("_test.tpn", StringComparison.Ordinal)))
-            .Select(f => directory == "." ? Path.GetRelativePath(".", f) : f)
+            .Select(f => Compiler.Text.SourcePaths.LikeGiven(directory, directory == "." ? Path.GetRelativePath(".", f) : f))
             .Order(StringComparer.Ordinal);
 
     /// <summary>

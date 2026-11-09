@@ -100,9 +100,20 @@ public static class Interop
         if (Environment.GetEnvironmentVariable("PYTHONNET_PYDLL") is { Length: > 0 } configured)
             return configured;
 
-        const string query =
-            "import os, sysconfig; " +
-            "print(os.path.join(sysconfig.get_config_var('LIBDIR') or '', sysconfig.get_config_var('LDLIBRARY') or ''))";
+        // Where the shared library may be: next to the interpreter on Windows, and on Linux and macOS
+        // LIBDIR's LDLIBRARY, or libpython's .so or .dylib when that names a static library or a framework.
+        const string query = """
+            import os, sys, sysconfig
+            v = sysconfig.get_config_var
+            libdir, version = v('LIBDIR') or '', v('LDVERSION') or v('VERSION') or ''
+            candidates = []
+            if os.name == 'nt':
+                candidates.append(os.path.join(sys.base_prefix, f'python{sys.version_info[0]}{sys.version_info[1]}.dll'))
+            candidates += [os.path.join(libdir, v('LDLIBRARY') or ''), os.path.join(libdir, f'libpython{version}.dylib'), os.path.join(libdir, f'libpython{version}.so')]
+            if v('PYTHONFRAMEWORKPREFIX'):
+                candidates.append(os.path.join(v('PYTHONFRAMEWORKPREFIX'), v('PYTHONFRAMEWORKDIR') or 'Python.framework', 'Versions', v('VERSION') or '', 'Python'))
+            print('\n'.join(candidates))
+            """;
         foreach (var executable in (string[])["python3", "python"])
         {
             try
@@ -115,9 +126,9 @@ public static class Interop
                 });
                 if (process is null)
                     continue;
-                var path = process.StandardOutput.ReadToEnd().Trim();
+                var paths = process.StandardOutput.ReadToEnd().Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                 process.WaitForExit();
-                if (process.ExitCode == 0 && File.Exists(path))
+                if (process.ExitCode == 0 && paths.FirstOrDefault(p => File.Exists(p) && !p.EndsWith(".a", StringComparison.Ordinal)) is { } path)
                     return path;
             }
             catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException)

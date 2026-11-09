@@ -12,7 +12,7 @@ public sealed class EditorToolingTests : IDisposable
 
     public EditorToolingTests() => Directory.CreateDirectory(_directory);
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose() => TempDirectory.Remove(_directory);
 
     private string Write(string name, string text)
     {

@@ -8,7 +8,7 @@ public sealed class ToolTests : IDisposable
 
     public ToolTests() => Directory.CreateDirectory(_directory);
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose() => TempDirectory.Remove(_directory);
 
     private string Write(string relative, string text)
     {
@@ -94,9 +94,9 @@ public sealed class ToolTests : IDisposable
         Assert.Equal("", stderr);
         Assert.Equal($"""
             PASS test_one.tpn::test_a
-            FAIL tests{Path.DirectorySeparatorChar}two_test.tpn::test_b
+            FAIL tests/two_test.tpn::test_b
             Traceback (most recent call last):
-              File "tests{Path.DirectorySeparatorChar}two_test.tpn", line 2, in test_b
+              File "tests/two_test.tpn", line 2, in test_b
                 assert 1 == 2
             AssertionError
             1 passed, 1 failed

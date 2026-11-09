@@ -118,7 +118,7 @@ public sealed class ProgramInput : IDisposable
     public void Dispose()
     {
         if (Directory.Exists(_temporary))
-            Directory.Delete(_temporary, recursive: true);
+            TempDirectory.Remove(_temporary);
     }
 }
 

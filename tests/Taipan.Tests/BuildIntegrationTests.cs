@@ -51,7 +51,7 @@ public sealed class PackedFeed : IDisposable
     {
         try
         {
-            Directory.Delete(Root, recursive: true);
+            TempDirectory.Remove(Root);
         }
         catch (IOException)
         {

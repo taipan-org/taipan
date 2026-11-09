@@ -44,7 +44,8 @@ public class AsyncTests
 
         Assert.Equal("", await error);
         Assert.Equal(0, process.ExitCode);
-        Assert.Equal("hello from /greeting/\n", await output);
+        // print writes Windows's line ending there, as Python's does.
+        Assert.Equal("hello from /greeting/\n", (await output).Replace("\r\n", "\n"));
     }
 
     private static int FreePort()

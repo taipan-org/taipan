@@ -65,7 +65,7 @@ public class PackageTests
         }
         finally
         {
-            Directory.Delete(work, recursive: true);
+            TempDirectory.Remove(work);
         }
 
         // An empty package cache for everything after packing, so the install can't use a package

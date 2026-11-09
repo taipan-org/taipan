@@ -127,7 +127,7 @@ public class WebsiteSampleTests
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
+            TempDirectory.Remove(directory);
         }
     }
 }

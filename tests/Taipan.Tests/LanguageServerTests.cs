@@ -43,7 +43,11 @@ public class LanguageServerTests
         foreach (var diagnostic in published)
         {
             // The server checks a document by its absolute path, where `taipan check` was given a relative one.
+            // The server has the document's absolute path, written with the system's separator: on Windows,
+            // a backslash between two names is one.
             var message = diagnostic!["message"]!.GetValue<string>().Replace(Root + Path.DirectorySeparatorChar, "");
+            if (OperatingSystem.IsWindows())
+                message = System.Text.RegularExpressions.Regex.Replace(message, @"(?<=\w)\\(?=\w)", "/");
             if (diagnostic["code"] is null)
             {
                 actual.Append($"taipan: {message}\n");
