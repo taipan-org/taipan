@@ -18,12 +18,18 @@ public class WebsiteLinkTests
     private static readonly Regex Link = new(@"\]\((?<target>[^)\s]+)(?:\s+""[^""]*"")?\)");
     private static readonly Regex Code = new(@"```.*?```|`[^`\n]*`", RegexOptions.Singleline);
 
+    // The diagnostics' explanations (M56) appear on diagnostics/<code>/, so their links resolve from there.
+    private static readonly string Explanations = Path.Combine(RepoPaths.Root, "website", "diagnostics");
+
     public static TheoryData<string> Pages() =>
     [
         .. Directory.EnumerateFiles(Docs, "*.*", SearchOption.AllDirectories)
             .Where(f => f.EndsWith(".md") || f.EndsWith(".mdx"))
             .Select(f => Path.GetRelativePath(Docs, f).Replace('\\', '/'))
             .Where(f => !Generated.Any(g => f.StartsWith(g)))
+            .Concat(Directory.Exists(Explanations)
+                ? Directory.EnumerateFiles(Explanations, "*.md").Select(f => $"diagnostics/{Path.GetFileName(f)}")
+                : [])
             .Order(StringComparer.Ordinal),
     ];
 
@@ -31,7 +37,8 @@ public class WebsiteLinkTests
     [MemberData(nameof(Pages))]
     public void RelativeLinksLeadToPages(string page)
     {
-        var text = Code.Replace(File.ReadAllText(Path.Combine(Docs, page)), "");
+        var file = page.StartsWith("diagnostics/") ? Path.Combine(Explanations, page["diagnostics/".Length..]) : Path.Combine(Docs, page);
+        var text = Code.Replace(File.ReadAllText(file), "");
         var broken = Link.Matches(text)
             .Select(m => m.Groups["target"].Value)
             .Where(t => !t.Contains("://") && !t.StartsWith('#') && !t.StartsWith("mailto:"))
