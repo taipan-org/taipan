@@ -1,0 +1,16 @@
+def first_long(words: list[str]) -> str:
+    var i = 0
+    while True:
+        if len(words[i]) > 3:
+            return words[i]
+        i += 1
+
+def count_up(limit: int) -> int:
+    var n = 0
+    while True:
+        n += 1
+        if n >= limit:
+            break
+    return n
+
+print(first_long(["a", "bb", "ccc", "dddd", "eeeee"]), count_up(3))

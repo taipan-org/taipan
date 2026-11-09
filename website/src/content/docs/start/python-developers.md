@@ -164,6 +164,7 @@ print(area(Rect(2.0, 3.0)))
 - `int` is 64-bit. Overflow raises `OverflowError` instead of growing.
 - `/` gives a `float` and `//` an `int`, as in Python. An `int` widens to a `float` where one is expected, and nothing else converts implicitly: use `int(x)`, `float(x)` and `str(x)`.
 - `int("42")` and `float("2.5")` give an optional, `None` when the text isn't a number, rather than raising.
+- `int ** int` is an `int`, so `2 ** -1` raises `ValueError` rather than giving `0.5`. Write `2.0 ** -1` for a float.
 
 ## Smaller differences
 

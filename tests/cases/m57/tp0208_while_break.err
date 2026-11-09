@@ -1,0 +1,2 @@
+tests/cases/m57/tp0208_while_break.tpn:1:5: error TP0208: not all paths in 'find' return a value
+tests/cases/m57/tp0208_while_break.tpn:10:5: error TP0208: not all paths in 'loop_var' return a value

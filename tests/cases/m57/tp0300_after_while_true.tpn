@@ -1,0 +1,6 @@
+def wait() -> int:
+    while True:
+        return 1
+    print("never")
+
+print(wait())

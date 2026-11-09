@@ -1,0 +1,10 @@
+def lookup(k: str) -> int?:
+    match k:
+        "a": return 41
+        _: return None
+
+let found = lookup("a")
+if found is not None:
+    print(found + 1)
+if lookup("a") is some n:
+    print(n + 2)

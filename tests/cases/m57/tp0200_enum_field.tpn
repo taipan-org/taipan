@@ -1,0 +1,9 @@
+enum Shape:
+    Circle(radius: float)
+    Rect(width: float, height: float)
+    Dot
+
+let s = Shape.Rect(2.0, 3.0)
+print(s.width)
+print(s.radius)
+print(s.area)

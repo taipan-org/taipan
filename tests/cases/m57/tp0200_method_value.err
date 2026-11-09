@@ -1,0 +1,4 @@
+tests/cases/m57/tp0200_method_value.tpn:12:30: error TP0200: 'bump' is a method; call it
+  help: to use it as a function, wrap it in a lambda
+tests/cases/m57/tp0200_method_value.tpn:13:28: error TP0200: 'bump' is a method; call it
+  help: to use it as a function, wrap it in a lambda

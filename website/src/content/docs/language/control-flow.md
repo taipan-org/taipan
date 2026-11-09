@@ -315,7 +315,7 @@ True
 
 ### Loops and `return`
 
-A function that declares a return type must end every path with a `return` (or a `raise`). The compiler doesn't count a loop as ending a path, even `while True:`, so a `return` is still needed after it:
+A function that declares a return type must end every path with a `return` (or a `raise`). The compiler doesn't count a `for`, or a `while` with a condition, as ending a path, since the loop may finish, so a `return` is still needed after it:
 
 ```taipan
 def first_even(xs: list[int]) -> int:
@@ -340,6 +340,23 @@ print(first_even([3, 8, 5]), first_even([1]))
 
 ```output
 8 -1
+```
+
+A `while True:` with no `break` is the exception: only a `return` or a `raise` can leave it, so a loop that returns from inside needs nothing after it. Code after such a loop can't run, and gets warning `TP0300`.
+
+```taipan
+def first_long(words: list[str]) -> str:
+    var i = 0
+    while True:
+        if len(words[i]) > 3:
+            return words[i]
+        i += 1
+
+print(first_long(["a", "bb", "dddd", "eeeee"]))
+```
+
+```output
+dddd
 ```
 
 ## `pass`

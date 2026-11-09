@@ -400,7 +400,7 @@ if lookup("db") is not None:
 
 ```error
 main.tpn:5:11: error TP0203: int? must be narrowed before use
-  help: narrow it with 'is some', or give a default with '??'
+  help: a call's result isn't narrowed, since calling it again may give another value; copy it to a 'let' first
 ```
 
 ```taipan

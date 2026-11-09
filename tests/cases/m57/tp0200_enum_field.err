@@ -1,0 +1,5 @@
+tests/cases/m57/tp0200_enum_field.tpn:7:9: error TP0200: 'width' is a payload field of Shape, which only 'match' can read
+  help: write 'match s:' with an arm 'Rect(width, height): …'
+tests/cases/m57/tp0200_enum_field.tpn:8:9: error TP0200: 'radius' is a payload field of Shape, which only 'match' can read
+  help: write 'match s:' with an arm 'Circle(radius): …'
+tests/cases/m57/tp0200_enum_field.tpn:9:9: error TP0210: Shape has no field 'area'

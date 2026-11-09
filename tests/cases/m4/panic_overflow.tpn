@@ -3,7 +3,6 @@ def grow(n: int) -> int:
     while True:
         print(x)
         x = x * 1000000
-    return x
 
 print("start")
 grow(9)

@@ -55,8 +55,9 @@ public static class TaipanProgram
             long @i = 0L;
 #line 16 "tests/cases/m7/match_loops.tpn"
             @line = 16;
-            while (global::Taipan.Runtime.Panic.At(ref @line, 16) && (true))
+            while (true)
             {
+                @line = 16;
 #line 17 "tests/cases/m7/match_loops.tpn"
                 @line = 17;
                 @i = @i + 1L;
