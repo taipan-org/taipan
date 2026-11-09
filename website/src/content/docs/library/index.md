@@ -23,4 +23,4 @@ Every Taipan program has these built in. Each page lists everything its type or 
 
 `sys`, `os` and `asyncio` need an import, as in `import sys`. Everything else is there without one.
 
-Some types belong to a part of the language rather than to the library, and are described with it: optionals (`T?`) with [Optionals](../tour/optionals/), `Callable` with [functions](../tour/functions/), `Iterator` and `Generator` with [iterators and generators](../tour/iterators-and-generators/), `py` with [Calling Python](../guides/python/), and protocols with [generics and protocols](../tour/generics-and-protocols/).
+Some types belong to a part of the language rather than to the library, and are described with it in the [Language reference](../language/): optionals (`T?`) with [Optionals and narrowing](../language/optionals/), `Callable` with [Functions](../language/functions/), `Iterator` and `Generator` with [Iterators and generators](../language/generators/), protocols and generics with [Types](../language/types/), and `py` with [Calling Python](../guides/python/).
