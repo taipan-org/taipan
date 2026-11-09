@@ -1,0 +1,4 @@
+import words
+import report
+
+print(report.title(), words.shout("hi"))

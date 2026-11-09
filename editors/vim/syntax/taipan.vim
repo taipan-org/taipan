@@ -79,7 +79,7 @@ syn match taipanAssignment "="
 syn match taipanComparison "[<>]"
 syn match taipanArithmetic "\*\*\|//\|??"
 syn match taipanComparison "==\|!=\|<=\|>="
-syn match taipanAssignment "+=\|-=\|\*=\|/=\|%=\|//=\|\*\*="
+syn match taipanAssignment "+=\|-=\|\*=\|/=\|%=\|//=\|\*\*=\||=\|&=\|\^="
 syn match taipanArrow "->"
 
 hi def link taipanComment Comment

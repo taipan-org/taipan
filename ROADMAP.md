@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M56 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M56 are complete. M57 is in progress.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -464,3 +464,18 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M56 are complete
   - Every page's examples run as website samples and print their stated output.
   - A test checks that every method the compiler accepts on `str`, `list`, `dict`, `set` and files is on its type's page, and that every method a page lists is one the compiler accepts.
   - Every code in SPEC §9 has an explanation and a fixed example that compiles.
+
+## M57 — Fixes from the reference
+- The language problems writing M56's reference turned up, in order of how much they matter:
+  1. **Silent differences from Python.** In-place set operators (`-=`, `|=`, `&=`, `^=`) are compile errors, as `*=` on a list is, since they make a new set where Python changes the shared one. Importing the main file is a compile error, since Python would run it again and Taipan doesn't.
+  2. **Help that points the wrong way.** `import random` says how to import a Python module; `from dataclasses import dataclass`, `from typing import …`, `from abc import ABC` and `from enum import Enum` say the names are built in.
+  3. **The spec and the compiler disagree:** `asyncio.run` at the top level, narrowing a call's result, reading a field on an enum value, and a method used without a call. Each is settled in the spec first, then the compiler follows.
+  4. **Every error says what to write instead.** The messages in SPEC §9 without a help line get one, or the spec says why one can't.
+  5. **SDK projects:** dotted project names, and `taipan.json` added after a build.
+- Update SPEC first for each, and check each against the design principles.
+- **Accept:**
+  - `s -= t` and `import main` are compile errors with help, and golden cases show each form.
+  - A Python import gives the help above, and `from enum import Enum` gives one error, not two.
+  - The four disagreements are resolved, with the spec's text and the compiler agreeing.
+  - A test checks that every message in SPEC §9's table has a help line or a listed reason.
+  - A dotted SDK project builds, and a `taipan.json` added after a build is reported on the next one.

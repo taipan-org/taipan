@@ -1,0 +1,3 @@
+import tp0222_import_self
+
+print(1)

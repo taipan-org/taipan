@@ -1,0 +1,2 @@
+tests/cases/m57/tp0100_from_enum.tpn:1:6: error TP0100: Taipan has no 'enum' module
+  help: declare an enum with 'enum Name:', which needs no import

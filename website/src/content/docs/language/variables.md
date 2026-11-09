@@ -254,6 +254,8 @@ main.tpn:2:6: error TP0200: expected int, found float
 
 **`+=` on a list** is the exception to "means `x = x + y`". It adds the elements of the right side to the list itself, so every name for that list sees them. Since the name isn't given a new value, the list may be held by a `let`, a parameter or a loop variable. The right side must be a list of the same element type.
 
+**`*=` on a list and `-=`, `|=`, `&=` and `^=` on a set** are compile errors. In Python each changes the collection in place; checked as `x = x op y` they'd make a new one and leave other names for the collection unchanged, so instead the error says to write `xs = xs * n` or `s = s | t`, which make a new collection openly.
+
 ```taipan
 let xs = [1]
 let same = xs

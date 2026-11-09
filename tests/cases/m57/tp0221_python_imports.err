@@ -1,0 +1,12 @@
+tests/cases/m57/tp0221_python_imports.tpn:1:8: error TP0221: module 'random' not found
+  help: looked for tests/cases/m57/random.tpn; a Python module is imported with 'from python import random'
+tests/cases/m57/tp0221_python_imports.tpn:2:6: error TP0221: 'dataclasses' is Python's, and what Taipan needs from it is built in
+  help: delete this import
+tests/cases/m57/tp0221_python_imports.tpn:3:6: error TP0221: 'typing' is Python's, and what Taipan needs from it is built in
+  help: delete this import
+tests/cases/m57/tp0221_python_imports.tpn:4:6: error TP0221: 'abc' is Python's, and what Taipan needs from it is built in
+  help: delete this import
+tests/cases/m57/tp0221_python_imports.tpn:5:6: error TP0221: '__future__' is Python's, and what Taipan needs from it is built in
+  help: delete this import
+tests/cases/m57/tp0221_python_imports.tpn:6:8: error TP0221: 'typing_extensions' is Python's, and what Taipan needs from it is built in
+  help: delete this import

@@ -13,6 +13,8 @@ A module is a `.tpn` file in the same directory as the main file. Its name is th
 
 A module holds only declarations: `import`s, functions, classes, enums, constants, protocols and type aliases. It has no code of its own that runs; only the main file's top-level statements run.
 
+The main file can't be imported, by a module or by itself (`TP0222`): it runs once, as the program, so it has nothing to export. Put what the main file and a module both need into a module that each imports.
+
 The examples on this page use this module, `shapes.tpn`:
 
 ```taipan title="shapes.tpn"
@@ -137,7 +139,7 @@ import shapez
 
 ```error
 main.tpn:1:8: error TP0221: module 'shapez' not found
-  help: looked for shapez.tpn
+  help: looked for shapez.tpn; a Python module is imported with 'from python import shapez'
 ```
 
 ## Modules have no top-level statements
@@ -270,7 +272,7 @@ True unset
 
 Two module names are reserved for code that isn't written in Taipan:
 
-- `from python import json` imports a Python module, whose values have the type `py`. See [Calling Python](../../guides/python/).
+- `from python import json` imports a Python module, whose values have the type `py`. See [Calling Python](../../guides/python/). A plain `import json` looks for a Taipan module `json.tpn` and fails (`TP0221`), and its help says to use this form. Python's `typing`, `typing_extensions`, `dataclasses`, `abc` and `__future__` aren't imported at all: `Callable`, `@dataclass`, `ABC` and `Protocol` are built in, and `from enum import Enum` is replaced by `enum Name:`.
 - `from dotnet.System.Text import StringBuilder` imports types from a .NET namespace, and `import dotnet.System.IO as io` binds a whole namespace (the `as` is required). See [Using .NET](../../guides/dotnet/).
 
 ```taipan
