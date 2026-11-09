@@ -120,6 +120,9 @@ public static class EditorAvailability
 {
     public static bool Available(string command, string require)
     {
+        // The Vim and Neovim tests run on Linux, as CI runs them; Windows's Vim reads them differently.
+        if (OperatingSystem.IsWindows() && command is "vim" or "nvim")
+            return false;
         var missing = !NodeAvailability.OnPath(command) ? command
             : command == "nvim" && !RecentNeovim() ? "Neovim 0.11 or later"
             : null;

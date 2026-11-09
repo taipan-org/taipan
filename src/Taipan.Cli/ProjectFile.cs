@@ -128,7 +128,8 @@ public sealed record ProjectFile(ImmutableArray<string> CompileReferences, Immut
             return $"{path}: 'references' must be a list of paths";
         foreach (var entry in value.EnumerateArray())
         {
-            var reference = Path.Combine(directory, entry.GetString()!);
+            // Beside taipan.json, written with the separators its path was given with.
+            var reference = Path.IsPathRooted(entry.GetString()!) ? entry.GetString()! : Compiler.Text.SourcePaths.Beside(path, entry.GetString()!);
             if (!File.Exists(reference))
                 return $"assembly not found: {reference}";
             if (!IsAssembly(reference))

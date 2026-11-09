@@ -94,9 +94,9 @@ public sealed class ToolTests : IDisposable
         Assert.Equal("", stderr);
         Assert.Equal($"""
             PASS test_one.tpn::test_a
-            FAIL tests{Path.DirectorySeparatorChar}two_test.tpn::test_b
+            FAIL tests/two_test.tpn::test_b
             Traceback (most recent call last):
-              File "tests{Path.DirectorySeparatorChar}two_test.tpn", line 2, in test_b
+              File "tests/two_test.tpn", line 2, in test_b
                 assert 1 == 2
             AssertionError
             1 passed, 1 failed
