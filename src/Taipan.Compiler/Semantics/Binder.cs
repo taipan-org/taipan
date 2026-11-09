@@ -4136,9 +4136,10 @@ public sealed partial class Binder
     {
         if (type.ContainsError)
             return Narrowing.None;
-        var key = KeyOf(operand);
+        var key = KeyOf(operand) ?? CallKeyOf(operand);
         string? why = key switch
         {
+            CallKey => CallNarrowWhy,
             FieldPath { CanNarrow: true, Root: VariableSymbol { Kind: VariableKind.Var } root } => _nestedAssigned.Contains(root) ? CopyHelp : null,
             VariableSymbol { Kind: VariableKind.Let or VariableKind.Parameter or VariableKind.LoopVariable } or FieldPath { CanNarrow: true } => null,
             VariableSymbol { Kind: VariableKind.Var } variable => _nestedAssigned.Contains(variable) ? "a nested function assigns it, so it isn't narrowed" : null,
@@ -4154,6 +4155,7 @@ public sealed partial class Binder
     }
 
     private const string CopyHelp = "copy it to a 'let' first";
+    private const string CallNarrowWhy = "a call's result isn't narrowed, since calling it again may give another value; copy it to a 'let' first";
 
     // In `a == b` and `a != b`, a's type is b's expected type, so `m == Nothing` and `xs == []` work (SPEC §5.3).
     // A tuple's isn't: its elements need only be comparable, so `(1, 2) == (1.0, 2)` works (§3.8).
@@ -4455,6 +4457,12 @@ public sealed partial class Binder
         else if (target.Type is ListOfType list && ListAsDotNet(list) is var listType && HasMember(listType.Symbol, name, isStatic: false))
         {
             return BindDotNetMember(target, listType, member);
+        }
+        // A payload field is read only through match (SPEC §4.4); the help shows the arm for the first variant that has it.
+        else if (target.Type is EnumType { Symbol: var enumSymbol } && enumSymbol.Variants.FirstOrDefault(v => v.Fields.Any(f => f.Name == name)) is { } variant)
+        {
+            var arm = $"{variant.Name}({string.Join(", ", variant.Fields.Select(f => f.Name))})";
+            _diagnostics.ReportEnumFieldAccess(member.Member.Span, name, enumSymbol.Name, _source.ToString(target.Span), arm);
         }
         else
         {

@@ -339,11 +339,12 @@ public static class TypeChecker
     /// <summary>
     /// Whether control can't fall off the end of <paramref name="stmt"/>: a <c>return</c> or <c>raise</c>, an
     /// <c>if</c> with <c>else</c> or a <c>match</c> whose branches all terminate, or a block containing one.
-    /// Loops never count (SPEC §4.5).
+    /// Of loops, only a <c>while True:</c> without a <c>break</c> counts, since only a return or a raise leaves it (SPEC §4.5, M57).
     /// </summary>
     public static bool Terminates(BoundStmt stmt) => stmt switch
     {
         BoundReturn or BoundRaise => true,
+        BoundWhile { Condition: BoundLiteral { Value: true } } loop => !Breaks(loop.Body),
         // sys.exit raises SystemExit (SPEC §6.1).
         BoundExprStmt { Expr: BoundCall { Function.Builtin: BuiltinFunction.Exit } } => true,
         BoundBlock block => block.Statements.Any(Terminates),
@@ -356,6 +357,14 @@ public static class TypeChecker
         BoundTry tryStmt => (tryStmt.Finally is { } finallyBlock && Terminates(finallyBlock))
             || (tryStmt.Handlers.All(h => Terminates(h.Body)) && (Terminates(tryStmt.Body) || (tryStmt.Else is { } elseBlock && Terminates(elseBlock)))),
         _ => false,
+    };
+
+    /// <summary>Whether a loop body has a <c>break</c> for that loop: not inside a nested loop or function.</summary>
+    public static bool Breaks(BoundStmt stmt) => stmt switch
+    {
+        BoundBreak => true,
+        BoundWhile or BoundForEach or BoundForRange or BoundLocalFunction => false,
+        _ => BoundTree.Statements(stmt).Any(Breaks),
     };
 
     /// <summary>A method's result with <c>Self</c> (M39, SPEC §4.9) replaced by the type it's called on.</summary>

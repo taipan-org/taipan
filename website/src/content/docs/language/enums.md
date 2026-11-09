@@ -195,7 +195,8 @@ print(s.radius)
 ```
 
 ```error
-main.tpn:6:9: error TP0210: Shape has no field 'radius'
+main.tpn:6:9: error TP0200: 'radius' is a payload field of Shape, which only 'match' can read
+  help: write 'match s:' with an arm 'Circle(radius): …'
 ```
 
 Patterns, guards (`if` after a pattern), `|` and the rest are covered in [match](../match/).

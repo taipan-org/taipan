@@ -58,6 +58,7 @@ These compile, and they're the only places where Taipan quietly does something o
 - **`isinstance(v, int)` on a Python `bool` is `False`.**
 - **A plain object prints as `<C object>`**, without a memory address.
 - **Strings print with double quotes** inside lists, dicts and `repr`.
+- **`2 ** n` with a negative `n` raises `ValueError`**, where Python gives `0.5`, since `int ** int` has one type. Use a float base, as in `2.0 ** n`.
 
 ## Where Python meets Taipan
 

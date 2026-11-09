@@ -1,4 +1,5 @@
 tests/cases/m5/tp0200_members.tpn:9:11: error TP0200: 'get' is a method; call it
+  help: to use it as a function, wrap it in a lambda
 tests/cases/m5/tp0200_members.tpn:10:9: error TP0200: 'x' is a field, not a method
 tests/cases/m5/tp0200_members.tpn:11:7: error TP0200: cannot index int
 tests/cases/m5/tp0200_members.tpn:12:15: error TP0200: dict keys must be int, str, bool, tuples of those, or plain class instances, found float

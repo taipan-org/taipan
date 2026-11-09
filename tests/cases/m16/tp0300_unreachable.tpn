@@ -26,7 +26,7 @@ def loops():
         print("never")
     while True:
         return
-    print("loops never terminate")
+    print("unreachable after an endless loop")
 
 def clauses():
     try:

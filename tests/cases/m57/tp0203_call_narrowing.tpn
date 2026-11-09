@@ -1,0 +1,9 @@
+def lookup(k: str) -> int?:
+    return None
+
+if lookup("a") is not None:
+    print(lookup("a") + 1)
+if lookup("b") is some n:
+    print(lookup("b") + n)
+if lookup("c") is not None:
+    print(lookup("d") + 1)

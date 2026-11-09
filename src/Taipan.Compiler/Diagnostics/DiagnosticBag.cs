@@ -453,7 +453,10 @@ public sealed class DiagnosticBag
             "catch a specific class, re-raise with 'raise', or bind it with 'as e' and use it");
 
     public void ReportMethodAsValue(TextSpan span, string method) =>
-        Add("TP0200", span, $"'{method}' is a method; call it");
+        Add("TP0200", span, $"'{method}' is a method; call it", "to use it as a function, wrap it in a lambda");
+
+    public void ReportEnumFieldAccess(TextSpan span, string field, string @enum, string scrutinee, string arm) =>
+        Add("TP0200", span, $"'{field}' is a payload field of {@enum}, which only 'match' can read", $"write 'match {scrutinee}:' with an arm '{arm}: …'");
 
     public void ReportFieldNotMethod(TextSpan span, string field) =>
         Add("TP0200", span, $"'{field}' is a field, not a method");

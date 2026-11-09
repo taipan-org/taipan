@@ -1,0 +1,6 @@
+tests/cases/m57/tp0203_call_narrowing.tpn:5:11: error TP0203: int? must be narrowed before use
+  help: a call's result isn't narrowed, since calling it again may give another value; copy it to a 'let' first
+tests/cases/m57/tp0203_call_narrowing.tpn:7:11: error TP0203: int? must be narrowed before use
+  help: a call's result isn't narrowed, since calling it again may give another value; copy it to a 'let' first
+tests/cases/m57/tp0203_call_narrowing.tpn:9:11: error TP0203: int? must be narrowed before use
+  help: narrow it with 'is some', or give a default with '??'

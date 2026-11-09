@@ -1,0 +1,12 @@
+def find(xs: list[int]) -> int:
+    var i = 0
+    while True:
+        if xs[i] > 0:
+            return xs[i]
+        if i > 10:
+            break
+        i += 1
+
+def loop_var(flag: bool) -> int:
+    while flag:
+        return 1

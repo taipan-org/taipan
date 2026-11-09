@@ -87,13 +87,7 @@ public sealed partial class Binder
         _ => TypeChecker.Terminates(stmt),
     };
 
-    /// <summary>Whether a loop body has a <c>break</c> for that loop: not inside a nested loop or function.</summary>
-    private static bool Breaks(BoundStmt stmt) => stmt switch
-    {
-        BoundBreak => true,
-        BoundWhile or BoundForEach or BoundForRange or BoundLocalFunction => false,
-        _ => BoundTree.Statements(stmt).Any(Breaks),
-    };
+    private static bool Breaks(BoundStmt stmt) => TypeChecker.Breaks(stmt);
 
     // ---- Calls and field assignments end paths ----
 
@@ -374,6 +368,19 @@ public sealed partial class Binder
     // ---- Paths ----
 
     /// <summary>What a narrowing is kept under: a name's symbol, or a field path (any root, for errors).</summary>
+    /// <summary>
+    /// A call a condition tested, by its source text, so a use of the same call can say why it isn't
+    /// narrowed (SPEC §3.9, M57). It never narrows: calling again may give another value.
+    /// </summary>
+    private sealed record CallKey(string Text);
+
+    private CallKey? CallKeyOf(BoundExpr expr) => expr switch
+    {
+        BoundNarrowed narrowed => CallKeyOf(narrowed.Value),
+        BoundCall or BoundMethodCall => new CallKey(_source.ToString(expr.Span)),
+        _ => null,
+    };
+
     private static object? KeyOf(BoundExpr expr) => expr switch
     {
         BoundVariable variable => variable.Symbol,
@@ -408,7 +415,7 @@ public sealed partial class Binder
     {
         // A property is code, and isn't narrowed (SPEC §4.8).
         BoundPropertyGet get => $"'{get.Property.Name}' is a property, so it may change; copy it to a 'let' first",
-        _ => KeyOf(value) is { } key && _narrowing.Why.TryGetValue(key, out var why) ? why : null,
+        _ => (KeyOf(value) ?? CallKeyOf(value)) is { } key && _narrowing.Why.TryGetValue(key, out var why) ? why : null,
     };
 
     /// <summary>

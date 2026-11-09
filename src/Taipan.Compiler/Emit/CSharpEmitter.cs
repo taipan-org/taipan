@@ -950,6 +950,13 @@ public sealed partial class CSharpEmitter
             case BoundIf ifStmt:
                 EmitIf(ifStmt);
                 break;
+            case BoundWhile { Condition: BoundLiteral { Value: true } } forever:
+                // Written as C#'s own infinite loop, so that a function returning from inside one
+                // needs no return after it (SPEC §4.5, M57); the line is set at the body's start.
+                LineDirective(forever.Span);
+                Line("while (true)");
+                EmitLoopBody(forever.Body, prologue: _lineVariable is null ? null : $"@{_lineVariable} = {LineOf(forever.Span)};");
+                break;
             case BoundWhile whileStmt:
                 LineDirective(whileStmt.Span);
                 Line($"while ({Condition(whileStmt.Span, Expr(whileStmt.Condition))})");

@@ -107,7 +107,7 @@ print(lo, hi)
 1 9
 ```
 
-Every path through a function with a result type must end in a `return` (or a `raise`). The compiler checks this, and a loop never counts as ending the function, even `while True:`:
+Every path through a function with a result type must end in a `return` (or a `raise`). The compiler checks this. A loop doesn't count as ending the function, since it may finish, except a `while True:` with no `break`, which only a `return` or a `raise` can leave:
 
 ```taipan
 def sign(n: int) -> str:
@@ -539,6 +539,7 @@ let f: Callable[[], int] = c.bump
 
 ```error
 main.tpn:9:30: error TP0200: 'bump' is a method; call it
+  help: to use it as a function, wrap it in a lambda
 ```
 
 ## Nested functions

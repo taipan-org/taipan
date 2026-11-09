@@ -79,7 +79,7 @@ print(await greet("ada"))
 hello ada
 ```
 
-`asyncio.run` while async code is already running, in an async function or at a top level that uses `await`, raises `RuntimeError`, `asyncio.run() cannot be called from a running event loop`.
+`asyncio.run` while async code is already running, in an async function or at the top level after an `await` has run, raises `RuntimeError`, `asyncio.run() cannot be called from a running event loop`.
 
 ## gather and sleep
 
