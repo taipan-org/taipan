@@ -137,5 +137,5 @@ internal sealed class LspSession
     public List<JsonObject> All(string method) => [.. _received.Where(m => m["method"]?.GetValue<string>() == method).Select(m => m["params"]!.AsObject())];
 
     public JsonArray Diagnostics(string path) =>
-        All("textDocument/publishDiagnostics").Last(p => new Uri(p["uri"]!.GetValue<string>()).LocalPath == path)["diagnostics"]!.AsArray();
+        All("textDocument/publishDiagnostics").Last(p => Path.GetFullPath(new Uri(p["uri"]!.GetValue<string>()).LocalPath) == Path.GetFullPath(path))["diagnostics"]!.AsArray();
 }

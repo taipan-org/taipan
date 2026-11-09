@@ -17,7 +17,7 @@ public sealed class LibraryBuildTests : IDisposable
     public void Dispose()
     {
         foreach (var directory in _directories)
-            Directory.Delete(directory, recursive: true);
+            TempDirectory.Remove(directory);
     }
 
     private const string Version1 = """

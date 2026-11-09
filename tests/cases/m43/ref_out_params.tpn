@@ -12,9 +12,10 @@ if ok:
 print(Interlocked.Increment(5))
 print(Interlocked.Exchange(1, 9))
 
-print(Path.Combine("a", "b", "c"))
-print(Path.Combine("a", "b", "c", "d", "e"))
-print(Path.Combine(["x", "y"]))
+# The separator is the system's, so it's shown as '/'.
+print(Path.Combine("a", "b", "c").replace("\\", "/"))
+print(Path.Combine("a", "b", "c", "d", "e").replace("\\", "/"))
+print(Path.Combine(["x", "y"]).replace("\\", "/"))
 print(String.Join(", ", "x", "y", "z"))
 print(String.Join("-", ["p", "q"]))
 print(String.Format("{0}+{1}", 1, 2))

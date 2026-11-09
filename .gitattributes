@@ -1,3 +1,8 @@
+# Text files are checked out with LF on every system, so the golden files compare as they're written.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+
 # Fixtures whose line endings are part of the test (SPEC §6.1).
 tests/cases/m37/lines.txt -text
 tests/cases/m37/input.in -text

@@ -65,7 +65,7 @@ public class NativeBuildTests
         }
         finally
         {
-            Directory.Delete(output, recursive: true);
+            TempDirectory.Remove(output);
         }
     }
 

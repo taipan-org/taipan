@@ -32,7 +32,7 @@ public sealed record ProjectFile(ImmutableArray<string> CompileReferences, Immut
     {
         error = null;
         var directory = Path.GetDirectoryName(mainPath) ?? "";
-        var path = Path.Combine(directory, FileName);
+        var path = Compiler.Text.SourcePaths.Beside(mainPath, FileName);
         if (!File.Exists(path))
             return Empty;
 
@@ -86,7 +86,7 @@ public sealed record ProjectFile(ImmutableArray<string> CompileReferences, Immut
     /// <summary>Whether a <c>taipan.json</c> beside the file lists references or packages, which an SDK project may not (SPEC §18.1).</summary>
     public static bool ListsDependencies(string mainPath)
     {
-        var path = Path.Combine(Path.GetDirectoryName(mainPath) ?? "", FileName);
+        var path = Compiler.Text.SourcePaths.Beside(mainPath, FileName);
         try
         {
             using var document = JsonDocument.Parse(File.Exists(path) ? File.ReadAllText(path) : "{}");

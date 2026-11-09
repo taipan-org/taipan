@@ -13,7 +13,7 @@ public sealed class PlatformTests : IDisposable
 {
     private readonly string _directory = Directory.CreateTempSubdirectory("taipan-platform-").FullName;
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose() => TempDirectory.Remove(_directory);
 
     private static bool NativeBuilds()
     {

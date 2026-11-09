@@ -82,7 +82,7 @@ public class VimTests
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
+            TempDirectory.Remove(directory);
         }
     }
 

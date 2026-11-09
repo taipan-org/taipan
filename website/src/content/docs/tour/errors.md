@@ -100,7 +100,7 @@ ZeroDivisionError: division by zero
 ```taipan
 import os
 
-let path = os.getenv("TMPDIR", "/tmp") + "/taipan-docs-with.txt"
+let path = (os.getenv("TMPDIR") ?? os.getenv("TEMP") ?? "/tmp") + "/taipan-docs-with.txt"
 with open(path, "w") as f:
     f.write("first\nsecond\n")
 with open(path) as f:

@@ -88,9 +88,7 @@ public static class ModuleLoader
     // Modules live beside the main file, written with the same separator so diagnostics are stable.
     private static string ModulePath(string mainPath, string module)
     {
-        var directory = Path.GetDirectoryName(mainPath);
-        var separator = mainPath.Contains('\\') && !mainPath.Contains('/') ? '\\' : '/';
-        return string.IsNullOrEmpty(directory) ? $"{module}.tpn" : $"{directory}{separator}{module}.tpn";
+        return Text.SourcePaths.Beside(mainPath, $"{module}.tpn");
     }
 
     private static SourceModule? Parse(string name, string path, string text, List<Diagnostic> lexical, List<Diagnostic> syntax)

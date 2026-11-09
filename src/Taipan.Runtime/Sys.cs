@@ -55,9 +55,11 @@ public static class Os
 
     private static OrderedDictionary<string, string> Read()
     {
-        var environ = new OrderedDictionary<string, string>();
+        // Windows's names ignore case, and Python's os.environ gives them in capitals there (SPEC §6.1).
+        var windows = OperatingSystem.IsWindows();
+        var environ = new OrderedDictionary<string, string>(windows ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
         foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            environ[(string)entry.Key] = (string?)entry.Value ?? "";
+            environ[windows ? ((string)entry.Key).ToUpperInvariant() : (string)entry.Key] = (string?)entry.Value ?? "";
         return environ;
     }
 }

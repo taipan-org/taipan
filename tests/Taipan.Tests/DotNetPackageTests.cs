@@ -62,7 +62,7 @@ public class DotNetPackageTests
         }
         finally
         {
-            Directory.Delete(work, recursive: true);
+            TempDirectory.Remove(work);
         }
 
         (int Exit, string Stdout, string Stderr) Taipan(string directory, params string[] args)

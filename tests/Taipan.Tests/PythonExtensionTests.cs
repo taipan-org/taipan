@@ -195,7 +195,7 @@ public class PythonExtensionTests
         }
         finally
         {
-            Directory.Delete(output, recursive: true);
+            TempDirectory.Remove(output);
         }
     }
 
@@ -238,7 +238,7 @@ public class PythonExtensionTests
         }
         finally
         {
-            Directory.Delete(output, recursive: true);
+            TempDirectory.Remove(output);
         }
     }
 }

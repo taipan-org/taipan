@@ -108,7 +108,7 @@ public class EditorExtensionTests
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
+            TempDirectory.Remove(directory);
         }
     }
 

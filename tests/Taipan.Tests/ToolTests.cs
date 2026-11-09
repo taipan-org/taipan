@@ -8,7 +8,7 @@ public sealed class ToolTests : IDisposable
 
     public ToolTests() => Directory.CreateDirectory(_directory);
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose() => TempDirectory.Remove(_directory);
 
     private string Write(string relative, string text)
     {

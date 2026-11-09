@@ -318,7 +318,7 @@ public class EditorTests
         }
         finally
         {
-            System.IO.Directory.Delete(directory, recursive: true);
+            TempDirectory.Remove(directory);
         }
     }
 
