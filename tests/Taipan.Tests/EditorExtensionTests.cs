@@ -120,6 +120,9 @@ public class EditorExtensionTests
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            // Node writes UTF-8; Windows would otherwise read it in the console's code page.
+            StandardOutputEncoding = System.Text.Encoding.UTF8,
+            StandardErrorEncoding = System.Text.Encoding.UTF8,
         };
         using var process = Process.Start(start)!;
         process.StandardInput.Close();
