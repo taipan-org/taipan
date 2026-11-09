@@ -18,6 +18,8 @@ export default defineConfig({
 	site,
 	base,
 	trailingSlash: 'always',
+	// The built-ins page became the library reference (M56).
+	redirects: { '/reference/builtins/': '/library/' },
 	integrations: [
 		starlight({
 			title: 'Taipan',
@@ -35,6 +37,8 @@ export default defineConfig({
 				{ label: 'Get started', items: [{ autogenerate: { directory: 'start' } }] },
 				{ label: 'Tour of Taipan', items: [{ autogenerate: { directory: 'tour' } }] },
 				{ label: 'Guides', items: [{ autogenerate: { directory: 'guides' } }] },
+				{ label: 'Language reference', items: [{ autogenerate: { directory: 'language' } }] },
+				{ label: 'Library reference', items: [{ autogenerate: { directory: 'library' } }] },
 				{ label: 'Reference', items: [{ autogenerate: { directory: 'reference' } }] },
 				{ label: 'Diagnostics', collapsed: true, items: [{ autogenerate: { directory: 'diagnostics' } }] },
 			],
