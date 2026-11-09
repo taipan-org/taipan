@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M55 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M55 are complete. M56 is in progress.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -453,3 +453,14 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M55 are complete
 - Help lines for `is some` followed by `and` or `or`, and for `message` on a .NET exception.
 - Update SPEC first: §3.14's rule, `int`, and the messages.
 - **Accept:** a never-awaited awaitable's failure is reported at compile time or at the end, a cancelled one isn't, an awaited one isn't, and `int(HttpStatusCode.NotFound)` is `404`.
+
+## M56 — Reference documentation
+- A reference for readers who don't know Python, in the manner of .NET's: the Tour teaches, the reference answers "what does this do" for every part of the language and its built-ins, and SPEC.md stays the definition.
+- **API reference:** a page for each built-in type and module in SPEC §6 (`str`, `int` and `float`, `bool`, `list`, `dict`, `set`, `tuple`, optionals, files, `sys`, `os`, `asyncio`, the built-in functions, and the exception classes), with every operator, function and method: what it takes, what it gives, what it raises, and an example.
+- **Language reference:** a page for each area (variables and constants, control flow including `match`, `with` and `try`, functions and lambdas, classes and dataclasses, enums, protocols and generics, optionals and narrowing, operators, f-strings and format specs, modules and imports, async, generators), each saying what a construct does, with examples, and linking the SPEC section that defines it.
+- **Diagnostics:** each diagnostic page gains a plain explanation of what's wrong and a fixed version of its example, beside the messages and failing case it has now.
+- No language changes. Where writing a page finds the spec unclear or silent, update SPEC first, as for any milestone.
+- **Accept:**
+  - Every page's examples run as website samples and print their stated output.
+  - A test checks that every method the compiler accepts on `str`, `list`, `dict`, `set` and files is on its type's page, and that every method a page lists is one the compiler accepts.
+  - Every code in SPEC §9 has an explanation and a fixed example that compiles.
