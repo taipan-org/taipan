@@ -210,8 +210,11 @@ coalesce      = or_expr [ "??" coalesce ] ;                        (* right-asso
 or_expr       = and_expr { "or" and_expr } ;
 and_expr      = not_expr { "and" not_expr } ;
 not_expr      = "not" not_expr | comparison ;
-comparison    = additive [ comp_op additive { comp_op additive } | "is" [ "not" ] ( "None" | additive ) ] ;   (* chains: M52, §2; 'is not None': M15; 'is' between objects: M40 *)
+comparison    = bit_or [ comp_op bit_or { comp_op bit_or } | "is" [ "not" ] ( "None" | bit_or ) ] ;   (* chains: M52, §2; 'is not None': M15; 'is' between objects: M40 *)
 comp_op       = "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "not" "in" ;
+bit_or        = bit_xor { "|" bit_xor } ;                            (* M35: sets, §3.15 *)
+bit_xor       = bit_and { "^" bit_and } ;
+bit_and       = additive { "&" additive } ;
 additive      = term { ( "+" | "-" ) term } ;
 term          = unary { ( "*" | "/" | "//" | "%" ) unary } ;
 unary         = "-" unary | "await" unary | power ;                (* await: M33, §3.14 *)
@@ -1690,7 +1693,7 @@ class Grid:
   - The missing cases `TP0204` lists (above) may now be `None`.
 - `match` is a statement, and since M19 also an expression (§5.1.1).
 - **Checking details:**
-  - Any other scrutinee type is `TP0200`, and an optional scrutinee is `TP0203`.
+  - Any other scrutinee type is `TP0200`. Before M38, an optional scrutinee was `TP0203`.
   - The scrutinee is evaluated once. Sub-patterns are tested left to right, and a list's length before its elements. A guard is evaluated only after its whole pattern has matched.
   - Variant patterns are resolved against their position's enum, so an unqualified variant pattern is never ambiguous. A variant the enum doesn't have is `TP0210`, and a qualified pattern naming another enum is `TP0200`.
   - A variant without a payload may be written with or without empty parentheses. Arguments to it otherwise are `TP0209`.
@@ -1862,7 +1865,6 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
 - `hash(x) -> int` (M28) takes any value that can be a dict key (§3.1), and is `TP0200` otherwise, `cannot hash <T>`. Equal values hash equally. For an `int` or `bool` it's Python's (`hash(-1)` is `-2`), for a class with `__hash__` it's that method's result reduced as Python reduces it (§4.8), and otherwise its value is unspecified and may differ between runs, as `str` hashes do in Python.
 - `int(x: float) -> int` truncates toward zero. An `int` argument is returned unchanged. Since M55, a .NET enum's value gives its underlying number, as `int()` does for Python's `IntEnum`: `int(response.StatusCode)` is `404`. `int(x: str) -> int?` parses, returning `None` on failure. It accepts an optional sign and decimal digits with `_` only between digits (as in §1.3), with surrounding whitespace allowed. A value outside the int range gives `None`.
 - `float(x: int) -> float`. A `float` argument is returned unchanged. `float(x: str) -> float?` accepts the same forms as `int(str)`, plus an optional fraction and exponent (`1.5`, `2e-3`, `.5`, `5.`), and `inf`, `infinity` and `nan` in any case. Otherwise it returns `None`.
-- `range` can only be used as the iterable of a `for` loop. Any other use is `TP0200`.
 - `sorted(xs: list[T], key=…, reverse=False) -> list[T]` (M11) returns a new list in ascending order.
   - `key: Callable[[T], K]` gives each element's sort key. It's called once per element, in list order, before any reordering.
   - The elements, or the keys when `key` is given, must be `int`, `float` or `str`, tuples of those (M12), or another `Comparable` type: a class with `__lt__`, or a type parameter bounded by a protocol with `__lt__` (M17, §3.11). They're ordered as by `<`. Otherwise it's `TP0200`. A NaN sorts before every other float.
@@ -1872,6 +1874,7 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
 - `map(f: Callable[[T], U], xs: Iterable[T]) -> Iterator[U]` and `filter(f: Callable[[T], bool], xs: Iterable[T]) -> Iterator[T]` (M11) call `f` once per element, in order. Since M31 they're lazy, as in Python 3: each calls `f` only when its next value is asked for (§3.13). Before M31 they returned new lists, so code that indexes, slices, measures or compares their results is now `TP0200`, with help `convert it with 'list(…)' first`.
 - `enumerate(xs)` and `enumerate(xs, start)` (M12) give `(index, element)` tuples: `Iterator[tuple[int, T]]` for an `Iterable[T]`, which a `str` is as `Iterable[str]`. `start` is an `int` that defaults to 0. It may be given by position, or as the keyword argument `start=`, as in Python. Before M31 it gave a new list.
 - `list(xs: Iterable[T]) -> list[T]` (M31) takes every value into a new list, in order: `list(map(f, xs))`. `list()` with no argument needs an expected type, as `[]` does (§4.6).
+- `tuple(xs: Iterable[T]) -> tuple[T, ...]` takes every value into a new variable-length tuple, in order (§3.19). `tuple()` with no argument needs an expected type, as `list()` does (`TP0206` otherwise).
 - `iter(xs: Iterable[T]) -> Iterator[T]` (M31) starts an iterator over `xs`; on an iterator it gives the iterator itself.
 - `next(it: Iterator[T]) -> T` (M31) takes the next value, raising `StopIteration` when there's none. `next(it, default)` gives `default` instead, which is checked against `T`; a `None` default makes the result `T?`.
 - `anext(it: AsyncIterator[T]) -> Awaitable[T]` (M42, §3.20) is `next`'s async form, raising `StopAsyncIteration`, with the same `default`.
