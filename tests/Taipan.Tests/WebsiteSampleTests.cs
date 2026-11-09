@@ -25,14 +25,21 @@ public class WebsiteSampleTests
     private static readonly Regex Failure = new(@"error TP\d+|^Traceback|^panic:", RegexOptions.Multiline);
     private static readonly Regex Title = new(@"title=""(?<title>[^""]+)""");
 
-    /// <summary>Every sample on the site's hand-written pages; the generated ones come from golden cases already.</summary>
+    // The diagnostics' explanations (M56), which the generator puts on their pages.
+    private static readonly string Explanations = Path.Combine(RepoPaths.Root, "website", "diagnostics");
+
+    /// <summary>
+    /// Every sample on the site's hand-written pages and in the diagnostics' explanations; the
+    /// generated pages' own samples come from golden cases already.
+    /// </summary>
     public static IEnumerable<Sample> Samples()
     {
         var generated = new[] { Path.Combine(Docs, "diagnostics"), Path.Combine(Docs, "reference", "specification.md") };
-        foreach (var page in Directory.EnumerateFiles(Docs, "*.*", SearchOption.AllDirectories)
+        var pages = Directory.EnumerateFiles(Docs, "*.*", SearchOption.AllDirectories)
             .Where(f => f.EndsWith(".md") || f.EndsWith(".mdx"))
             .Where(f => !generated.Any(g => f.StartsWith(g)))
-            .Order(StringComparer.Ordinal))
+            .Concat(Directory.Exists(Explanations) ? Directory.EnumerateFiles(Explanations, "*.md") : []);
+        foreach (var page in pages.Order(StringComparer.Ordinal))
         {
             var relative = Path.GetRelativePath(RepoPaths.Root, page).Replace('\\', '/');
             var blocks = Blocks(File.ReadAllText(page).Replace("\r\n", "\n"));

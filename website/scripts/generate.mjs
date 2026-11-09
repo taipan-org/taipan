@@ -1,5 +1,6 @@
 // Writes the pages made from the repository rather than by hand: the specification (SPEC.md as
-// it stands) and a page for every diagnostic code in SPEC §9, each with its failing golden case.
+// it stands) and a page for every diagnostic code in SPEC §9, each with its explanation and its
+// failing golden case.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -112,6 +113,14 @@ const fence = (text) => '`'.repeat(Math.max(3, ...[...text.matchAll(/`+/g)].map(
 const block = (lang, text) => `${fence(text)}${lang}\n${text.replace(/\n$/, '')}\n${fence(text)}`;
 const plainMeaning = (meaning) => meaning.replace(/\s*\((M[\d.]+[^)]*|since M[^)]*)\)/g, '');
 
+// Each code's explanation, written by hand in website/diagnostics/<code>.md (M56): what it means
+// and how to fix it, with a wrong and a fixed example that run as website samples.
+const explanations = join(root, 'website', 'diagnostics');
+const explanation = (code) => {
+	const file = join(explanations, `${code.toLowerCase()}.md`);
+	return existsSync(file) ? readFileSync(file, 'utf8').replace(/\r\n/g, '\n').trim() : null;
+};
+
 const out = join(docs, 'diagnostics');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
@@ -135,6 +144,7 @@ for (const [code, rows] of meanings) {
 		'',
 		`**${warning ? 'Warning' : 'Error'}:** ${meaning}`,
 		'',
+		...(explanation(code) ? [explanation(code), ''] : []),
 		...(listed.length ? ['## Messages', '', ...listed.map((m) => `- ${m}`), ''] : []),
 		...(shown ? exampleSection(shown) : []),
 		`The [specification](../../reference/specification/#9-diagnostics) lists every code.`,
@@ -147,9 +157,9 @@ for (const [code, rows] of meanings) {
 function exampleSection(shown) {
 	const name = basename(shown.file);
 	return [
-		'## Example',
+		'## From the tests',
 		'',
-		`From the golden case [\`${shown.path}\`](${repository}/blob/main/${shown.path})${shown.multiFile ? ' (one file of a multi-file case)' : ''}:`,
+		`The golden case [\`${shown.path}\`](${repository}/blob/main/${shown.path})${shown.multiFile ? ' (one file of a multi-file case)' : ''} gives it:`,
 		'',
 		block(`taipan title="${name}"`, shown.source),
 		'',
@@ -162,14 +172,14 @@ function exampleSection(shown) {
 
 writeFileSync(join(out, 'index.md'), `---
 title: Diagnostics
-description: Every error and warning the Taipan compiler reports, with an example of each.
+description: Every error and warning the Taipan compiler reports, what each means, and how to fix it.
 editUrl: ${repository}/edit/main/SPEC.md
 sidebar:
   label: All codes
   order: 0
 ---
 
-The compiler reports problems as diagnostics, each with a code. Every code has a page with its messages and a program that gives it.
+The compiler reports problems as diagnostics, each with a code. Every code has a page saying what it means and how to fix it, with its messages and a program that gives it.
 
 ${intro}
 
