@@ -1958,7 +1958,7 @@ print("done", file=sys.stderr)
 - `stdin: TextIO`, `stdout: TextIO` and `stderr: TextIO`, the standard streams, named `<stdin>`, `<stdout>` and `<stderr>`. `print` and `input` use `stdout` and `stdin`. They're UTF-8, and `stdin` reads with universal newlines (below) on every platform, as Python does on Windows (on Unix, Python leaves a `\r` in place). Closing one makes later uses raise `ValueError`, as in Python.
 
 **`os`** (a built-in module) has these names, and no others:
-- `environ: dict[str, str]`, the environment variables when the program started, in the order the system gives them. It's an ordinary dict: changes to it are seen by `getenv`, but not by .NET code or Python modules, which read the process's environment.
+- `environ: dict[str, str]`, the environment variables when the program started, in the order the system gives them. On Windows its names ignore case and are in capitals, as Python's are there, so `"PATH" in environ` is `True` though Windows calls it `Path`. It's an ordinary dict: changes to it are seen by `getenv`, but not by .NET code or Python modules, which read the process's environment.
 - `getenv(name: str) -> str?` and `getenv(name: str, default: str) -> str` read `environ`, as in Python.
 - `os.path`, directories and the other functions of Python's `os` are deferred.
 
@@ -2335,7 +2335,7 @@ Types are written as in source: `int`, `str?`, `list[int]`. The type of `None` i
 ### 10.6 Locating and running Python
 - The runtime embeds CPython through Python.NET (pythonnet). It looks for the CPython shared library in this order:
   1. the `PYTHONNET_PYDLL` environment variable (pythonnet's own setting)
-  2. the library reported by the first of `python3` or `python` found on `PATH` (`sysconfig`'s `LIBDIR` and `LDLIBRARY`)
+  2. the library reported by the first of `python3` or `python` found on `PATH`: on Windows, `python<major><minor>.dll` beside the interpreter; elsewhere `sysconfig`'s `LIBDIR` and `LDLIBRARY`, or `libpython`'s `.dylib` or `.so` in `LIBDIR` when that names a static library, or the framework's library on macOS. A static library doesn't count.
 - Python is initialized once per process and never shut down. The GIL is taken around each Python operation, so `taipan run` can run programs on different threads of one process.
 
 ---
