@@ -470,12 +470,12 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M56 are complete
   1. **Silent differences from Python.** In-place set operators (`-=`, `|=`, `&=`, `^=`) are compile errors, as `*=` on a list is, since they make a new set where Python changes the shared one. Importing the main file is a compile error, since Python would run it again and Taipan doesn't.
   2. **Help that points the wrong way.** `import random` says how to import a Python module; `from dataclasses import dataclass`, `from typing import …`, `from abc import ABC` and `from enum import Enum` say the names are built in.
   3. **The spec and the compiler disagree:** `asyncio.run` at the top level, narrowing a call's result, reading a field on an enum value, and a method used without a call. Each is settled in the spec first, then the compiler follows.
-  4. **Every error says what to write instead.** The messages in SPEC §9 without a help line get one, or the spec says why one can't.
+  4. **Common errors say what to write instead.** Of §9's 353 messages, most either name the fix themselves or are plain type and arity errors any typed language has. The ones that get a help line are those a Python developer meets: the errors shown in the diagnostic explanations, and the Python habits the language reference found (hex literals, `\N{…}`, `for … else`, `import` in a function, `<<`, and the rest).
   5. **SDK projects:** dotted project names, and `taipan.json` added after a build.
 - Update SPEC first for each, and check each against the design principles.
 - **Accept:**
   - `s -= t` and `import main` are compile errors with help, and golden cases show each form.
   - A Python import gives the help above, and `from enum import Enum` gives one error, not two.
   - The four disagreements are resolved, with the spec's text and the compiler agreeing.
-  - A test checks that every message in SPEC §9's table has a help line or a listed reason.
+  - A test checks that every error shown in a diagnostic explanation has a help line, or the explanation says why none is needed.
   - A dotted SDK project builds, and a `taipan.json` added after a build is reported on the next one.
