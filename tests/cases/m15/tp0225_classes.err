@@ -1,4 +1,5 @@
 tests/cases/m15/tp0225_classes.tpn:8:15: error TP0225: a class can have only one base class
+  help: make the others protocols, or hold them as fields
 tests/cases/m15/tp0225_classes.tpn:11:15: error TP0225: 'int' cannot be a base class
 tests/cases/m15/tp0225_classes.tpn:18:21: error TP0225: a plain class can only derive from a plain class
 tests/cases/m15/tp0225_classes.tpn:22:21: error TP0225: a dataclass can only derive from a dataclass

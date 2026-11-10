@@ -1,0 +1,36 @@
+class Animal:
+    name: str
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def speak(self) -> str:
+        return "..."
+
+class Dog(Animal):
+    tricks: int
+
+    def __init__(self, name: str):
+        self.tricks = 0
+        super().__init__(name)
+
+    @override
+    def speak(self) -> str:
+        return "woof"
+
+    def fetch(self) -> str:
+        return "ball"
+
+class Counter:
+    n: int
+
+    def __init__(self):
+        self.n = 0
+
+    def increment(self) -> int:
+        self.n += 1
+        return self.n
+
+let d = Dog("Rex")
+let c = Counter()
+print(d.speak(), d.fetch(), c.increment())

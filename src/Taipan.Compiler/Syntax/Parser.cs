@@ -107,6 +107,12 @@ public sealed class Parser
             ReportSyntaxError(bag => bag.ReportStringPrefix(found.Span, prefix.Text));
         else if (expected == TokenKind.Newline && foundString && _previous is { Kind: TokenKind.Name, Text: "print" })
             ReportSyntaxError(bag => bag.ReportPrintStatement(found.Span));
+        else if (expected is TokenKind.CloseParen or TokenKind.CloseBracket or TokenKind.CloseBrace && _previous is { } before
+            && _source.GetLinePosition(found.Span.Start).Line > _source.GetLinePosition(before.Span.End).Line)
+        {
+            var open = expected == TokenKind.CloseParen ? "(" : expected == TokenKind.CloseBracket ? "[" : "{";
+            ReportSyntaxError(bag => bag.ReportExpected(found.Span, TokenFacts.Display(expected), TokenFacts.Describe(found), $"a '{open}' on the line above was never closed; brackets join lines, so this line is read as part of it"));
+        }
         else
             return false;
         return true;

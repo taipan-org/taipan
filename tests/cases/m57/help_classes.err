@@ -1,0 +1,23 @@
+tests/cases/m57/help_classes.tpn:14:9: error TP0226: 'super().__init__' is called before 'tricks' is set
+  help: set 'self.tricks' first; the base '__init__' may call a method that reads it
+tests/cases/m57/help_classes.tpn:17:9: error TP0227: 'speak' overrides 'Animal.speak'; mark it '@override'
+  help: write '@override' on the line above it, or rename it if it isn't meant to override
+tests/cases/m57/help_classes.tpn:21:9: error TP0227: 'fetch' does not override a method of 'Animal'
+  help: remove '@override', or check the name against the base class's methods
+tests/cases/m57/help_classes.tpn:26:9: error TP0228: 'speak' must take the same parameters as 'Animal.speak'
+  help: copy the parameters of 'Animal.speak'; a caller through the base class passes those
+tests/cases/m57/help_classes.tpn:29:1: error TP0224: unknown decorator '@cache'
+  help: Taipan's decorators are @dataclass, @property, @<p>.setter, @staticmethod, @classmethod, @override, @abstractmethod, @final and @total_ordering
+tests/cases/m57/help_classes.tpn:36:9: error TP0226: '__init__' does not set 'n'
+  help: assign 'self.n' in '__init__', or give the field a default
+tests/cases/m57/help_classes.tpn:37:14: error TP0210: Counter has no field 'm'
+tests/cases/m57/help_classes.tpn:39:9: error TP0225: 'increment' must take 'self' first
+  help: write 'def increment(self, …)'
+tests/cases/m57/help_classes.tpn:42:5: error TP0224: unknown decorator '@staticmethd'
+  help: did you mean '@staticmethod'?
+tests/cases/m57/help_classes.tpn:43:9: error TP0225: 'make' must take 'self' first
+  help: write 'def make(self, …)'
+tests/cases/m57/help_classes.tpn:46:20: error TP0225: a class can have only one base class
+  help: make the others protocols, or hold them as fields
+tests/cases/m57/help_classes.tpn:51:5: warning TP0300: unreachable code
+  help: delete it, or move it where it can run

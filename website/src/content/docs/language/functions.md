@@ -689,6 +689,7 @@ def fib(n: int) -> int:
 
 ```error
 main.tpn:1:1: error TP0224: unknown decorator '@cache'
+  help: Taipan's decorators are @dataclass, @property, @<p>.setter, @staticmethod, @classmethod, @override, @abstractmethod, @final and @total_ordering
 ```
 
 ## Related pages

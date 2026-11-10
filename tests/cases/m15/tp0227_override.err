@@ -1,4 +1,7 @@
 tests/cases/m15/tp0227_override.tpn:10:9: error TP0227: 'speak' overrides 'Animal.speak'; mark it '@override'
+  help: write '@override' on the line above it, or rename it if it isn't meant to override
 tests/cases/m15/tp0227_override.tpn:14:9: error TP0227: 'speek' does not override a method of 'Animal'
+  help: remove '@override', or check the name against the base class's methods
 tests/cases/m15/tp0227_override.tpn:18:9: error TP0227: '__init__' cannot be marked '@override'
 tests/cases/m15/tp0227_override.tpn:23:9: error TP0227: 'm' does not override a method of a base class
+  help: remove '@override', or check the name against the base class's methods
