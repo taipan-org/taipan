@@ -19,6 +19,15 @@ public sealed partial class CSharpEmitter
     private BoundModule? _currentModule;
     private string _typeAccess = "public";
 
+    /// <summary>
+    /// A module's class is named as the module (SPEC §14.1). A dotted main-file name, as an SDK project
+    /// `Acme.Shapes.tpnproj` has, gives the last part, `Shapes`, since the namespace holds the rest (M57).
+    /// </summary>
+    private static string ModuleClassName(string module) => module[(module.LastIndexOf('.') + 1)..];
+
+    /// <summary>A module's name as a C# identifier part, with dots replaced.</summary>
+    private static string Identifier(string module) => module.Replace('.', '_');
+
     private void SetUpLibrary(BoundLibrary library)
     {
         foreach (var module in library.Modules)
@@ -27,7 +36,7 @@ public sealed partial class CSharpEmitter
                 [.. module.Functions, .. module.Classes, .. module.Enums, .. module.Constants.Select(c => c.Symbol)];
             foreach (var definition in definitions)
                 _moduleOf[definition] = module;
-            _initNames[module] = (UniqueGlobal($"__init_{module.Name}"), UniqueGlobal($"__state_{module.Name}"));
+            _initNames[module] = (UniqueGlobal($"__init_{Identifier(module.Name)}"), UniqueGlobal($"__state_{Identifier(module.Name)}"));
             _globalNames.Add(_initNames[module].Init);
             _globalNames.Add(_initNames[module].State);
             _moduleTypes[module] = new StringBuilder();
@@ -136,7 +145,7 @@ public sealed partial class CSharpEmitter
         code.Append("}\n");
         foreach (var module in library.Modules)
         {
-            code.Append($"\npublic static class @{module.Name}\n{{\n");
+            code.Append($"\npublic static class @{ModuleClassName(module.Name)}\n{{\n");
             var wrappers = Wrappers(module);
             code.Append(wrappers);
             if (wrappers.Length > 0 && _moduleTypes[module].Length > 0)

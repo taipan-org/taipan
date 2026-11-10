@@ -1366,11 +1366,16 @@ public sealed partial class CSharpEmitter
         return $"{Runtime}.Ops.{method}({string.Join(", ", arguments)})";
     }
 
+    // A variant written as the scrutinee has that variant's C# type, which the other arms' patterns can't
+    // match (CS8121), so it's switched on as its enum (M57).
+    private string Scrutinee(BoundExpr scrutinee) =>
+        scrutinee is BoundConstructVariant construct ? $"(({TypeName(construct.EnumType)})({Expr(scrutinee)}))" : Expr(scrutinee);
+
     // A switch statement; each arm's body gets its own braces so their locals don't clash (SPEC §8).
     private void EmitMatch(BoundMatch match)
     {
         LineDirective(match.Span);
-        Line($"switch ({Expr(match.Scrutinee)})");
+        Line($"switch ({Scrutinee(match.Scrutinee)})");
         Line("{");
         _indent++;
         if (_loops.TryPeek(out var loop))
@@ -1539,7 +1544,7 @@ public sealed partial class CSharpEmitter
         _indent = outerIndent + 1;
         Line("{");
         _indent++;
-        Line($"switch ({Expr(match.Scrutinee)})");
+        Line($"switch ({Scrutinee(match.Scrutinee)})");
         Line("{");
         _indent++;
         foreach (var arm in arms)
