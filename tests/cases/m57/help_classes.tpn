@@ -1,0 +1,51 @@
+class Animal:
+    name: str
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def speak(self) -> str:
+        return "..."
+
+class Dog(Animal):
+    tricks: int
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.tricks = 0
+
+    def speak(self) -> str:
+        return "woof"
+
+    @override
+    def fetch(self) -> str:
+        return "ball"
+
+class Cat(Animal):
+    @override
+    def speak(self, times: int) -> int:
+        return times
+
+@cache
+def slow() -> int:
+    return 1
+
+class Counter:
+    n: int
+
+    def __init__(self):
+        self.m = 0
+
+    def increment() -> int:
+        return 1
+
+    @staticmethd
+    def make() -> int:
+        return 1
+
+class Both(Animal, Counter):
+    pass
+
+def first() -> int:
+    return 1
+    print("never")

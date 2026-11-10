@@ -485,7 +485,7 @@ public sealed class DiagnosticBag
         Warn("TP0300", span, "unreachable except clause", $"'{caughtBy}' is already caught above");
 
     public void ReportUnreachableCode(TextSpan span) =>
-        Warn("TP0300", span, "unreachable code");
+        Warn("TP0300", span, "unreachable code", "delete it, or move it where it can run");
 
     public void ReportPythonExceptionMissed(TextSpan span, string name) =>
         Warn("TP0306", span, $"a Python '{name}' arrives as PythonError, which this doesn't catch",
@@ -708,7 +708,10 @@ public sealed class DiagnosticBag
     // ---- Classes (SPEC §4.3, M15) ----
 
     public void ReportUnknownDecorator(TextSpan span, string name) =>
-        Add("TP0224", span, $"unknown decorator '@{name}'");
+        Add("TP0224", span, $"unknown decorator '@{name}'",
+            Suggestions.Closest(name, Decorators) is { } close ? $"did you mean '@{close}'?" : "Taipan's decorators are @dataclass, @property, @<p>.setter, @staticmethod, @classmethod, @override, @abstractmethod, @final and @total_ordering");
+
+    private static readonly string[] Decorators = ["dataclass", "property", "staticmethod", "classmethod", "override", "abstractmethod", "final", "total_ordering"];
 
     public void ReportMisplacedDecorator(TextSpan span, string name, string? help = "'@dataclass' goes on a class, '@override' on a method") =>
         Add("TP0224", span, $"'@{name}' cannot be used here", help);
@@ -750,7 +753,7 @@ public sealed class DiagnosticBag
         Add("TP0224", span, $"duplicate decorator '@{name}'");
 
     public void ReportMultipleBases(TextSpan span) =>
-        Add("TP0225", span, "a class can have only one base class");
+        Add("TP0225", span, "a class can have only one base class", "make the others protocols, or hold them as fields");
 
     /// <summary><paramref name="aliasOf"/> is the class or enum a type alias names, for help pointing at it (M18).</summary>
     public void ReportInvalidBase(TextSpan span, object type, string? aliasOf = null) =>
@@ -776,7 +779,7 @@ public sealed class DiagnosticBag
         Add("TP0225", span, "field without a default follows field with a default");
 
     public void ReportFieldNotSet(TextSpan span, string field) =>
-        Add("TP0226", span, $"'__init__' does not set '{field}'");
+        Add("TP0226", span, $"'__init__' does not set '{field}'", $"assign 'self.{field}' in '__init__', or give the field a default");
 
     public void ReportFieldWithoutInit(TextSpan span, string field, string className) =>
         Add("TP0226", span, $"'{field}' has no default, and '{className}' has no '__init__'");
@@ -792,7 +795,7 @@ public sealed class DiagnosticBag
         Add("TP0226", span, $"'{field}' is inherited, so it is set by 'super().__init__'");
 
     public void ReportSuperInitEarly(TextSpan span, string field) =>
-        Add("TP0226", span, $"'super().__init__' is called before '{field}' is set");
+        Add("TP0226", span, $"'super().__init__' is called before '{field}' is set", $"set 'self.{field}' first; the base '__init__' may call a method that reads it");
 
     public void ReportMissingSuperInit(TextSpan span, string className) =>
         Add("TP0226", span, $"'{className}.__init__' must call 'super().__init__(…)'");
@@ -808,17 +811,17 @@ public sealed class DiagnosticBag
         Add("TP0226", span, field is null ? "'__init__' returns before 'super().__init__' is called" : $"'__init__' returns before '{field}' is set");
 
     public void ReportMissingOverride(TextSpan span, string method, string baseClass) =>
-        Add("TP0227", span, $"'{method}' overrides '{baseClass}.{method}'; mark it '@override'");
+        Add("TP0227", span, $"'{method}' overrides '{baseClass}.{method}'; mark it '@override'", "write '@override' on the line above it, or rename it if it isn't meant to override");
 
     /// <summary><paramref name="baseClass"/> is null for a class without a base.</summary>
     public void ReportNothingToOverride(TextSpan span, string method, string? baseClass) =>
-        Add("TP0227", span, $"'{method}' does not override a method of {(baseClass is null ? "a base class" : $"'{baseClass}'")}");
+        Add("TP0227", span, $"'{method}' does not override a method of {(baseClass is null ? "a base class" : $"'{baseClass}'")}", "remove '@override', or check the name against the base class's methods");
 
     public void ReportInitOverride(TextSpan span) =>
         Add("TP0227", span, "'__init__' cannot be marked '@override'");
 
     public void ReportOverrideParameters(TextSpan span, string method, string baseClass) =>
-        Add("TP0228", span, $"'{method}' must take the same parameters as '{baseClass}.{method}'");
+        Add("TP0228", span, $"'{method}' must take the same parameters as '{baseClass}.{method}'", $"copy the parameters of '{baseClass}.{method}'; a caller through the base class passes those");
 
     public void ReportOverrideParameterType(TextSpan span, string parameter, string method, object type, string baseClass) =>
         Add("TP0228", span, $"parameter '{parameter}' of '{method}' must have type {type}, as in '{baseClass}.{method}'");
@@ -828,7 +831,7 @@ public sealed class DiagnosticBag
 
     /// <summary><paramref name="type"/> is null when the base method returns nothing.</summary>
     public void ReportOverrideReturn(TextSpan span, string method, object? type, string baseClass) =>
-        Add("TP0228", span, $"'{method}' must return {type?.ToString() ?? "nothing"}, as '{baseClass}.{method}' does");
+        Add("TP0228", span, $"'{method}' must return {type?.ToString() ?? "nothing"}, as '{baseClass}.{method}' does", type is null ? "remove the return type" : $"declare it '-> {type}'");
 
     public void ReportPyIsInstanceTarget(TextSpan span, string found) =>
         Add("TP0200", span, $"isinstance on py takes int, float, str, bool, list, dict, tuple or a Python class, found {found}");
@@ -972,7 +975,7 @@ public sealed class DiagnosticBag
         Add("TP0225", span, $"'{method}' must be '{signature}'");
 
     public void ReportReceiver(TextSpan span, string method, string? receiver) =>
-        Add("TP0225", span, receiver is null ? "a static method takes neither 'self' nor 'cls'" : $"'{method}' must take '{receiver}' first");
+        Add("TP0225", span, receiver is null ? "a static method takes neither 'self' nor 'cls'" : $"'{method}' must take '{receiver}' first", receiver is null ? "remove it" : $"write 'def {method}({receiver}, …)'");
 
     public void ReportPropertySignature(TextSpan span, bool hasParameters) =>
         Add("TP0225", span, hasParameters ? "a property takes no parameters other than 'self'" : "a property must have a return type");

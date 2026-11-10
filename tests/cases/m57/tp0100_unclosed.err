@@ -1,0 +1,2 @@
+tests/cases/m57/tp0100_unclosed.tpn:2:1: error TP0100: expected ']', found name 'print'
+  help: a '[' on the line above was never closed; brackets join lines, so this line is read as part of it

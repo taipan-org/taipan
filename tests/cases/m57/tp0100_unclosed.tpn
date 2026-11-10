@@ -1,0 +1,4 @@
+let xs = [1, 2
+print(xs)
+let d = {"a": 1
+print(d)

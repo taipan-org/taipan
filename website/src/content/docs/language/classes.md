@@ -98,6 +98,7 @@ class User:
 
 ```error
 main.tpn:5:9: error TP0226: '__init__' does not set 'email'
+  help: assign 'self.email' in '__init__', or give the field a default
 ```
 
 Until every field is set, `self` may only be used to set fields, or to read a field already set. Calling a method or passing `self` somewhere is an error, since that code could read a field that isn't set yet:
@@ -342,6 +343,7 @@ class Dog(Animal):
 
 ```error
 main.tpn:11:9: error TP0226: 'super().__init__' is called before 'breed' is set
+  help: set 'self.breed' first; the base '__init__' may call a method that reads it
 ```
 
 `super().method(…)` calls the base class's version of any method, from any method of the subclass:
@@ -384,7 +386,9 @@ class Cow(Animal):
 
 ```error
 main.tpn:6:9: error TP0227: 'speak' overrides 'Animal.speak'; mark it '@override'
+  help: write '@override' on the line above it, or rename it if it isn't meant to override
 main.tpn:11:9: error TP0227: 'speek' does not override a method of 'Animal'
+  help: remove '@override', or check the name against the base class's methods
 ```
 
 An override must accept every call the base method accepts, so that code holding an `Animal` can call it safely:
