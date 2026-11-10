@@ -1,0 +1,12 @@
+enum Color:
+    Red
+    Green
+    Blue(shade: int)
+
+match Color.Red:
+    Red: print("red")
+    _: print("other")
+let word = match Color.Blue(2):
+    Blue(shade): f"blue {shade}"
+    _: "plain"
+print(word)

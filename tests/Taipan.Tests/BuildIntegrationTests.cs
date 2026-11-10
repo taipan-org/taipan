@@ -214,6 +214,50 @@ public class BuildIntegrationTests(PackedFeed packed) : IClassFixture<PackedFeed
         Assert.Contains("error TPN001: the main file", output);
     }
 
+    // M57 (SPEC §14.1): a dotted project name, as SDK projects usually have, names the module's class by its last part.
+    [Fact]
+    public void DottedProjectNameBuilds()
+    {
+        var root = packed.Workspace("dotted");
+        Write(Path.Combine(root, "Acme.Shapes", "Acme.Shapes.tpnproj"), $"""
+            <Project Sdk="TaipanLang.Sdk/{packed.Version}">
+            </Project>
+            """);
+        Write(Path.Combine(root, "Acme.Shapes", "Acme.Shapes.tpn"), "const SIDES = 4\n\ndef area(width: float, height: float) -> float:\n    return width * height\n");
+        Write(Path.Combine(root, "Use", "Use.csproj"), """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable></PropertyGroup>
+              <ItemGroup><ProjectReference Include="../Acme.Shapes/Acme.Shapes.tpnproj" /></ItemGroup>
+            </Project>
+            """);
+        Write(Path.Combine(root, "Use", "Program.cs"), "System.Console.WriteLine($\"{Acme.Shapes.Shapes.area(2.0, 3.0)} {Acme.Shapes.Shapes.SIDES}\");\n");
+        var (exit, output) = Dotnet(Path.Combine(root, "Use"), "run");
+        Assert.True(exit == 0, output);
+        Assert.EndsWith("6 4\n", output.Replace("\r\n", "\n"));
+    }
+
+    // M57 (SPEC §18.5): a taipan.json added after a successful build is an input, so the next build reports it.
+    [Fact]
+    public void TaipanJsonAddedAfterABuildIsReported()
+    {
+        var root = packed.Workspace("json");
+        Write(Path.Combine(root, "Hello", "Hello.tpnproj"), $"""
+            <Project Sdk="TaipanLang.Sdk/{packed.Version}">
+              <PropertyGroup>
+                <OutputType>Exe</OutputType>
+              </PropertyGroup>
+            </Project>
+            """);
+        Write(Path.Combine(root, "Hello", "Hello.tpn"), "print(1)\n");
+        var hello = Path.Combine(root, "Hello");
+        var (exit, output) = Dotnet(hello, "build");
+        Assert.True(exit == 0, output);
+        File.WriteAllText(Path.Combine(hello, "taipan.json"), """{ "references": [] }""");
+        (exit, output) = Dotnet(hello, "build");
+        Assert.True(exit != 0, output);
+        Assert.Contains("error TPN002: list references and packages in the project file, not taipan.json", output);
+    }
+
     [Fact]
     public void ProgramRunsWithDotnetRun()
     {

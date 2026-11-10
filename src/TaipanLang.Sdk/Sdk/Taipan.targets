@@ -5,8 +5,13 @@
   <!-- A language names its embedded resources; Taipan projects have none. -->
   <Target Name="CreateManifestResourceNames" />
 
+  <!-- A taipan.json beside the project is an error (TPN002), so one added after a build is an input too. -->
+  <ItemGroup>
+    <_TaipanExtraInput Include="$(MSBuildProjectDirectory)/taipan.json" Condition="Exists('$(MSBuildProjectDirectory)/taipan.json')" />
+  </ItemGroup>
+
   <Target Name="CoreCompile"
-          Inputs="@(Compile);@(ReferencePath);$(MSBuildAllProjects)"
+          Inputs="@(Compile);@(ReferencePath);$(MSBuildAllProjects);@(_TaipanExtraInput)"
           Outputs="@(IntermediateAssembly)"
           DependsOnTargets="$(CoreCompileDependsOn)">
     <Error Code="TPN001" Condition="!Exists('$(TaipanMain)')" Text="the main file '$(TaipanMain)' was not found; set TaipanMain" />
@@ -30,7 +35,9 @@
           IgnoreExitCode="true" StandardErrorImportance="high" EchoOff="true">
       <Output TaskParameter="ExitCode" PropertyName="_TaipanExitCode" />
     </Exec>
-    <!-- Exit codes 1 and 2 come with errors in MSBuild's format, which MSBuild already logged (SPEC §9, §18.1). -->
+    <!-- Exit codes 1 and 2 come with errors in MSBuild's format, which MSBuild already logged (SPEC §9, §18.1).
+         The target still has to fail, or an assembly from an earlier build would be copied as this one's. -->
+    <Error Condition="'$(_TaipanExitCode)' == '1' or '$(_TaipanExitCode)' == '2'" Text="Taipan reported the errors above" />
     <Error Condition="'$(_TaipanExitCode)' != '0' and '$(_TaipanExitCode)' != '1' and '$(_TaipanExitCode)' != '2'" Text="taipan compile exited with code $(_TaipanExitCode)" />
 
     <ItemGroup>
