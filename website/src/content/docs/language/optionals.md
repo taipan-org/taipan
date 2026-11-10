@@ -82,6 +82,7 @@ let x: int?? = None
 
 ```error
 main.tpn:1:8: error TP0213: optional types cannot be nested
+  help: write 'T?' once; an optional can't hold another optional
 ```
 
 So the result type never doubles up. Looking a key up with `get` on a dict whose values are already optional gives that same optional, and a missing key and a stored `None` both give `None`:

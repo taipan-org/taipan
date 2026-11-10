@@ -1,2 +1,4 @@
 tests/cases/m6/tp0207_bindings.tpn:3:14: error TP0207: 'name' shadows an outer binding
+  help: give it another name
 tests/cases/m6/tp0207_bindings.tpn:6:9: error TP0207: 'v' shadows an outer binding
+  help: give it another name

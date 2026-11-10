@@ -1,5 +1,8 @@
 tests/cases/m17/tp0220_bounds.tpn:7:10: error TP0220: 'int' is not a protocol
+  help: a bound is a protocol, as '[T: Comparable]'; for a few types, write a constraint: '[T: (int, float)]'
 tests/cases/m17/tp0220_bounds.tpn:10:15: error TP0229: 'Comparable' uses 'Self' in '__lt__', so it can only be a type parameter bound
   help: use a bounded type parameter, e.g. 'def f[T: Comparable](x: T)'
 tests/cases/m17/tp0220_bounds.tpn:14:14: error TP0220: bounds are only supported on functions
+  help: put the bound on the methods that need it
 tests/cases/m17/tp0220_bounds.tpn:17:15: error TP0220: bounds are only supported on functions
+  help: put the bound on the methods that need it

@@ -1,2 +1,4 @@
 tests/cases/m12/tp0207_tuples.tpn:3:9: error TP0207: 'a' shadows an outer binding
+  help: give it another name
 tests/cases/m12/tp0207_tuples.tpn:4:8: error TP0214: duplicate definition of 'c'
+  help: give it another name; to change a value, assign to it without 'let'

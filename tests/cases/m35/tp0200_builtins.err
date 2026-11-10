@@ -8,4 +8,5 @@ tests/cases/m35/tp0200_builtins.tpn:8:12: error TP0200: an int can't be raised t
   help: use a float base, as in 2.0 ** -1
 tests/cases/m35/tp0200_builtins.tpn:9:8: error TP0200: set elements must be hashable, found list[int]
 tests/cases/m35/tp0200_builtins.tpn:10:20: error TP0200: expected str, found int
+  help: convert it with str(…)
 tests/cases/m35/tp0200_builtins.tpn:11:7: error TP0200: operator '|' cannot be applied to set[int] and set[str]

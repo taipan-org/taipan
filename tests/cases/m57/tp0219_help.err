@@ -1,0 +1,2 @@
+tests/cases/m57/tp0219_help.tpn:6:1: error TP0219: instantiating 'nest' needs 'nest[list[list[list[...]]]]', which is too deep
+  help: the recursive call instantiates it with a bigger type each time; call it with the same type, or use a non-generic helper

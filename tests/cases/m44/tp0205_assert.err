@@ -1,2 +1,3 @@
 tests/cases/m44/tp0205_assert.tpn:3:8: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
 tests/cases/m44/tp0205_assert.tpn:4:8: error TP0205: condition must be bool, found tuple[bool, str]

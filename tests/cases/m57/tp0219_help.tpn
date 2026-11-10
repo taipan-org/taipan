@@ -1,0 +1,6 @@
+def nest[T](x: T, n: int) -> str:
+    if n == 0:
+        return str(x)
+    return nest([x], n - 1)
+
+print(nest(1, 3))

@@ -1,3 +1,6 @@
 tests/cases/m19/tp0204_match_expr.tpn:8:12: error TP0204: non-exhaustive match (missing: Degraded, Down)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m19/tp0204_match_expr.tpn:12:12: error TP0204: non-exhaustive match (missing: _)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m19/tp0204_match_expr.tpn:15:11: error TP0204: non-exhaustive match (missing: False)
+  help: add an arm for each, or '_:' for the rest

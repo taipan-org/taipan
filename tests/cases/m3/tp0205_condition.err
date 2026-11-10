@@ -1,6 +1,12 @@
 tests/cases/m3/tp0205_condition.tpn:2:4: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
 tests/cases/m3/tp0205_condition.tpn:4:7: error TP0205: condition must be bool, found str
+  help: write 'x != ""'
 tests/cases/m3/tp0205_condition.tpn:6:9: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
 tests/cases/m3/tp0205_condition.tpn:7:17: error TP0205: condition must be bool, found float
+  help: write 'x != 0'
 tests/cases/m3/tp0205_condition.tpn:8:13: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
 tests/cases/m3/tp0205_condition.tpn:11:6: error TP0205: condition must be bool, found int
+  help: write 'x != 0'

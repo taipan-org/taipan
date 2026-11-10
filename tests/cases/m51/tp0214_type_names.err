@@ -1,4 +1,8 @@
 tests/cases/m51/tp0214_type_names.tpn:1:5: error TP0214: duplicate definition of 'list'
+  help: give it another name, or import the other one 'as' something else
 tests/cases/m51/tp0214_type_names.tpn:4:7: error TP0214: duplicate definition of 'str'
+  help: give it another name
 tests/cases/m51/tp0214_type_names.tpn:7:5: error TP0214: duplicate definition of 'int'
+  help: give it another name, or import the other one 'as' something else
 tests/cases/m51/tp0214_type_names.tpn:10:7: error TP0214: duplicate definition of 'set'
+  help: give it another name, or import the other one 'as' something else

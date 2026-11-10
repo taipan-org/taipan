@@ -107,7 +107,7 @@ public class CliTests
         var (exit, _, stderr) = Run("compile", main, "--out", Path.Combine(Path.GetDirectoryName(main)!, "broken.dll"));
         Assert.Equal(1, exit);
         Assert.Equal(
-            $"{main}(1,14): error TP0200: expected int, found str\n{main}(2,9): error TP0201: undefined name 'nope'\n",
+            $"{main}(1,14): error TP0200: expected int, found str (help: parse it with int(…) or float(…), which give an optional)\n{main}(2,9): error TP0201: undefined name 'nope'\n",
             stderr);
     }
 

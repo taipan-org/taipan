@@ -78,6 +78,7 @@ print("total: " + 3)
 
 ```error
 main.tpn:1:7: error TP0200: operator '+' cannot be applied to str and int
+  help: convert it with str(…), or use an f-string
 ```
 
 ### Rounding down, and remainders
@@ -249,6 +250,7 @@ print(not count)
 
 ```error
 main.tpn:2:11: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
 ```
 
 ## `in` and `not in`

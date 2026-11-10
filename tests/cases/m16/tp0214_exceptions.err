@@ -1,3 +1,6 @@
 tests/cases/m16/tp0214_exceptions.tpn:2:7: error TP0214: duplicate definition of 'ValueError'
+  help: give it another name, or import the other one 'as' something else
 tests/cases/m16/tp0214_exceptions.tpn:5:5: error TP0214: duplicate definition of 'Exception'
+  help: give it another name, or import the other one 'as' something else
 tests/cases/m16/tp0214_exceptions.tpn:8:7: error TP0214: duplicate definition of 'KeyError'
+  help: give it another name, or import the other one 'as' something else

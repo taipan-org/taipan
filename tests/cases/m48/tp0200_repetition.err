@@ -8,6 +8,7 @@ tests/cases/m48/tp0200_repetition.tpn:9:7: error TP0200: operator '*' cannot be 
 tests/cases/m48/tp0200_repetition.tpn:11:1: error TP0200: '*=' isn't supported on a list
   help: write 'xs = xs * n', which makes a new list
 tests/cases/m48/tp0200_repetition.tpn:13:6: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m48/tp0200_repetition.tpn:15:13: error TP0203: int? must be narrowed before use
   help: narrow it with 'is some', or give a default with '??'
 tests/cases/m48/tp0200_repetition.tpn:16:7: error TP0200: operator '*' cannot be applied to tuple[int, int] and int

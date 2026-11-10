@@ -13,8 +13,11 @@ tests/cases/m42/tp0200_async_generators.tpn:37:16: error TP0200: int is not an a
 tests/cases/m42/tp0200_async_generators.tpn:39:33: error TP0200: expected AsyncIterator[str], found AsyncIterator[int]
 tests/cases/m42/tp0200_async_generators.tpn:40:23: error TP0200: expected AsyncIterator, found int
 tests/cases/m42/tp0200_async_generators.tpn:41:33: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m42/tp0200_async_generators.tpn:50:40: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m42/tp0200_async_generators.tpn:51:32: error TP0200: cannot await int
 tests/cases/m42/tp0200_async_generators.tpn:52:17: error TP0206: cannot infer the type of an empty list
   help: add a type annotation
 tests/cases/m42/tp0200_async_generators.tpn:53:25: error TP0200: expected float, found str
+  help: parse it with int(…) or float(…), which give an optional

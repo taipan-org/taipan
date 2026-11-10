@@ -1,3 +1,6 @@
 tests/cases/m16/tp0208_try.tpn:5:5: error TP0208: not all paths in 'caught' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns
 tests/cases/m16/tp0208_try.tpn:11:5: error TP0208: not all paths in 'body_only' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns
 tests/cases/m16/tp0208_try.tpn:17:5: error TP0208: not all paths in 'with_else' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns

@@ -183,6 +183,7 @@ def area(s: Shape) -> float:
 
 ```error
 main.tpn:7:5: error TP0204: non-exhaustive match (missing: Empty)
+  help: add an arm for each, or '_:' for the rest
 ```
 
 ```taipan

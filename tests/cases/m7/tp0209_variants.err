@@ -7,3 +7,4 @@ tests/cases/m7/tp0209_variants.tpn:12:5: error TP0209: 'Rect' has 2 fields, foun
 tests/cases/m7/tp0209_variants.tpn:13:5: error TP0209: 'Dot' has 0 fields, found 1 binding
 tests/cases/m7/tp0209_variants.tpn:14:5: error TP0210: Shape has no variant 'Square'
 tests/cases/m7/tp0209_variants.tpn:19:13: error TP0214: duplicate definition of 'w'
+  help: give it another name

@@ -2,6 +2,7 @@ tests/cases/m50/tp0200_sequences.tpn:2:7: error TP0200: cannot slice range
 tests/cases/m50/tp0200_sequences.tpn:3:12: error TP0200: expected Iterator, found range
 tests/cases/m50/tp0200_sequences.tpn:4:7: error TP0200: operator 'in' cannot be applied to str and range
 tests/cases/m50/tp0200_sequences.tpn:5:9: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m50/tp0200_sequences.tpn:6:7: error TP0200: operator '<' cannot be applied to range and range
 tests/cases/m50/tp0200_sequences.tpn:7:10: error TP0200: dict keys must be int, str, bool, tuples of those, or plain class instances, found range
 tests/cases/m50/tp0200_sequences.tpn:8:10: error TP0200: set elements must be hashable, found range

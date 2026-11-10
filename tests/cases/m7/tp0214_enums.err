@@ -1,6 +1,12 @@
 tests/cases/m7/tp0214_enums.tpn:3:5: error TP0214: duplicate definition of 'Red'
+  help: give it another name
 tests/cases/m7/tp0214_enums.tpn:4:20: error TP0214: duplicate definition of 'on'
+  help: give it another name
 tests/cases/m7/tp0214_enums.tpn:6:5: error TP0214: duplicate definition of 'Green'
+  help: give it another name
 tests/cases/m7/tp0214_enums.tpn:13:7: error TP0214: duplicate definition of 'Light'
+  help: give it another name
 tests/cases/m7/tp0214_enums.tpn:16:6: error TP0214: duplicate definition of 'int'
+  help: give it another name
 tests/cases/m7/tp0214_enums.tpn:20:9: error TP0207: 'Red' shadows an outer binding
+  help: give it another name

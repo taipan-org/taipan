@@ -1,9 +1,12 @@
 tests/cases/m29/tp0200_patterns.tpn:8:18: error TP0200: expected str, found int
+  help: convert it with str(…)
 tests/cases/m29/tp0200_patterns.tpn:10:14: error TP0209: tuple[int, str] has 2 elements, found 3 patterns
 tests/cases/m29/tp0200_patterns.tpn:12:14: error TP0200: tuple[int, str] cannot match a list pattern
 tests/cases/m29/tp0200_patterns.tpn:14:14: error TP0200: expected tuple[int, str], found Box
 tests/cases/m29/tp0200_patterns.tpn:19:9: error TP0200: list[int] cannot match a tuple pattern
 tests/cases/m29/tp0200_patterns.tpn:21:10: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m29/tp0200_patterns.tpn:28:13: error TP0214: duplicate definition of 'p'
+  help: give it another name
 tests/cases/m29/tp0200_patterns.tpn:30:9: warning TP0300: unreachable match arm
 tests/cases/m29/tp0200_patterns.tpn:33:9: error TP0210: Box has no variant 'Fulll'

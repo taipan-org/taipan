@@ -1,0 +1,37 @@
+let names = ["Ada", "Grace"]
+let count = 3
+print("total: " + count)
+let label: str = count
+let n: int = "42"
+print(len(nmes))
+let s: string = "x"
+let xs: List = []
+if names:
+    print(1)
+if count:
+    print(2)
+let word = "hi"
+if word:
+    print(3)
+let maybe = names.get(0)
+names.push("Lin")
+print(names.length)
+print(word.trim(), word.toUpperCase(), word.uper())
+print(sorted(names, reversed=True))
+enum Color:
+    Red
+    Green
+    Blue
+match Color.Red:
+    Red: print("r")
+    Green: print("g")
+def biggest[T: int](xs: list[T]) -> T:
+    return xs[0]
+class Box:
+    width: float
+    height: float
+    def __init__(self, width: float, height: float):
+        self.width = width
+        self.height = height
+let b = Box(1.0, 2.0)
+print(b.z, b.widht)

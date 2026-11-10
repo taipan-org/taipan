@@ -1,1 +1,2 @@
 tests/cases/m7/tp0204_health_without_degraded.tpn:30:5: error TP0204: non-exhaustive match (missing: Degraded)
+  help: add an arm for each, or '_:' for the rest
