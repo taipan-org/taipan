@@ -9,6 +9,9 @@ public abstract class Symbol(string name)
 {
     public string Name { get; } = name;
 
+    /// <summary>Its docstring, cleaned as SPEC §1 says, for editors to show (M58).</summary>
+    public string? Documentation { get; set; }
+
     public override string ToString() => Name;
 }
 
@@ -716,6 +719,9 @@ public sealed class BuiltinTypeSymbol(string name, TaipanType type) : Symbol(nam
 public static class BuiltinModules
 {
     public static bool IsBuiltin(string name) => name is "sys" or "os" or "types" or "asyncio";
+
+    /// <summary>The names a built-in module defines.</summary>
+    public static IEnumerable<string> MemberNames(string module) => Definitions[module].Keys;
 
     /// <summary>The module's names; a new symbol each time, as a file's own import is (SPEC §4.7).</summary>
     public static ModuleSymbol Symbol(string module, string boundName) =>

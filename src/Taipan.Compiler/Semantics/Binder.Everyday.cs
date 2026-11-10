@@ -401,6 +401,7 @@ public sealed partial class Binder
     {
         if (RuntimeMethodOf(target.Type, name.Text) is not { } method)
             return null;
+        Index(name.Span, new SemanticIndex.BuiltinMember(KnownMethods(target.Type).Kind, name.Text));
         var keywordNames = method.Kind == "Str" && name.Text is "split" or "rsplit" ? ["sep", "maxsplit"] : Array.Empty<string>();
         var slots = new List<Expr?>(call.Arguments.Where(a => a.Name is null).Select(a => (Expr?)a.Value));
         foreach (var argument in call.Arguments.Where(a => a.Name is not null))

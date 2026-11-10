@@ -137,7 +137,7 @@ public class LanguageServerTests
                 "const SIDES: int",
                 "module shapes",
                 "@dataclass class Point",
-                null,
+                "print(a, b, …)",
             ],
             session.Responses().Select(r => r["result"]?["contents"]?["value"]?.GetValue<string>()?.Split('\n')[1]));
     }

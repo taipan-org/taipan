@@ -138,7 +138,8 @@ public class EditorTests
         Assert.Equal(("Point(x: float, y: float = …)", 0), Shown(Signature("Point(")));
         Assert.Equal(("def Point.scaled(self, by: float) -> Point", 0), Shown(Signature("corner.scaled(")));
         Assert.Equal(("Color.Custom(code: str)", 0), Shown(Signature("geometry.Color.Custom(")));
-        Assert.Null(Signature("print("));
+        // Built-in functions show the library reference's call forms (M58).
+        Assert.Equal(("print(a, b, …)", 0), Shown(Signature("print(")));
         Assert.Equal(("pick(arg0: Point) -> float", 0), Shown(Signature("let pick: Callable[[Point], float] = lambda p: p.x\npick(")));
 
         var help = Signature("scale(");

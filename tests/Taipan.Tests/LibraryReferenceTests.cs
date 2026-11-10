@@ -37,6 +37,10 @@ public class LibraryReferenceTests
 
     public static TheoryData<string> Types() => [.. Kinds.Keys];
 
+    /// <summary>Every method the compiler accepts on each type, for the documentation's coverage (M58).</summary>
+    internal static IEnumerable<(string Kind, string Method)> AcceptedMethods() =>
+        Kinds.SelectMany(k => k.Value.Candidates.Where(m => Accepted(k.Value, m)).Select(m => (k.Key, m)));
+
     [Theory]
     [MemberData(nameof(Types))]
     public void EveryAcceptedMethodIsDocumented(string type)

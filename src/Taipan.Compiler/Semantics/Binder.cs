@@ -94,7 +94,10 @@ public sealed partial class Binder
         /// <summary><c>from m import x</c> names that weren't types, resolved once functions and constants exist.</summary>
         public List<(Module Target, ImportName Name)> PendingImports { get; } = [];
 
-        public ModuleSymbol Symbol(string name) => new(name, Definitions, Classes, Enums);
+        public ModuleSymbol Symbol(string name) => new(name, Definitions, Classes, Enums)
+        {
+            Documentation = File.Unit.Items.FirstOrDefault() is ExprStmt { Expr: StringLiteral docstring } ? CleanDoc(docstring.Value) : null,
+        };
     }
     // Type names in scope inside a generic definition: each type parameter, or the concrete type it
     // stands for while a constrained body is checked for one combination (SPEC §3.6).
@@ -913,6 +916,7 @@ public sealed partial class Binder
         var marks = CheckClassDecorators(classDef.Decorators);
         var symbol = new ClassSymbol(classDef.Name.Text, NewTypeParameters(classDef.TypeParams), marks.Contains("dataclass"))
         {
+            Documentation = classDef.Docstring is { } docstring ? CleanDoc(docstring) : null,
             Module = _module == _mainModule ? null : _module?.File.Name,
             IsFrozen = marks.Contains("frozen"),
             IsOrdered = marks.Contains("order"),
@@ -1285,6 +1289,7 @@ public sealed partial class Binder
         var symbol = new FunctionSymbol(
             funcDef.Name.Text, BindParams(funcDef.Params), AsyncResult(funcDef.IsAsync && !Yields(funcDef.Body), BindReturnType(funcDef.ReturnType)), typeParameters: typeParameters)
         {
+            Documentation = Docstring(funcDef.Body),
             Defaults = PendingDefaults(funcDef.Params),
             Kinds = KindsOf(funcDef.Params),
             IsGenerator = Yields(funcDef.Body),
@@ -2413,6 +2418,28 @@ public sealed partial class Binder
 
     private static bool IsDocstring(Stmt stmt) => stmt is ExprStmt { Expr: StringLiteral };
 
+    /// <summary>A body's docstring, cleaned, or null (SPEC §1, M58).</summary>
+    private static string? Docstring(Block body) =>
+        body.Statements.FirstOrDefault() is ExprStmt { Expr: StringLiteral docstring } ? CleanDoc(docstring.Value) : null;
+
+    /// <summary>
+    /// A docstring's text as Python's <c>inspect.cleandoc</c> gives it: leading and trailing blank
+    /// lines removed, the first line stripped, and the rest dedented by their common indentation.
+    /// </summary>
+    internal static string? CleanDoc(string text)
+    {
+        var lines = text.Replace("\r\n", "\n").Split('\n').Select(l => l.TrimEnd()).ToList();
+        var rest = lines.Skip(1).Where(l => l.Length > 0).ToList();
+        var indent = rest.Count == 0 ? 0 : rest.Min(l => l.Length - l.TrimStart().Length);
+        var cleaned = new List<string> { lines[0].Trim() };
+        cleaned.AddRange(lines.Skip(1).Select(l => l.Length >= indent ? l[indent..] : l.TrimStart()));
+        while (cleaned.Count > 0 && cleaned[0].Length == 0)
+            cleaned.RemoveAt(0);
+        while (cleaned.Count > 0 && cleaned[^1].Length == 0)
+            cleaned.RemoveAt(cleaned.Count - 1);
+        return cleaned.Count == 0 ? null : string.Join("\n", cleaned);
+    }
+
     private enum Reach { Local, EnclosingFunction, TopLevel, Unknown }
 
     // Where a name's binding is, seen from the function being bound: its own, an enclosing function's,
@@ -2511,6 +2538,7 @@ public sealed partial class Binder
         // Its defaults see what's visible here, so they may use the bindings it captures (SPEC §4.2).
         var function = new FunctionSymbol(def.Name.Text, parameters, returnType)
         {
+            Documentation = Docstring(def.Body),
             Defaults = BindDefaultValues(def.Params, parameters),
             Kinds = KindsOf(def.Params),
             IsGenerator = Yields(def.Body),
@@ -5602,6 +5630,7 @@ public sealed partial class Binder
         var builtinArguments = BindParameterArguments(call, name, builtin.Parameters);
         if (builtinArguments.Length != builtin.Parameters.Length)
             return new BoundErrorExpr(call.Span);
+        Index(member.Member.Span, new SemanticIndex.BuiltinMember(KnownMethods(target.Type).Kind, name));
         return new BoundBuiltinMethodCall(target, builtin.Method, builtinArguments, builtin.ReturnType, call.Span);
     }
 

@@ -539,6 +539,7 @@ public sealed class Parser
         var members = ParseIndentedBody(ParseClassMember);
         return new ClassDef(decorators, name, typeParams, bases, [.. members.OfType<FieldDef>()], [.. members.OfType<MethodDef>()], SpanFrom(start))
         {
+            Docstring = members.FirstOrDefault() is ExprStmt { Expr: StringLiteral docstring } ? docstring.Value : null,
             Aliases = [.. members.OfType<TypeAliasDef>()],
         };
     }
@@ -560,10 +561,11 @@ public sealed class Parser
             Expect(TokenKind.Newline);
             return pass;
         }
-        // A docstring does nothing (SPEC §1, M49).
+        // A docstring does nothing, but the class keeps its text for editors (SPEC §1, M49, M58).
         if (At(TokenKind.String))
         {
-            var docstring = new PassStmt(Next().Span);
+            var token = Next();
+            var docstring = new ExprStmt(new StringLiteral(token.Value!, token.Span), token.Span);
             Expect(TokenKind.Newline);
             return docstring;
         }

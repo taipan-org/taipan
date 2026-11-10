@@ -7,7 +7,7 @@ sidebar:
 
 Taipan's editor support comes from its language server, `taipan lsp`, which comes with `taipan` itself. It gives:
 
-- errors as you type, hover, go to definition, completion and signature help;
+- errors as you type, hover, go to definition, completion and signature help, each showing what a name does: a function's or class's docstring, a built-in's description from the [library reference](../../library/), or a .NET member's summary;
 - find references, and renaming across modules (renaming a module renames its file);
 - formatting, and quick fixes for common mistakes, such as adding an import or `@override`;
 - semantic highlighting.

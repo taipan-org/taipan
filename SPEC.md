@@ -68,7 +68,7 @@ Taipan is a statically typed, compiled language with Python's surface syntax. Th
 - **String literals:** `"..."` or `'...'`, on one line, or since M49 `"""..."""` or `'''...'''`, which may span lines and keep their newlines and indentation. An unterminated string is `TP0003`.
   - **Escapes:** `\n \t \r \a \b \f \v \\ \" \'`, and since M49 octal (`\0`, `\012`, up to three digits), `\xhh`, `\uhhhh` and `\Uhhhhhhhh`, as in Python. A backslash before a newline joins the lines, in any string. Any other backslash sequence is `TP0005`, including `\N{…}` and, since M49, `\{` and `\}`, where Python keeps the backslash. So is a `\x`, `\u` or `\U` without enough hex digits, or one naming a value above `U+10FFFF` or a surrogate, which a Taipan string can't hold.
   - **Raw strings (M49):** a lowercase `r` before the quote, in any of the forms: `r"\d+"`. A backslash stays in the string, along with the character after it, so `r"\""` is a backslash and a quote, and `r"\"` is unterminated, as in Python.
-  - **Docstrings:** a string literal may stand alone as a statement, which does nothing. Since M49 it may also stand alone in a class body or at the top level of a module, a library or an extension module, where other statements are `TP0222`.
+  - **Docstrings:** a string literal may stand alone as a statement, which does nothing. Since M49 it may also stand alone in a class body or at the top level of a module, a library or an extension module, where other statements are `TP0222`. Since M58, one that's the first statement of a function, method or class body, or of a file, is that definition's *documentation*, which editors show (§16.3): its text with leading and trailing blank lines removed and the lines after the first dedented by their common indentation, as Python's `inspect.cleandoc` does.
 - **F-strings:** `f"...{expr}..."` or `f'...'`, with a lowercase `f` immediately before the quote, and since M49 triple-quoted, or raw with `rf` or `fr`. A hole stays on one line (`TP0003`), where Python 3.12 allows several. A hole holds any expression except an f-string. `{{` and `}}` are literal braces, and literal text uses the string escapes. The lexer emits the f-string as a single token holding the raw text plus hole spans, and the parser re-lexes the holes.
   - A hole runs from `{` to its matching `}`. Inside a hole the lexer tracks nested brackets and skips over string literals of either quote, so `f"{d["k"]}"` is valid.
   - `TP0006`: a lone `}` in literal text, an empty or whitespace-only hole, or an f-string inside a hole.
@@ -1853,6 +1853,8 @@ In `a == b` and `a != b`, `a`'s type is `b`'s expected type (§4.6), so `m == No
 
 ## 6. Built-ins (v0.1)
 
+**Documentation (M58).** Every built-in function, method, type, module, module member and exception class has a signature and a one-sentence description, shown by editors (§16.3, §16.4, §16.5). The descriptions are the ones the website's library reference gives, and a test keeps them the same.
+
 **Functions**
 - `print(*args)` writes each argument's display form, space-separated, then a newline. Since M37 it takes Python's keyword-only `sep: str = " "`, `end: str = "\n"`, `file: TextIO = sys.stdout` and `flush: bool = False` (§6.1).
 - `input()` and `input(prompt: str) -> str` (M37) write `prompt` to stdout without a newline, flushing it, then read a line from stdin, without its line ending (`\n` or `\r\n`). At the end of the input, it raises `EOFError`, `EOF when reading a line`.
@@ -2912,6 +2914,8 @@ int main(void) {
   | .NET type or member | its C# signature, after `.NET`: `.NET System.Text.StringBuilder.Append(string?)` |
 
   A variable whose type was inferred shows the inferred type, so `let n = len(xs)` shows `let n: int`. Elsewhere hover gives a null result.
+
+  **Documentation (M58).** The code block is followed by the name's documentation as markdown, when it has any: a docstring (§1), a built-in's description (§6), or a .NET member's or type's `<summary>` from the reference assemblies' XML documentation, with `<see>` and `<paramref>` reduced to the name they refer to. Hover on a built-in function, method or module member, which gave null before M58, shows the call forms the library reference lists for it, one per line (`len(x)`; `s.strip()` and `s.strip(chars)`; `sys.exit()`, `sys.exit(code)` and `sys.exit(message)`), then each form's description, as `` `s.strip(chars)` — <description> `` when there's more than one. An exception class's description is what raises it.
 - **Go to definition** (`textDocument/definition`) on a name gives the location of the name where it's defined: a local's or parameter's declaration, or a function, class, enum, variant, field, method, constant or type alias in its file. A name imported from another module (`from shapes import area`, or `shapes.area`) goes to `shapes.tpn`, and a module's name in `import shapes` goes to the start of its file. Built-in names, and Python and .NET names, have no definition here, so the result is null.
 - Both need the document to parse (§9's stage gating). With type errors, they work wherever names resolved.
 
@@ -2942,7 +2946,7 @@ int main(void) {
   | anywhere else a name may go | the names in scope at the cursor, then keywords: every keyword that starts a statement at a statement's start, and `None`, `True`, `False`, `not`, `lambda`, `match` and `await` (M33) inside an expression |
 
   The names in scope are the locals and parameters of the enclosing functions bound before the cursor, the file's own definitions and imports, and the built-in functions, types and exceptions (§6).
-- **Items.** Each item's `label` is the name, its `detail` is what hover would show for it (§16.3), and its `kind` is LSP's for what it names:
+- **Items.** Each item's `label` is the name, its `detail` is what hover would show for it (§16.3), its `documentation` (markdown) is the name's documentation when it has any (M58), and its `kind` is LSP's for what it names:
 
   | Name | `kind` |
   |---|---|
@@ -2970,6 +2974,8 @@ int main(void) {
   - **A variant** shows hover's text, `Shape.Circle(r: float)`.
   - **A function value** shows its type with numbered parameters: `f(arg0: int, arg1: str) -> bool` for an `f: Callable[[int, str], bool]`.
   - **A .NET method or constructor** shows each overload as a signature, in C# form as hover writes it, with `activeSignature` the overload the call binds to (§13.5), or the first when it binds to none.
+  - **A built-in function, method or module function** (M58) shows each call form the library reference lists as a signature, with the parameters as the form writes them (`sorted(xs, key=f, reverse=True)`), each with its description; before M58 it gave null. The active signature is the first whose parameter count fits the arguments so far.
+  - **Documentation (M58):** each signature's `documentation` (markdown) is the callee's documentation, when it has any: a docstring, a built-in's description, or a .NET overload's `<summary>`.
   - **Built-in functions, `super()` and Python callees** give a null result.
 - **`parameters`** are each parameter's text in the label, as `[start, end]` offsets, and **`activeParameter`** is the one the argument at the cursor fills as §4.2 binds it: a positional argument the next positional parameter, then `*args`; a keyword argument the parameter it names, then `**kwargs`. An argument that fills none (one too many, or an unpacked `*xs`) gives the number of parameters, which highlights none.
 

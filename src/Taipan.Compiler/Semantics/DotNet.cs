@@ -23,7 +23,7 @@ public sealed class DotNetLibrary
     {
         References = [.. frameworkDirectory is null ? [] : FrameworkAssemblies(frameworkDirectory), .. references];
         _compilation = CSharpCompilation.Create(
-            "taipan-metadata", references: References.Select(path => MetadataReference.CreateFromFile(path)));
+            "taipan-metadata", references: References.Select(path => MetadataReference.CreateFromFile(path, documentation: Documentation(path))));
     }
 
     /// <summary>The runtime's own assemblies, which every program may use.</summary>
@@ -49,6 +49,73 @@ public sealed class DotNetLibrary
     public bool IsExact { get; private init; }
 
     private static string RuntimeDirectory => Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+
+    // An assembly's XML documentation, beside it or in the reference pack, for editors (SPEC §16.3, M58).
+    private static DocumentationProvider? Documentation(string assembly)
+    {
+        var beside = Path.ChangeExtension(assembly, ".xml");
+        if (File.Exists(beside))
+            return new XmlDocs([beside]);
+        var pack = ReferencePackDirectory();
+        if (pack is null)
+            return null;
+        var name = Path.GetFileNameWithoutExtension(assembly);
+        // The runtime's System.Private.CoreLib holds the types the reference pack documents under
+        // System.Runtime and the rest, so its documentation is the whole pack's, System.Runtime first.
+        if (name == "System.Private.CoreLib")
+        {
+            var files = Directory.EnumerateFiles(pack, "*.xml").OrderBy(f => Path.GetFileName(f) == "System.Runtime.xml" ? 0 : 1).ThenBy(f => f, StringComparer.Ordinal).ToImmutableArray();
+            return files.IsEmpty ? null : new XmlDocs(files);
+        }
+        var inPack = Path.Combine(pack, name + ".xml");
+        return File.Exists(inPack) ? new XmlDocs([inPack]) : null;
+    }
+
+    /// <summary>
+    /// The members of XML documentation files, each read when a symbol's documentation is first
+    /// asked for and the files before it don't have it.
+    /// </summary>
+    private sealed class XmlDocs(ImmutableArray<string> paths) : DocumentationProvider
+    {
+        private readonly ImmutableArray<Lazy<Dictionary<string, string>>> _files = [.. paths.Select(path => new Lazy<Dictionary<string, string>>(() => Load(path)))];
+
+        protected override string? GetDocumentationForSymbol(string documentationMemberID, System.Globalization.CultureInfo preferredCulture, CancellationToken cancellationToken = default)
+        {
+            foreach (var file in _files)
+            {
+                if (file.Value.TryGetValue(documentationMemberID, out var xml))
+                    return xml;
+            }
+            return null;
+        }
+
+        public override bool Equals(object? obj) => obj is XmlDocs other && other.Key == Key;
+
+        public override int GetHashCode() => Key.GetHashCode();
+
+        private string Key => string.Join("\n", paths);
+
+        private static Dictionary<string, string> Load(string path)
+        {
+            var members = new Dictionary<string, string>();
+            try
+            {
+                using var reader = System.Xml.XmlReader.Create(path);
+                while (reader.ReadToFollowing("member"))
+                {
+                    var name = reader.GetAttribute("name");
+                    var xml = reader.ReadInnerXml();
+                    if (name is not null)
+                        members[name] = xml;
+                }
+            }
+            catch (Exception e) when (e is System.Xml.XmlException or IOException)
+            {
+                // A damaged file documents nothing.
+            }
+            return members;
+        }
+    }
 
     /// <summary>
     /// The .NET SDK's reference assemblies for the running runtime's version, which libraries

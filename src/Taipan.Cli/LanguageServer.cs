@@ -205,7 +205,7 @@ public sealed partial class LanguageServer(Stream input, Stream output)
             return null;
         return new JsonObject
         {
-            ["contents"] = new JsonObject { ["kind"] = "markdown", ["value"] = $"```taipan\n{description}\n```" },
+            ["contents"] = new JsonObject { ["kind"] = "markdown", ["value"] = $"```taipan\n{description}\n```" + (SemanticIndex.Documentation(occurrence.Target) is { } documentation ? $"\n\n{documentation}" : "") },
             ["range"] = Range(occurrence.Source, occurrence.Span),
         };
     }
