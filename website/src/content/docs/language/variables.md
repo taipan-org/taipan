@@ -114,7 +114,8 @@ def f() -> None:
 ```
 
 ```error
-main.tpn:2:5: error TP0100: expected statement, found 'const'
+main.tpn:2:5: error TP0100: 'const' can only be at the top level
+  help: use 'let' here
 ```
 
 The value is computed when the program starts, so `const X = 1 // 0` compiles but stops the program with a `ZeroDivisionError` as soon as it runs.

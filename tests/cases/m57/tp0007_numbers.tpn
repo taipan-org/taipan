@@ -1,0 +1,6 @@
+let a = 0xFF
+let b = 0o17
+let c = 0b101
+let d = 007
+let e = 3j
+let f = 1__0

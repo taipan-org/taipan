@@ -99,7 +99,8 @@ from shapes import *
 ```
 
 ```error
-main.tpn:1:20: error TP0100: expected name, found '*'
+main.tpn:1:20: error TP0100: '*' can't be imported
+  help: name what you need, or write 'import shapes' and use 'shapes.<name>'
 ```
 
 ## What a module exports
@@ -203,7 +204,8 @@ def main():
 ```
 
 ```error
-main.tpn:2:5: error TP0100: expected statement, found 'import'
+main.tpn:2:5: error TP0100: 'import' can only be at the top level
+  help: move it to the top of the file; it's visible throughout
 ```
 
 ```taipan

@@ -1,0 +1,22 @@
+tests/cases/m57/tp0100_habits.tpn:1:8: error TP0100: expected ':', found newline
+  help: end the line with ':'
+tests/cases/m57/tp0100_habits.tpn:5:6: error TP0100: expected ':', found 'if'
+  help: write 'elif'
+tests/cases/m57/tp0100_habits.tpn:9:1: error TP0100: 'else' without an 'if'
+  help: after a loop, Taipan has no 'else': use a flag, or return from a function
+tests/cases/m57/tp0100_habits.tpn:11:7: error TP0100: Taipan has no unary '+'
+  help: leave it out
+tests/cases/m57/tp0100_habits.tpn:12:9: error TP0100: Taipan has no '<<' operator
+  help: shift and bitwise operators on int aren't supported yet
+tests/cases/m57/tp0100_habits.tpn:13:7: error TP0100: Taipan has no ':='
+  help: assign on a line of its own first
+tests/cases/m57/tp0100_habits.tpn:15:13: error TP0100: two string literals don't join
+  help: join them with '+', or write one string
+tests/cases/m57/tp0100_habits.tpn:16:10: error TP0100: 'b' isn't a string prefix
+  help: Taipan's prefixes are 'f' and 'r', lowercase; bytes aren't supported
+tests/cases/m57/tp0100_habits.tpn:17:7: error TP0100: 'print' needs parentheses
+  help: write print(…)
+tests/cases/m57/tp0100_habits.tpn:19:5: error TP0100: 'import' can only be at the top level
+  help: move it to the top of the file; it's visible throughout
+tests/cases/m57/tp0100_habits.tpn:20:5: error TP0100: 'const' can only be at the top level
+  help: use 'let' here

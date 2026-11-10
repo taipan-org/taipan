@@ -38,20 +38,33 @@ public sealed class DiagnosticBag
     }
 
     public void ReportTabInIndentation(TextSpan span) =>
-        Add("TP0001", span, "tab in indentation");
+        Add("TP0001", span, "tab in indentation", "indent with spaces");
 
     public void ReportInconsistentDedent(TextSpan span) =>
-        Add("TP0002", span, "dedent does not match any outer indentation level");
+        Add("TP0002", span, "dedent does not match any outer indentation level", "indent it as a line of the block it belongs to");
 
-    public void ReportUnterminatedString(TextSpan span) =>
-        Add("TP0003", span, "unterminated string");
+    /// <param name="closing">The quote that would close it: <c>"</c>, <c>'</c>, or three of either.</param>
+    public void ReportUnterminatedString(TextSpan span, string closing) =>
+        Add("TP0003", span, "unterminated string",
+            closing.Length == 3 ? $"close it with {closing}" : $"close it with {closing} on the same line, or use triple quotes for a string over several lines");
 
-    public void ReportInvalidCharacter(TextSpan span, Rune character) =>
-        Add("TP0004", span, $"invalid character {Describe(character)}", character.Value == ';' ? "write each statement on its own line" : null);
+    /// <param name="endsLine">Whether the character is the last on its line, as Python's <c>\</c> continuation is.</param>
+    public void ReportInvalidCharacter(TextSpan span, Rune character, bool endsLine = false) =>
+        Add("TP0004", span, $"invalid character {Describe(character)}", character.Value switch
+        {
+            ';' => "write each statement on its own line",
+            '~' => "Taipan has no bitwise operators on int yet",
+            '\\' when endsLine => "continue the line inside parentheses instead, which join lines",
+            _ => null,
+        });
 
     public void ReportInvalidEscape(TextSpan span, Rune character) =>
-        Add("TP0005", span, $"invalid escape sequence '\\{character}'",
-            character.Value is '{' or '}' ? $"write '{character}{character}' in an f-string, or '{character}' elsewhere" : null);
+        Add("TP0005", span, $"invalid escape sequence '\\{character}'", character.Value switch
+        {
+            '{' or '}' => $"write '{character}{character}' in an f-string, or '{character}' elsewhere",
+            'N' => "write the character itself, as \"—\"",
+            _ => "write '\\\\' for a backslash, or use a raw string: r\"…\"",
+        });
 
     public void ReportEscapeNeedsHexDigits(TextSpan span, char letter, int digits) =>
         Add("TP0005", span, $"'\\{letter}' needs {digits} hex digits");
@@ -60,10 +73,10 @@ public sealed class DiagnosticBag
         Add("TP0005", span, $"'\\{letter}{hex}' isn't a character a string can hold");
 
     public void ReportSingleCloseBraceInFString(TextSpan span) =>
-        Add("TP0006", span, "single '}' is not allowed in an f-string");
+        Add("TP0006", span, "single '}' is not allowed in an f-string", "write '}}' for a '}' in an f-string");
 
     public void ReportEmptyFStringHole(TextSpan span) =>
-        Add("TP0006", span, "empty f-string hole");
+        Add("TP0006", span, "empty f-string hole", "put an expression in the braces, or write '{{' and '}}' for braces");
 
     public void ReportNestedFString(TextSpan span) =>
         Add("TP0006", span, "f-strings cannot be nested");
@@ -84,14 +97,45 @@ public sealed class DiagnosticBag
     public void ReportInvalidFormatSpec(TextSpan span, string spec) =>
         Add("TP0006", span, $"invalid format spec '{spec}'");
 
-    public void ReportInvalidNumber(TextSpan span) =>
-        Add("TP0007", span, "invalid number literal");
+    public void ReportInvalidNumber(TextSpan span, string help) =>
+        Add("TP0007", span, "invalid number literal", help);
 
     public void ReportEnumImport(TextSpan span) =>
         Add("TP0100", span, "Taipan has no 'enum' module", "declare an enum with 'enum Name:', which needs no import");
 
-    public void ReportExpected(TextSpan span, string expected, string found) =>
-        Add("TP0100", span, $"expected {expected}, found {found}");
+    public void ReportExpected(TextSpan span, string expected, string found, string? help = null) =>
+        Add("TP0100", span, $"expected {expected}, found {found}", help);
+
+    // Python habits the parser meets (SPEC §9, M57): each says what to write instead.
+    public void ReportElseWithoutIf(TextSpan span) =>
+        Add("TP0100", span, "'else' without an 'if'", "after a loop, Taipan has no 'else': use a flag, or return from a function");
+
+    public void ReportImportInBlock(TextSpan span, string keyword) =>
+        Add("TP0100", span, $"'{keyword}' can only be at the top level", "move it to the top of the file; it's visible throughout");
+
+    public void ReportConstInBlock(TextSpan span) =>
+        Add("TP0100", span, "'const' can only be at the top level", "use 'let' here");
+
+    public void ReportUnaryPlus(TextSpan span) =>
+        Add("TP0100", span, "Taipan has no unary '+'", "leave it out");
+
+    public void ReportShiftOperator(TextSpan span, string op) =>
+        Add("TP0100", span, $"Taipan has no '{op}' operator", "shift and bitwise operators on int aren't supported yet");
+
+    public void ReportWalrus(TextSpan span) =>
+        Add("TP0100", span, "Taipan has no ':='", "assign on a line of its own first");
+
+    public void ReportAdjacentStrings(TextSpan span) =>
+        Add("TP0100", span, "two string literals don't join", "join them with '+', or write one string");
+
+    public void ReportStringPrefix(TextSpan span, string prefix) =>
+        Add("TP0100", span, $"'{prefix}' isn't a string prefix", "Taipan's prefixes are 'f' and 'r', lowercase; bytes aren't supported");
+
+    public void ReportPrintStatement(TextSpan span) =>
+        Add("TP0100", span, "'print' needs parentheses", "write print(…)");
+
+    public void ReportStarImport(TextSpan span, string module) =>
+        Add("TP0100", span, "'*' can't be imported", $"name what you need, or write 'import {module}' and use '{module}.<name>'");
 
     public void ReportInvalidAssignmentTarget(TextSpan span) =>
         Add("TP0100", span, "cannot assign to this expression");
@@ -527,7 +571,9 @@ public sealed class DiagnosticBag
     // RecursionError, but a stack overflow in .NET can't be caught (SPEC, design principles).
     private static string? UndefinedHelp(string name) => name switch
     {
-        "none" => "use 'None'",
+        "none" or "null" or "nil" => "use 'None'",
+        "true" => "use 'True'",
+        "false" => "use 'False'",
         "RecursionError" => "infinite recursion ends the process, as in .NET, so nothing can catch it",
         "__name__" => "Taipan has no '__name__': a main file can't be imported, so put code to share in a module",
         _ => null,

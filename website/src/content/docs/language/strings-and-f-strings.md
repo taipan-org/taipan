@@ -29,6 +29,7 @@ print("abc)
 
 ```error
 main.tpn:1:7: error TP0003: unterminated string
+  help: close it with " on the same line, or use triple quotes for a string over several lines
 ```
 
 When a string is displayed by itself, with `print` or `str()`, it's written as it is. Inside a list, dict or other container, or with `repr()`, it's written as a literal, always in double quotes, with special characters escaped:
@@ -94,6 +95,7 @@ print("C:\data")
 
 ```error
 main.tpn:1:10: error TP0005: invalid escape sequence '\d'
+  help: write '\\' for a backslash, or use a raw string: r"…"
 ```
 
 ```taipan
@@ -154,6 +156,7 @@ print(r"\")
 
 ```error
 main.tpn:1:8: error TP0003: unterminated string
+  help: close it with " on the same line, or use triple quotes for a string over several lines
 ```
 
 The prefix is a lowercase `r`. Other prefixes, and an uppercase `R`, aren't supported:
@@ -223,6 +226,7 @@ print(f"{}")
 
 ```error
 main.tpn:1:9: error TP0006: empty f-string hole
+  help: put an expression in the braces, or write '{{' and '}}' for braces
 ```
 
 ```taipan
@@ -240,6 +244,7 @@ print(f"total } 3")
 
 ```error
 main.tpn:1:15: error TP0006: single '}' is not allowed in an f-string
+  help: write '}}' for a '}' in an f-string
 ```
 
 ### The parts of a hole

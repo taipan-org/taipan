@@ -1,0 +1,4 @@
+tests/cases/m57/tp0001_indentation.tpn:2:1: error TP0001: tab in indentation
+  help: indent with spaces
+tests/cases/m57/tp0001_indentation.tpn:6:4: error TP0002: dedent does not match any outer indentation level
+  help: indent it as a line of the block it belongs to

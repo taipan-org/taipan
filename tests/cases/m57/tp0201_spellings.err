@@ -1,0 +1,8 @@
+tests/cases/m57/tp0201_spellings.tpn:1:9: error TP0201: undefined name 'null'
+  help: use 'None'
+tests/cases/m57/tp0201_spellings.tpn:2:9: error TP0201: undefined name 'nil'
+  help: use 'None'
+tests/cases/m57/tp0201_spellings.tpn:3:9: error TP0201: undefined name 'true'
+  help: use 'True'
+tests/cases/m57/tp0201_spellings.tpn:4:9: error TP0201: undefined name 'false'
+  help: use 'False'

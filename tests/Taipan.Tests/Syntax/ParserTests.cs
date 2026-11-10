@@ -720,7 +720,7 @@ public class ParserTests
     [InlineData("if x:\npass\n", "2:1 TP0100: expected indented block, found 'pass'")]
     [InlineData("x = 1 2\n", "1:7 TP0100: expected newline, found integer")]
     [InlineData("f(1\n", "2:1 TP0100: expected ')', found newline")]  // the open bracket joins the line ending
-    [InlineData("else:\n    pass\n", "1:1 TP0100: expected statement, found 'else'")]
+    [InlineData("else:\n    pass\n", "1:1 TP0100: 'else' without an 'if'")]
     [InlineData("    x\n", "1:5 TP0100: expected statement, found indent")]
     [InlineData("x = y z\n", "1:7 TP0100: expected newline, found name 'z'")]
     [InlineData("if x is:\n    pass\n", "1:8 TP0100: expected expression, found ':'")]
@@ -734,7 +734,7 @@ public class ParserTests
 
     [Fact]
     public void ConstOnlyAtTopLevel() =>
-        Assert.Equal(["2:5 TP0100: expected statement, found 'const'"], Errors("def f():\n    const X = 1\n"));
+        Assert.Equal(["2:5 TP0100: 'const' can only be at the top level"], Errors("def f():\n    const X = 1\n"));
 
     [Theory]
     [InlineData("f() = 1\n", "1:1")]
@@ -856,7 +856,7 @@ public class ParserTests
 
     [Fact]
     public void FStringHoleErrorCountsAsTheStatementsError() =>
-        Assert.Equal(["1:12 TP0100: expected expression, found '+'"], Errors("let a = f\"{+}\" 1 2\n"));
+        Assert.Equal(["1:12 TP0100: Taipan has no unary '+'"], Errors("let a = f\"{+}\" 1 2\n"));
 
     // ---- type_params and generic types (M8) ----
 
@@ -954,8 +954,8 @@ public class ParserTests
             Snapshot("match h:\n    m.Health.Ok: pass\n    m.Health.Degraded(a, b): pass\n"));
 
     [Theory]
-    [InlineData("from m import *\n", "1:15 TP0100: expected name, found '*'")]
-    [InlineData("def f():\n    import m\n", "2:5 TP0100: expected statement, found 'import'")]
+    [InlineData("from m import *\n", "1:15 TP0100: '*' can't be imported")]
+    [InlineData("def f():\n    import m\n", "2:5 TP0100: 'import' can only be at the top level")]
     [InlineData("import m.n as\n", "1:14 TP0100: expected name, found newline")]
     [InlineData("from m import\n", "1:14 TP0100: expected name, found newline")]
     public void ImportSyntaxErrors(string text, string expected) =>

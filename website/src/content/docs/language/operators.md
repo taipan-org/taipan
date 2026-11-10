@@ -541,7 +541,8 @@ print(1 << 3)
 ```
 
 ```error
-main.tpn:1:10: error TP0100: expected expression, found '<'
+main.tpn:1:9: error TP0100: Taipan has no '<<' operator
+  help: shift and bitwise operators on int aren't supported yet
 ```
 
 ```taipan
@@ -550,6 +551,7 @@ print(~6)
 
 ```error
 main.tpn:1:7: error TP0004: invalid character '~'
+  help: Taipan has no bitwise operators on int yet
 ```
 
 ```taipan
@@ -557,7 +559,8 @@ print(+3)
 ```
 
 ```error
-main.tpn:1:7: error TP0100: expected expression, found '+'
+main.tpn:1:7: error TP0100: Taipan has no unary '+'
+  help: leave it out
 ```
 
 ```taipan

@@ -1,0 +1,6 @@
+if True:
+	print(1)
+if True:
+    if True:
+        print(2)
+   print(3)

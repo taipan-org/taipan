@@ -1,0 +1,12 @@
+tests/cases/m57/tp0004_habits.tpn:1:7: error TP0004: invalid character '~'
+  help: Taipan has no bitwise operators on int yet
+tests/cases/m57/tp0004_habits.tpn:2:17: error TP0004: invalid character '\'
+  help: continue the line inside parentheses instead, which join lines
+tests/cases/m57/tp0004_habits.tpn:4:12: error TP0005: invalid escape sequence '\d'
+  help: write '\\' for a backslash, or use a raw string: r"…"
+tests/cases/m57/tp0004_habits.tpn:5:10: error TP0005: invalid escape sequence '\N'
+  help: write the character itself, as "—"
+tests/cases/m57/tp0004_habits.tpn:6:9: error TP0006: empty f-string hole
+  help: put an expression in the braces, or write '{{' and '}}' for braces
+tests/cases/m57/tp0004_habits.tpn:7:10: error TP0006: single '}' is not allowed in an f-string
+  help: write '}}' for a '}' in an f-string

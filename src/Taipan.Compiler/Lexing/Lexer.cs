@@ -206,6 +206,20 @@ public sealed class Lexer
         Emit(kind, start, _pos - start);
     }
 
+    private bool RestOfLineIsBlank(int from)
+    {
+        for (var i = from; i < _text.Length && _text[i] != '\n'; i++)
+        {
+            if (_text[i] is not (' ' or '\t' or '\r'))
+                return false;
+        }
+        return true;
+    }
+
+    private static string Closing(char quote, bool triple) => triple ? new string(quote, 3) : quote.ToString();
+
+    private bool OpenQuoteAt(int at) => at + 2 < _text.Length && _text[at + 1] == _text[at] && _text[at + 2] == _text[at];
+
     private void ScanNumber()
     {
         var start = _pos;
@@ -237,8 +251,32 @@ public sealed class Lexer
         }
 
         if (!valid)
-            _diagnostics.ReportInvalidNumber(new TextSpan(start, _pos - start));
+            _diagnostics.ReportInvalidNumber(new TextSpan(start, _pos - start), NumberHelp(_text[start.._pos]));
         Emit(isFloat ? TokenKind.Float : TokenKind.Int, start, _pos - start);
+    }
+
+    // What to write for Python's other number forms (SPEC §9, M57).
+    private static string NumberHelp(string text)
+    {
+        var digits = text.Replace("_", "");
+        if (digits.Length > 2 && digits[0] == '0' && "xXoObB".Contains(digits[1]))
+        {
+            try
+            {
+                var value = digits[1] is 'x' or 'X' ? System.Convert.ToInt64(digits[2..], 16)
+                    : digits[1] is 'o' or 'O' ? System.Convert.ToInt64(digits[2..], 8)
+                    : System.Convert.ToInt64(digits[2..], 2);
+                return $"numbers are decimal; write {value}";
+            }
+            catch (Exception e) when (e is FormatException or OverflowException or ArgumentException)
+            {
+            }
+        }
+        if (digits.EndsWith('j') || digits.EndsWith('J'))
+            return "Taipan has no complex numbers";
+        if (digits.Length > 1 && digits[0] == '0' && digits.All(char.IsAsciiDigit))
+            return $"leading zeros aren't allowed; write {digits.TrimStart('0').PadLeft(1, '0')}";
+        return "a number is digits, with '_' between them, and '.' or 'e' in a float";
     }
 
     /// <summary>Scans <c>[0-9_]*</c> from a digit; false if an <c>_</c> isn't between two digits.</summary>
@@ -293,7 +331,7 @@ public sealed class Lexer
         {
             if (AtEnd || (Current == '\n' && !triple))
             {
-                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1));
+                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1), Closing(quote, triple));
                 break;
             }
             if (AtCloseQuote(quote, triple))
@@ -342,7 +380,7 @@ public sealed class Lexer
         {
             if (AtEnd || (Current == '\n' && !triple))
             {
-                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1));
+                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1), Closing(quote, triple));
                 break;
             }
             var c = Current;
@@ -406,7 +444,7 @@ public sealed class Lexer
         {
             if (AtEnd || Current == '\n')
             {
-                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1));
+                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1), Closing(_text[quotePos], OpenQuoteAt(quotePos)));
                 return false;
             }
             var c = Current;
@@ -516,7 +554,7 @@ public sealed class Lexer
         {
             if (AtEnd || (Current == '\n' && !triple))
             {
-                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1));
+                _diagnostics.ReportUnterminatedString(new TextSpan(quotePos, 1), Closing(quote, triple));
                 return false;
             }
             if (AtCloseQuote(quote, triple))
@@ -666,7 +704,7 @@ public sealed class Lexer
         if (length == 0)
         {
             var rune = RuneAt(_pos, out var runeLength);
-            _diagnostics.ReportInvalidCharacter(new TextSpan(_pos, runeLength), rune);
+            _diagnostics.ReportInvalidCharacter(new TextSpan(_pos, runeLength), rune, endsLine: RestOfLineIsBlank(_pos + runeLength));
             _pos += runeLength;
             return;
         }

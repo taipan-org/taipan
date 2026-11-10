@@ -1,0 +1,12 @@
+tests/cases/m57/tp0007_numbers.tpn:1:9: error TP0007: invalid number literal
+  help: numbers are decimal; write 255
+tests/cases/m57/tp0007_numbers.tpn:2:9: error TP0007: invalid number literal
+  help: numbers are decimal; write 15
+tests/cases/m57/tp0007_numbers.tpn:3:9: error TP0007: invalid number literal
+  help: numbers are decimal; write 5
+tests/cases/m57/tp0007_numbers.tpn:4:9: error TP0007: invalid number literal
+  help: leading zeros aren't allowed; write 7
+tests/cases/m57/tp0007_numbers.tpn:5:9: error TP0007: invalid number literal
+  help: Taipan has no complex numbers
+tests/cases/m57/tp0007_numbers.tpn:6:9: error TP0007: invalid number literal
+  help: a number is digits, with '_' between them, and '.' or 'e' in a float

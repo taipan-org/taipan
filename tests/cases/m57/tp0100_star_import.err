@@ -1,0 +1,2 @@
+tests/cases/m57/tp0100_star_import.tpn:1:19: error TP0100: '*' can't be imported
+  help: name what you need, or write 'import words' and use 'words.<name>'

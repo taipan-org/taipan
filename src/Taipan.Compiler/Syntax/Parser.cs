@@ -29,6 +29,7 @@ public sealed class Parser
     // The token index just after the last match expression's arms, whose DEDENT ends a statement (SPEC §2).
     private int _matchArmsEnd = -1;
     private int _previousEnd;
+    private Token? _previous;
     private bool _recovering;
 
     // Expressions written in parentheses, which TP0305 doesn't warn about (SPEC §3.4).
@@ -70,6 +71,7 @@ public sealed class Parser
 
     private void Advance()
     {
+        _previous = Current;
         _previousEnd = Current.Span.End;
         if (_index < _tokens.Length - 1)
             _index++;
@@ -79,7 +81,8 @@ public sealed class Parser
     {
         if (At(kind))
             return Next();
-        ReportExpected(expected ?? TokenFacts.Display(kind));
+        if (!_recovering && !ReportHabit(kind))
+            ReportExpected(expected ?? TokenFacts.Display(kind));
         return new Token(kind, new TextSpan(Current.Span.Start, 0), "");
     }
 
@@ -87,6 +90,26 @@ public sealed class Parser
     {
         var token = Expect(TokenKind.Name);
         return new Identifier(token.Text, token.Span);
+    }
+
+    // Python habits that a plain "expected X, found Y" would leave unexplained (SPEC §9, M57).
+    private bool ReportHabit(TokenKind expected)
+    {
+        var found = Current;
+        var foundString = found.Kind is TokenKind.String or TokenKind.FString;
+        if (expected == TokenKind.Colon && found.Kind == TokenKind.Newline)
+            ReportSyntaxError(bag => bag.ReportExpected(found.Span, "':'", "newline", "end the line with ':'"));
+        else if (expected == TokenKind.Colon && found.Kind == TokenKind.IfKeyword && _previous is { Kind: TokenKind.ElseKeyword })
+            ReportSyntaxError(bag => bag.ReportExpected(found.Span, "':'", "'if'", "write 'elif'"));
+        else if (expected == TokenKind.Newline && foundString && _previous is { Kind: TokenKind.String or TokenKind.FString })
+            ReportSyntaxError(bag => bag.ReportAdjacentStrings(found.Span));
+        else if (expected == TokenKind.Newline && foundString && _previous is { Kind: TokenKind.Name } prefix && prefix.Span.End == found.Span.Start)
+            ReportSyntaxError(bag => bag.ReportStringPrefix(found.Span, prefix.Text));
+        else if (expected == TokenKind.Newline && foundString && _previous is { Kind: TokenKind.Name, Text: "print" })
+            ReportSyntaxError(bag => bag.ReportPrintStatement(found.Span));
+        else
+            return false;
+        return true;
     }
 
     private TextSpan SpanFrom(int start) => new(start, Math.Max(0, _previousEnd - start));
@@ -207,11 +230,11 @@ public sealed class Parser
         var module = ParseModulePath();
         Expect(TokenKind.ImportKeyword);
         var names = ImmutableArray.CreateBuilder<ImportName>();
-        names.Add(ParseImportName());
+        names.Add(ParseImportName(module.Text));
         while (At(TokenKind.Comma))
         {
             Next();
-            names.Add(ParseImportName());
+            names.Add(ParseImportName(module.Text));
         }
         var span = SpanFrom(start);
         Expect(TokenKind.Newline);
@@ -239,8 +262,14 @@ public sealed class Parser
     }
 
     // import_name = NAME [ "as" NAME ]
-    private ImportName ParseImportName()
+    private ImportName ParseImportName(string module)
     {
+        if (At(TokenKind.Star))
+        {
+            var star = Current;
+            ReportSyntaxError(bag => bag.ReportStarImport(star.Span, module));
+            return new ImportName(new Identifier("", Here), null, Here);
+        }
         var name = ExpectIdentifier();
         var alias = ParseImportAlias();
         return new ImportName(name, alias, SpanFrom(name.Span.Start));
@@ -783,7 +812,22 @@ public sealed class Parser
 
         if (!CanStartExpression(Current.Kind))
         {
-            ReportExpected("statement");
+            var found = Current;
+            switch (found.Kind)
+            {
+                case TokenKind.ElseKeyword:
+                    ReportSyntaxError(bag => bag.ReportElseWithoutIf(found.Span));
+                    break;
+                case TokenKind.ImportKeyword or TokenKind.FromKeyword:
+                    ReportSyntaxError(bag => bag.ReportImportInBlock(found.Span, found.Text));
+                    break;
+                case TokenKind.ConstKeyword:
+                    ReportSyntaxError(bag => bag.ReportConstInBlock(found.Span));
+                    break;
+                default:
+                    ReportExpected("statement");
+                    break;
+            }
             return new ExprStmt(new ErrorExpr(Here), Here);
         }
         return ParseAssignStmt();
@@ -1886,6 +1930,12 @@ public sealed class Parser
                 left = new IsExpr(left, ParseBitOr(), negated, SpanFrom(left.Span.Start));
             }
         }
+        else if ((At(TokenKind.Less) || At(TokenKind.Greater)) && Peek(1).Kind == Current.Kind && Peek(1).Span.Start == Current.Span.End)
+        {
+            var shift = Current;
+            ReportSyntaxError(bag => bag.ReportShiftOperator(shift.Span, shift.Kind == TokenKind.Less ? "<<" : ">>"));
+            return left;
+        }
         else if (TryParseCompOp(out var op, out _))
         {
             left = Binary(left, op, ParseBitOr());
@@ -2014,6 +2064,12 @@ public sealed class Parser
             var starStart = Next().Span.Start;
             var starred = ParseUnary();
             return new StarredExpr(starred, SpanFrom(starStart));
+        }
+        if (At(TokenKind.Plus))
+        {
+            var plus = Current;
+            ReportSyntaxError(bag => bag.ReportUnaryPlus(plus.Span));
+            return new ErrorExpr(Here);
         }
         if (!At(TokenKind.Minus))
             return ParsePower();
@@ -2228,6 +2284,12 @@ public sealed class Parser
                     return yield;
                 }
                 var inner = ParseExpr();
+                if (At(TokenKind.Colon) && Peek(1).Kind == TokenKind.Equals && Peek(1).Span.Start == Current.Span.End)
+                {
+                    var walrus = Current;
+                    ReportSyntaxError(bag => bag.ReportWalrus(walrus.Span));
+                    return new ErrorExpr(Here);
+                }
                 if (At(TokenKind.ForKeyword))
                     return ParseComprehension(ComprehensionKind.Generator, inner, null, TokenKind.CloseParen, token.Span.Start);
                 if (!At(TokenKind.Comma))

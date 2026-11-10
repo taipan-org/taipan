@@ -1,1 +1,2 @@
-tests/cases/m52/tp0100_loop_else.tpn:3:1: error TP0100: expected statement, found 'else'
+tests/cases/m52/tp0100_loop_else.tpn:3:1: error TP0100: 'else' without an 'if'
+  help: after a loop, Taipan has no 'else': use a flag, or return from a function
