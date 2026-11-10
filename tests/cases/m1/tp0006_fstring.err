@@ -1,3 +1,5 @@
 tests/cases/m1/tp0006_fstring.tpn:1:12: error TP0006: single '}' is not allowed in an f-string
+  help: write '}}' for a '}' in an f-string
 tests/cases/m1/tp0006_fstring.tpn:2:11: error TP0006: empty f-string hole
+  help: put an expression in the braces, or write '{{' and '}}' for braces
 tests/cases/m1/tp0006_fstring.tpn:3:12: error TP0006: f-strings cannot be nested

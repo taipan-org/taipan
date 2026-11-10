@@ -294,7 +294,8 @@ else:
 ```
 
 ```error
-main.tpn:3:1: error TP0100: expected statement, found 'else'
+main.tpn:3:1: error TP0100: 'else' without an 'if'
+  help: after a loop, Taipan has no 'else': use a flag, or return from a function
 ```
 
 ```taipan

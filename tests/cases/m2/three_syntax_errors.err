@@ -1,3 +1,4 @@
 tests/cases/m2/three_syntax_errors.tpn:4:14: error TP0100: expected ':', found name 'int'
 tests/cases/m2/three_syntax_errors.tpn:7:25: error TP0100: expected expression, found newline
 tests/cases/m2/three_syntax_errors.tpn:11:18: error TP0100: expected ':', found newline
+  help: end the line with ':'

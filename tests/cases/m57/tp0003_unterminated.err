@@ -1,0 +1,6 @@
+tests/cases/m57/tp0003_unterminated.tpn:1:9: error TP0003: unterminated string
+  help: close it with " on the same line, or use triple quotes for a string over several lines
+tests/cases/m57/tp0003_unterminated.tpn:2:9: error TP0003: unterminated string
+  help: close it with ' on the same line, or use triple quotes for a string over several lines
+tests/cases/m57/tp0003_unterminated.tpn:3:9: error TP0003: unterminated string
+  help: close it with """
