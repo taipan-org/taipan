@@ -1823,7 +1823,13 @@ public sealed partial class Binder
             // A built-in function's name may be reused, except one that's also a type's (SPEC §4.5, M51).
             if (!IsShadowableBuiltin(existing) || _global.LookupLocal(name.Text) is not null)
             {
-                _diagnostics.ReportDuplicateDefinition(name.Span, name.Text);
+                _diagnostics.ReportDuplicateDefinition(name.Span, name.Text, (isDefinition && _definitions.ContainsKey(name.Text)) switch
+                {
+                    false => DuplicateKind.Import,
+                    true when symbol is FunctionSymbol && existing is FunctionSymbol => DuplicateKind.Function,
+                    true when symbol is VariableSymbol => DuplicateKind.Binding,
+                    _ => DuplicateKind.Other,
+                });
                 return false;
             }
             _replacedBuiltins[(_module!, name.Text)] = takesEffectAt ?? name.Span.Start;
@@ -1838,7 +1844,7 @@ public sealed partial class Binder
     private void DeclareLocal(Identifier name, Symbol symbol)
     {
         if (_scope.LookupLocal(name.Text) is not null)
-            _diagnostics.ReportDuplicateDefinition(name.Span, name.Text);
+            _diagnostics.ReportDuplicateDefinition(name.Span, name.Text, symbol is VariableSymbol ? DuplicateKind.Binding : DuplicateKind.Other);
         else if (!_mayShadow && _scope.Parent?.Lookup(name.Text) is { } outer && !IsShadowableBuiltin(outer))
             _diagnostics.ReportShadowing(name.Span, name.Text);
         _scope.Declare(symbol);
@@ -1971,10 +1977,39 @@ public sealed partial class Binder
         if (_outerFunction is not null && _scriptNames.Contains(name))
             _topLevelUses.Add((span, _function!.Name, name));
         else
-            _diagnostics.ReportUndefinedName(span, name);
+            _diagnostics.ReportUndefinedName(span, name, Suggestions.DidYouMean(name, VisibleNames()));
         Unresolved(span, inType: false);
         return null;
     }
+
+    /// <summary>Every name in scope, for a "did you mean" (SPEC §9, M57).</summary>
+    private IEnumerable<string> VisibleNames()
+    {
+        for (var scope = _scope; scope is not null; scope = scope.Parent)
+            foreach (var pair in scope.Symbols)
+                yield return pair.Key;
+    }
+
+    /// <summary>The methods a built-in type has, for a "did you mean" on a name it hasn't (SPEC §6, M57).</summary>
+    private static (string Kind, string[] Methods) KnownMethods(TaipanType type) => type switch
+    {
+        PrimitiveType { Name: "str" } => ("str", ["upper", "lower", "strip", "lstrip", "rstrip", "split", "rsplit", "splitlines", "join", "replace", "find", "rfind", "index", "count", "startswith", "endswith", "partition", "rpartition", "removeprefix", "removesuffix", "title", "capitalize", "swapcase", "zfill", "ljust", "rjust", "center", "isdigit", "isalpha", "isalnum", "isspace", "isupper", "islower"]),
+        ListOfType => ("list", ["append", "extend", "insert", "pop", "remove", "index", "count", "sort", "reverse", "clear", "copy", "contains"]),
+        DictOfType => ("dict", ["get", "keys", "values", "items", "pop", "setdefault", "update", "remove", "clear", "copy"]),
+        SetOfType => ("set", ["add", "remove", "discard", "pop", "clear", "copy", "update", "union", "intersection", "difference", "symmetric_difference", "issubset", "issuperset", "isdisjoint"]),
+        OpaqueType { Name: "TextIO" } => ("file", ["read", "readline", "readlines", "write", "writelines", "flush", "close"]),
+        ClassType { Symbol: var symbol } => ("class", [.. AllMethodNames(symbol)]),
+        _ => ("", []),
+    };
+
+    private static string? MethodHelp(TaipanType type, string name)
+    {
+        var (kind, methods) = KnownMethods(type);
+        return kind == "" ? null : Suggestions.Method(kind, name, methods);
+    }
+
+    private static IEnumerable<string> AllMethodNames(ClassSymbol symbol) =>
+        symbol.Methods.Keys.Concat(symbol.Base is { } b ? AllMethodNames(b) : []);
 
     private TaipanType BindType(TypeSyntax type)
     {
@@ -4447,7 +4482,7 @@ public sealed partial class Binder
             else if (classSymbol.FindMethod(name) is not null)
                 _diagnostics.ReportMethodAsValue(member.Member.Span, name);
             else
-                _diagnostics.ReportNoField(member.Member.Span, target.Type, name, WhyNotNarrowed(target));
+                _diagnostics.ReportNoField(member.Member.Span, target.Type, name, WhyNotNarrowed(target) ?? Suggestions.DidYouMean(name, classSymbol.AllFields.Select(f => f.Name).Concat(AllMethodNames(classSymbol))));
         }
         else if (BuiltinMethodOf(target.Type, name) is not null)
         {
@@ -5537,7 +5572,7 @@ public sealed partial class Binder
             if (classSymbol.FindField(name) is not null)
                 _diagnostics.ReportFieldNotMethod(member.Member.Span, name);
             else
-                _diagnostics.ReportNoMethod(member.Member.Span, target.Type, name, WhyNotNarrowed(target));
+                _diagnostics.ReportNoMethod(member.Member.Span, target.Type, name, WhyNotNarrowed(target) ?? MethodHelp(target.Type, name));
             return new BoundErrorExpr(call.Span);
         }
 
@@ -5559,7 +5594,7 @@ public sealed partial class Binder
             if (RuntimeMethodOf(target.Type, name) is null && BindExtensionCall(call, target, member.Member, null) is { } extension)
                 return extension;
             BindArguments(call);
-            _diagnostics.ReportNoMethod(member.Member.Span, target.Type, name);
+            _diagnostics.ReportNoMethod(member.Member.Span, target.Type, name, MethodHelp(target.Type, name));
             return new BoundErrorExpr(call.Span);
         }
 
@@ -5626,7 +5661,7 @@ public sealed partial class Binder
             var keyword = argument.Name!;
             if (keyword.Text is not ("key" or "reverse"))
             {
-                _diagnostics.ReportNoKeywordArgument(keyword.Span, name, keyword.Text);
+                _diagnostics.ReportNoKeywordArgument(keyword.Span, name, keyword.Text, Suggestions.DidYouMean(keyword.Text, ["key", "reverse"]));
                 BindIgnored(argument.Value);
             }
             else if (!given.Add(keyword.Text))

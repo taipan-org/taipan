@@ -1,0 +1,15 @@
+let names = ["Ada", "Grace"]
+let count = 3
+print("total: " + str(count), f"{count}")
+let n = int("42") ?? 0
+if len(names) > 0 and count != 0:
+    names.append("Lin")
+print(len(names), "hi".strip().upper(), sorted(names, reverse=True), n)
+enum Color:
+    Red
+    Green
+    Blue
+let c = Color.Blue
+match c:
+    Red: print("r")
+    _: print("other")

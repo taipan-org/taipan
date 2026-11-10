@@ -1,4 +1,5 @@
 tests/cases/m3/tp0200_operators.tpn:1:9: error TP0200: operator '+' cannot be applied to int and str
+  help: convert it with str(…), or use an f-string
 tests/cases/m3/tp0200_operators.tpn:2:9: error TP0200: operator '-' cannot be applied to str and str
 tests/cases/m3/tp0200_operators.tpn:3:9: error TP0200: operator '-' cannot be applied to str
 tests/cases/m3/tp0200_operators.tpn:4:9: error TP0200: operator '//' cannot be applied to str and int

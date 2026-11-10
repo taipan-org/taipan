@@ -1,7 +1,14 @@
 tests/cases/m5/tp0214_structs.tpn:4:5: error TP0214: duplicate definition of 'x'
+  help: give it another name
 tests/cases/m5/tp0214_structs.tpn:6:9: error TP0214: duplicate definition of 'x'
+  help: Taipan has no overloading: give it another name, or give the parameters defaults
 tests/cases/m5/tp0214_structs.tpn:9:17: error TP0214: duplicate definition of 'self'
+  help: give it another name; to change a value, assign to it without 'let'
 tests/cases/m5/tp0214_structs.tpn:13:7: error TP0214: duplicate definition of 'Point'
+  help: give it another name
 tests/cases/m5/tp0214_structs.tpn:16:5: error TP0214: duplicate definition of 'Point'
+  help: give it another name
 tests/cases/m5/tp0214_structs.tpn:20:7: error TP0214: duplicate definition of 'str'
+  help: give it another name
 tests/cases/m5/tp0214_structs.tpn:24:9: error TP0207: 'Point' shadows an outer binding
+  help: give it another name

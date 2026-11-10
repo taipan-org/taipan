@@ -3,6 +3,8 @@ tests/cases/m5/tp0210_unknown_member.tpn:11:3: error TP0210: Point has no field 
 tests/cases/m5/tp0210_unknown_member.tpn:12:3: error TP0210: Point has no method 'scale'
 tests/cases/m5/tp0210_unknown_member.tpn:13:25: error TP0210: Point has no field 'z'
 tests/cases/m5/tp0210_unknown_member.tpn:15:4: error TP0210: list[int] has no method 'push'
+  help: write 'xs.append(x)'
 tests/cases/m5/tp0210_unknown_member.tpn:16:10: error TP0210: list[int] has no field 'length'
 tests/cases/m5/tp0210_unknown_member.tpn:17:11: error TP0210: str has no method 'size'
+  help: write 'len(x)'
 tests/cases/m5/tp0210_unknown_member.tpn:18:9: error TP0210: int has no field 'real'

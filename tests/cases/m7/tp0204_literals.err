@@ -1,5 +1,10 @@
 tests/cases/m7/tp0204_literals.tpn:2:5: error TP0204: non-exhaustive match (missing: _)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m7/tp0204_literals.tpn:4:5: error TP0204: non-exhaustive match (missing: _)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m7/tp0204_literals.tpn:6:5: error TP0204: non-exhaustive match (missing: False)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m7/tp0204_literals.tpn:8:5: error TP0204: non-exhaustive match (missing: True)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m7/tp0204_literals.tpn:17:5: error TP0204: non-exhaustive match (missing: Red, Blue)
+  help: add an arm for each, or '_:' for the rest

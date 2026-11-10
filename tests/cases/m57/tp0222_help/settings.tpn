@@ -1,0 +1,4 @@
+let default_name = "x"
+
+def greet() -> str:
+    return "hi"

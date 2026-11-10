@@ -1,0 +1,37 @@
+tests/cases/m57/help_types.tpn:3:7: error TP0200: operator '+' cannot be applied to str and int
+  help: convert it with str(…), or use an f-string
+tests/cases/m57/help_types.tpn:4:18: error TP0200: expected str, found int
+  help: convert it with str(…)
+tests/cases/m57/help_types.tpn:5:14: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
+tests/cases/m57/help_types.tpn:6:11: error TP0201: undefined name 'nmes'
+  help: did you mean 'names'?
+tests/cases/m57/help_types.tpn:7:8: error TP0201: undefined type 'string'
+  help: use 'str'
+tests/cases/m57/help_types.tpn:8:9: error TP0201: undefined type 'List'
+  help: use 'list[T]'
+tests/cases/m57/help_types.tpn:9:4: error TP0205: condition must be bool, found list[str]
+  help: write 'len(x) > 0'
+tests/cases/m57/help_types.tpn:11:4: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
+tests/cases/m57/help_types.tpn:14:4: error TP0205: condition must be bool, found str
+  help: write 'x != ""'
+tests/cases/m57/help_types.tpn:16:19: error TP0210: list[str] has no method 'get'
+tests/cases/m57/help_types.tpn:17:7: error TP0210: list[str] has no method 'push'
+  help: write 'xs.append(x)'
+tests/cases/m57/help_types.tpn:18:13: error TP0210: list[str] has no field 'length'
+tests/cases/m57/help_types.tpn:19:12: error TP0210: str has no method 'trim'
+  help: write 's.strip()'
+tests/cases/m57/help_types.tpn:19:25: error TP0210: str has no method 'toUpperCase'
+  help: write 's.upper()'
+tests/cases/m57/help_types.tpn:19:45: error TP0210: str has no method 'uper'
+  help: did you mean 'upper'?
+tests/cases/m57/help_types.tpn:20:21: error TP0218: 'sorted' has no parameter 'reversed'
+  help: did you mean 'reverse'?
+tests/cases/m57/help_types.tpn:25:1: error TP0204: non-exhaustive match (missing: Blue)
+  help: add an arm for each, or '_:' for the rest
+tests/cases/m57/help_types.tpn:28:16: error TP0220: 'int' is not a protocol
+  help: a bound is a protocol, as '[T: Comparable]'; for a few types, write a constraint: '[T: (int, float)]'
+tests/cases/m57/help_types.tpn:37:9: error TP0210: Box has no field 'z'
+tests/cases/m57/help_types.tpn:37:14: error TP0210: Box has no field 'widht'
+  help: did you mean 'width'?

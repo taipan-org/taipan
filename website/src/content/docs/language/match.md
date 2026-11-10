@@ -419,6 +419,7 @@ def describe(h: Health) -> str:
 
 ```error
 main.tpn:7:5: error TP0204: non-exhaustive match (missing: Degraded(_, _), Down)
+  help: add an arm for each, or '_:' for the rest
 ```
 
 What covers a type:
@@ -444,6 +445,7 @@ print(s)
 
 ```error
 main.tpn:2:9: error TP0204: non-exhaustive match (missing: False)
+  help: add an arm for each, or '_:' for the rest
 ```
 
 ```taipan
@@ -455,6 +457,7 @@ match xs:
 
 ```error
 main.tpn:2:1: error TP0204: non-exhaustive match (missing: [_, _, *_])
+  help: add an arm for each, or '_:' for the rest
 ```
 
 **A guarded arm covers nothing**, since its condition may be `False`, so a value covered only by guarded arms still needs another arm:
@@ -468,6 +471,7 @@ match n:
 
 ```error
 main.tpn:2:1: error TP0204: non-exhaustive match (missing: _)
+  help: add an arm for each, or '_:' for the rest
 ```
 
 ## Unreachable arms
@@ -576,6 +580,7 @@ let x = match n:
 
 ```error
 main.tpn:4:8: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 ```
 
 ```taipan

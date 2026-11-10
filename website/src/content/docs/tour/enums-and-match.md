@@ -77,6 +77,7 @@ def describe(h: Health) -> str:
 
 ```error
 main.tpn:7:5: error TP0204: non-exhaustive match (missing: Down)
+  help: add an arm for each, or '_:' for the rest
 ```
 
 So when you add a variant, the compiler finds every `match` that needs a new arm. `_` matches anything, for when you really mean "everything else".

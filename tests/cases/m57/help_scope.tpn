@@ -1,0 +1,22 @@
+let price = 1.0
+if True:
+    let price = 3.0
+let price = 2.0
+def show() -> str:
+    return "a"
+def show() -> str:
+    return "b"
+let x: int?? = None
+return 5
+async def something() -> int:
+    return 1
+def fetch() -> int:
+    return await something()
+def grade(score: int) -> str:
+    if score >= 50:
+        return "pass"
+let base = 10
+const LIMIT = base * 2
+def outer():
+    def inner[T](x: T) -> T:
+        return x

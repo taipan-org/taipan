@@ -1,5 +1,7 @@
 tests/cases/m19/tp0200_match_arms.tpn:5:8: error TP0200: expected str, found int
+  help: convert it with str(…)
 tests/cases/m19/tp0200_match_arms.tpn:9:8: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m19/tp0200_match_arms.tpn:10:15: error TP0200: every arm of this 'match' raises
   help: use a 'match' statement
 tests/cases/m19/tp0200_match_arms.tpn:14:8: error TP0206: cannot infer the type of None

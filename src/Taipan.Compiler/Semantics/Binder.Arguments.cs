@@ -1,3 +1,4 @@
+using Taipan.Compiler.Diagnostics;
 using System.Collections.Immutable;
 using Taipan.Compiler.Syntax;
 using Taipan.Compiler.Text;
@@ -200,7 +201,7 @@ public sealed partial class Binder
                     if (index >= 0)
                         _diagnostics.ReportPositionalOnlyByKeyword(keyword.Span, keyword.Text);
                     else
-                        _diagnostics.ReportNoKeywordArgument(keyword.Span, name, keyword.Text);
+                        _diagnostics.ReportNoKeywordArgument(keyword.Span, name, keyword.Text, Suggestions.DidYouMean(keyword.Text, parameters.Select(p => p.Name)));
                     // Either way, the parameter it meant isn't also reported missing.
                     (valid, unknown) = (false, true);
                     entries.Add(new PlannedArgument(argument.Value, ArgumentRole.Unmatched));

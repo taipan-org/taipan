@@ -1,4 +1,5 @@
 tests/cases/m11/tp0200_functions.tpn:12:3: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m11/tp0200_functions.tpn:14:1: error TP0200: 'n' is not a function
 tests/cases/m11/tp0200_functions.tpn:15:2: error TP0200: cannot call int
 tests/cases/m11/tp0200_functions.tpn:16:9: error TP0206: cannot infer the type of 'first'

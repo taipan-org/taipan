@@ -1,4 +1,8 @@
 tests/cases/m29/tp0204_nested.tpn:8:5: error TP0204: non-exhaustive match (missing: Pair((False, False)), Level(_), Off)
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m29/tp0204_nested.tpn:17:5: error TP0204: non-exhaustive match (missing: [_], [_, _], [_, _, _, *_])
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m29/tp0204_nested.tpn:24:5: error TP0204: non-exhaustive match (missing: (True, _))
+  help: add an arm for each, or '_:' for the rest
 tests/cases/m29/tp0204_nested.tpn:36:12: error TP0204: non-exhaustive match (missing: Point(y=False))
+  help: add an arm for each, or '_:' for the rest

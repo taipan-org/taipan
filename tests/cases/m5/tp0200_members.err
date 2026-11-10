@@ -5,7 +5,9 @@ tests/cases/m5/tp0200_members.tpn:11:7: error TP0200: cannot index int
 tests/cases/m5/tp0200_members.tpn:12:15: error TP0200: dict keys must be int, str, bool, tuples of those, or plain class instances, found float
 tests/cases/m5/tp0200_members.tpn:13:13: error TP0200: dict keys must be int, str, bool, tuples of those, or plain class instances, found float
 tests/cases/m5/tp0200_members.tpn:14:14: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m5/tp0200_members.tpn:16:27: error TP0200: expected float, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m5/tp0200_members.tpn:17:7: error TP0200: cannot compare Point and int
 tests/cases/m5/tp0200_members.tpn:18:7: error TP0200: operator '+' cannot be applied to list[int] and list[str]
 tests/cases/m5/tp0200_members.tpn:19:7: error TP0200: operator 'in' cannot be applied to str and list[int]

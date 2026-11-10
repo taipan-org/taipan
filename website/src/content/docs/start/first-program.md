@@ -40,6 +40,7 @@ print(greet(count))
 
 ```error
 hello.tpn:5:13: error TP0200: expected str, found int
+  help: convert it with str(…)
 ```
 
 `taipan check` checks a program without running it, which is what editors and CI usually want. Each error code has a page under [Diagnostics](../../diagnostics/).

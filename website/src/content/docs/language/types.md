@@ -70,6 +70,7 @@ let label: str = count
 
 ```error
 main.tpn:3:18: error TP0200: expected str, found int
+  help: convert it with str(…)
 ```
 
 ```taipan

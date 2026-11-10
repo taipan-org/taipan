@@ -1,1 +1,2 @@
 tests/cases/m8/tp0219_polymorphic.tpn:6:1: error TP0219: instantiating 'grow' needs 'grow[list[list[list[...]]]]', which is too deep
+  help: the recursive call instantiates it with a bigger type each time; call it with the same type, or use a non-generic helper

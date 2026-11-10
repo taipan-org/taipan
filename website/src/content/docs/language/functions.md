@@ -64,6 +64,7 @@ def show(s: str) -> str:
 
 ```error
 main.tpn:4:5: error TP0214: duplicate definition of 'show'
+  help: Taipan has no overloading: give it another name, or give the parameters defaults
 ```
 
 ## `return`
@@ -119,6 +120,7 @@ def sign(n: int) -> str:
 
 ```error
 main.tpn:1:5: error TP0208: not all paths in 'sign' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns
 ```
 
 Returning a value from a function without a result type, or using its call as a value, is an error:

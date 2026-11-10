@@ -1,5 +1,7 @@
 tests/cases/m30/tp0200_params.tpn:8:14: error TP0200: expected str, found int
+  help: convert it with str(…)
 tests/cases/m30/tp0200_params.tpn:9:11: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m30/tp0200_params.tpn:10:10: error TP0200: expected list[str], found list[int]
 tests/cases/m30/tp0200_params.tpn:11:11: error TP0200: expected dict[str, int], found dict[str, str]
 tests/cases/m30/tp0200_params.tpn:12:10: error TP0200: cannot unpack int into arguments

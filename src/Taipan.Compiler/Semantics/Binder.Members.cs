@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Taipan.Compiler.Diagnostics;
 using Taipan.Compiler.Syntax;
 
 namespace Taipan.Compiler.Semantics;
@@ -144,7 +145,7 @@ public sealed partial class Binder
             return DeclareSetter(owner, method, previous, setter, symbol) ? symbol : null;
         if (!names.Add(name))
         {
-            _diagnostics.ReportDuplicateDefinition(method.Name.Span, name);
+            _diagnostics.ReportDuplicateDefinition(method.Name.Span, name, DuplicateKind.Function);
             return symbol;
         }
         if (kind == MemberKind.Property && (!method.Params.IsEmpty || method.ReturnType is null))

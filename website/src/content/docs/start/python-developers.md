@@ -136,6 +136,7 @@ if xs:
 
 ```error
 main.tpn:2:4: error TP0205: condition must be bool, found list[int]
+  help: write 'len(x) > 0'
 ```
 
 ## Enums with data, and exhaustive `match`

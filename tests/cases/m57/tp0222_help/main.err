@@ -1,0 +1,2 @@
+tests/cases/m57/tp0222_help/settings.tpn:1:1: error TP0222: only the main file can have top-level statements
+  help: make it a 'const', or move it into a function or the main file

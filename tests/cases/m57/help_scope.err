@@ -1,0 +1,18 @@
+tests/cases/m57/help_scope.tpn:3:9: error TP0207: 'price' shadows an outer binding
+  help: give it another name
+tests/cases/m57/help_scope.tpn:4:5: error TP0214: duplicate definition of 'price'
+  help: give it another name; to change a value, assign to it without 'let'
+tests/cases/m57/help_scope.tpn:7:5: error TP0214: duplicate definition of 'show'
+  help: Taipan has no overloading: give it another name, or give the parameters defaults
+tests/cases/m57/help_scope.tpn:9:8: error TP0213: optional types cannot be nested
+  help: write 'T?' once; an optional can't hold another optional
+tests/cases/m57/help_scope.tpn:10:1: error TP0215: 'return' outside a function
+  help: to end the program, call sys.exit()
+tests/cases/m57/help_scope.tpn:14:12: error TP0215: 'await' outside an async function
+  help: mark the function 'async def'
+tests/cases/m57/help_scope.tpn:15:5: error TP0208: not all paths in 'grade' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns
+tests/cases/m57/help_scope.tpn:19:15: error TP0217: const initializer must be a constant expression
+  help: a const is a literal, or arithmetic on literals; use 'let' for a computed value
+tests/cases/m57/help_scope.tpn:21:15: error TP0223: nested functions cannot have type parameters
+  help: declare it at the top level, or use the enclosing function's type parameters

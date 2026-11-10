@@ -1,3 +1,4 @@
+using Taipan.Compiler.Diagnostics;
 using System.Collections.Immutable;
 using Taipan.Compiler.Syntax;
 using Taipan.Compiler.Text;
@@ -17,7 +18,7 @@ public sealed partial class Binder
             var keyword = argument.Name!;
             if (!keywords.Contains(keyword.Text))
             {
-                _diagnostics.ReportNoKeywordArgument(keyword.Span, function.Name, keyword.Text);
+                _diagnostics.ReportNoKeywordArgument(keyword.Span, function.Name, keyword.Text, Suggestions.DidYouMean(keyword.Text, keywords));
                 BindIgnored(argument.Value);
             }
             else if (!named.TryAdd(keyword.Text, argument))

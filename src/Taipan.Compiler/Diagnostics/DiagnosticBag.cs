@@ -161,7 +161,15 @@ public sealed class DiagnosticBag
     // ---- Type checking (SPEC §9.1). Types are passed pre-rendered as source text. ----
 
     public void ReportTypeMismatch(TextSpan span, object expected, object found, string? help = null) =>
-        Add("TP0200", span, $"expected {expected}, found {found}", help);
+        Add("TP0200", span, $"expected {expected}, found {found}", help ?? ConversionHelp(expected.ToString()!, found.ToString()!));
+
+    // Python converts between numbers and text explicitly too, so the help names the function (SPEC §9, M57).
+    private static string? ConversionHelp(string expected, string found) => (expected, found) switch
+    {
+        ("str", "int" or "float" or "bool") => "convert it with str(…)",
+        ("int" or "float", "str") => "parse it with int(…) or float(…), which give an optional",
+        _ => null,
+    };
 
     // `is not None` narrows only what SPEC §3.9 can narrow, so for anything else, such as a call,
     // the help suggests a `let` instead.
@@ -181,7 +189,11 @@ public sealed class DiagnosticBag
         Add("TP0201", span, $"undefined name '{name}'", "if it's a new variable, declare it with 'let', 'var' or 'const'");
 
     public void ReportBinaryOperatorTypes(TextSpan span, string op, object left, object right, string? help = null) =>
-        Add("TP0200", span, $"operator '{op}' cannot be applied to {left} and {right}", help);
+        Add("TP0200", span, $"operator '{op}' cannot be applied to {left} and {right}",
+            help ?? (op == "+" && IsStrAndNumber(left.ToString()!, right.ToString()!) ? "convert it with str(…), or use an f-string" : null));
+
+    private static bool IsStrAndNumber(string a, string b) =>
+        (a == "str" && b is "int" or "float" or "bool") || (b == "str" && a is "int" or "float" or "bool");
 
     public void ReportUnaryOperatorType(TextSpan span, string op, object operand, string? help = null) =>
         Add("TP0200", span, $"operator '{op}' cannot be applied to {operand}", help);
@@ -234,8 +246,8 @@ public sealed class DiagnosticBag
     public void ReportBareCallable(TextSpan span) =>
         Add("TP0209", span, "'Callable' takes a parameter list and a result type");
 
-    public void ReportNoKeywordArgument(TextSpan span, string function, string name) =>
-        Add("TP0218", span, $"'{function}' has no parameter '{name}'");
+    public void ReportNoKeywordArgument(TextSpan span, string function, string name, string? suggestion = null) =>
+        Add("TP0218", span, $"'{function}' has no parameter '{name}'", suggestion);
 
     public void ReportMissingArgument(TextSpan span, string name) =>
         Add("TP0209", span, $"missing argument '{name}'");
@@ -262,7 +274,7 @@ public sealed class DiagnosticBag
         Add("TP0202", span, "cannot assign to an element of a tuple");
 
     public void ReportNestedTypeParameters(TextSpan span) =>
-        Add("TP0223", span, "nested functions cannot have type parameters");
+        Add("TP0223", span, "nested functions cannot have type parameters", "declare it at the top level, or use the enclosing function's type parameters");
 
     public void ReportNotAFunction(TextSpan span, string text) =>
         Add("TP0200", span, $"'{text}' is not a function");
@@ -287,7 +299,7 @@ public sealed class DiagnosticBag
         Add("TP0200", span, $"'{construct}' needs an optional{(construct == "??" ? " on the left" : "")}, found {type}");
 
     public void ReportNestedOptional(TextSpan span) =>
-        Add("TP0213", span, "optional types cannot be nested");
+        Add("TP0213", span, "optional types cannot be nested", "write 'T?' once; an optional can't hold another optional");
 
     public void ReportWrongTypeArgumentCount(TextSpan span, string name, int expected, int found) =>
         Add("TP0209", span, $"'{name}' takes {expected} {(expected == 1 ? "type argument" : "type arguments")}, found {found}");
@@ -316,10 +328,10 @@ public sealed class DiagnosticBag
     // ---- Protocols (SPEC §3.11, M17) ----
 
     public void ReportBoundNotOnFunction(TextSpan span) =>
-        Add("TP0220", span, "bounds are only supported on functions");
+        Add("TP0220", span, "bounds are only supported on functions", "put the bound on the methods that need it");
 
     public void ReportNotProtocol(TextSpan span, object type) =>
-        Add("TP0220", span, $"'{type}' is not a protocol");
+        Add("TP0220", span, $"'{type}' is not a protocol", "a bound is a protocol, as '[T: Comparable]'; for a few types, write a constraint: '[T: (int, float)]'");
 
     public void ReportBoundTypeParameters(TextSpan span) =>
         Add("TP0220", span, "a bound can't use type parameters");
@@ -377,7 +389,7 @@ public sealed class DiagnosticBag
         Add("TP0222", span, "the main file can't be imported", "move what both files need into a module that each imports");
 
     public void ReportStatementInModule(TextSpan span) =>
-        Add("TP0222", span, "only the main file can have top-level statements");
+        Add("TP0222", span, "only the main file can have top-level statements", "make it a 'const', or move it into a function or the main file");
 
     // ---- Native executables (SPEC §15, M23) ----
 
@@ -419,7 +431,7 @@ public sealed class DiagnosticBag
         Add("TP0200", span, $"'{ns}' is a .NET namespace, not a value");
 
     public void ReportInstantiationTooDeep(TextSpan span, string function, string instance) =>
-        Add("TP0219", span, $"instantiating '{function}' needs '{instance}', which is too deep");
+        Add("TP0219", span, $"instantiating '{function}' needs '{instance}', which is too deep", "the recursive call instantiates it with a bigger type each time; call it with the same type, or use a non-generic helper");
 
     public void ReportCannotInferNone(TextSpan span) =>
         Add("TP0206", span, "cannot infer the type of None", "add a type annotation");
@@ -454,7 +466,7 @@ public sealed class DiagnosticBag
         Add("TP0209", span, $"'{variant}' has {fields} {(fields == 1 ? "field" : "fields")}, found {bindings} {(bindings == 1 ? "binding" : "bindings")}");
 
     public void ReportNonExhaustiveMatch(TextSpan span, IEnumerable<string> missing) =>
-        Add("TP0204", span, $"non-exhaustive match (missing: {string.Join(", ", missing)})");
+        Add("TP0204", span, $"non-exhaustive match (missing: {string.Join(", ", missing)})", "add an arm for each, or '_:' for the rest");
 
     public void ReportAmbiguousVariant(TextSpan span, string variant, IEnumerable<string> enums)
     {
@@ -558,14 +570,30 @@ public sealed class DiagnosticBag
     public void ReportNoDotNetExceptionMessage(TextSpan span, object type) =>
         Add("TP0210", span, $"{type} has no field 'message'", "a .NET exception's text is 'Message'");
 
-    public void ReportNoMethod(TextSpan span, object type, string name, string? whyNotNarrowed = null) =>
-        Add("TP0210", span, $"{type} has no method '{name}'", whyNotNarrowed);
+    public void ReportNoMethod(TextSpan span, object type, string name, string? help = null) =>
+        Add("TP0210", span, $"{type} has no method '{name}'", help);
 
-    public void ReportUndefinedName(TextSpan span, string name) =>
-        Add("TP0201", span, $"undefined name '{name}'", UndefinedHelp(name));
+    public void ReportUndefinedName(TextSpan span, string name, string? suggestion = null) =>
+        Add("TP0201", span, $"undefined name '{name}'", UndefinedHelp(name) ?? suggestion);
 
     public void ReportUndefinedType(TextSpan span, string name) =>
-        Add("TP0201", span, $"undefined type '{name}'", name == "Self" ? "'Self' can only be used in a protocol" : UndefinedHelp(name));
+        Add("TP0201", span, $"undefined type '{name}'", name == "Self" ? "'Self' can only be used in a protocol" : UndefinedHelp(name) ?? UndefinedTypeHelp(name));
+
+    // Other languages' names for the built-in types (SPEC §9, M57).
+    private static string? UndefinedTypeHelp(string name) => name switch
+    {
+        "string" or "String" or "char" => "use 'str'",
+        "integer" or "Integer" or "long" or "Int" => "use 'int'",
+        "boolean" or "Boolean" or "Bool" => "use 'bool'",
+        "double" or "Double" or "Float" or "number" => "use 'float'",
+        "List" or "Array" or "array" => "use 'list[T]'",
+        "Dict" or "Map" or "map" or "Mapping" => "use 'dict[K, V]'",
+        "Set" => "use 'set[T]'",
+        "Tuple" => "use 'tuple[A, B]'",
+        "Optional" => "write 'T?'",
+        "Any" => "use 'py' for a Python value, or 'object'",
+        _ => null,
+    };
 
     // Python's spelling is None; a lowercase none is just an undefined name (SPEC §3.4). Python has a
     // RecursionError, but a stack overflow in .NET can't be caught (SPEC, design principles).
@@ -583,7 +611,15 @@ public sealed class DiagnosticBag
         Add("TP0202", span, $"cannot assign to '{name}': it is a {what}", help);
 
     public void ReportConditionNotBool(TextSpan span, object type) =>
-        Add("TP0205", span, $"condition must be bool, found {type}", type.ToString() == "py" ? "convert it with 'as bool'" : null);
+        Add("TP0205", span, $"condition must be bool, found {type}", (type.ToString() ?? "") switch
+        {
+            "py" => "convert it with 'as bool'",
+            "str" => "write 'x != \"\"'",
+            "int" or "float" => "write 'x != 0'",
+            var t when t.EndsWith('?') => "write 'x is not None'",
+            var t when t.StartsWith("list[") || t.StartsWith("dict[") || t.StartsWith("set[") => "write 'len(x) > 0'",
+            _ => null,
+        });
 
     public void ReportCannotPassToPython(TextSpan span, object type) =>
         Add("TP0200", span, $"cannot pass {type} to Python");
@@ -598,10 +634,10 @@ public sealed class DiagnosticBag
         Add("TP0221", span, "'python' is not a module", "use 'from python import <module>'");
 
     public void ReportShadowing(TextSpan span, string name) =>
-        Add("TP0207", span, $"'{name}' shadows an outer binding");
+        Add("TP0207", span, $"'{name}' shadows an outer binding", "give it another name");
 
     public void ReportNotAllPathsReturn(TextSpan span, string function) =>
-        Add("TP0208", span, $"not all paths in '{function}' return a value");
+        Add("TP0208", span, $"not all paths in '{function}' return a value", "add a 'return' at the end, or an 'else' branch that returns");
 
     public void ReportWrongArgumentCount(TextSpan span, string function, string expected, int found) =>
         Add("TP0209", span, $"'{function}' takes {expected}, found {found}");
@@ -636,8 +672,15 @@ public sealed class DiagnosticBag
     public void ReportNonlocalOwnName(TextSpan span, string name) =>
         Add("TP0236", span, $"'{name}' is declared in this function, so it can't be nonlocal");
 
-    public void ReportDuplicateDefinition(TextSpan span, string name) =>
-        Add("TP0214", span, $"duplicate definition of '{name}'");
+    /// <param name="kind">What clashes, which picks the help (SPEC §9, M57).</param>
+    public void ReportDuplicateDefinition(TextSpan span, string name, DuplicateKind kind = DuplicateKind.Other) =>
+        Add("TP0214", span, $"duplicate definition of '{name}'", kind switch
+        {
+            DuplicateKind.Function => "Taipan has no overloading: give it another name, or give the parameters defaults",
+            DuplicateKind.Binding => "give it another name; to change a value, assign to it without 'let'",
+            DuplicateKind.Import => "give it another name, or import the other one 'as' something else",
+            _ => "give it another name",
+        });
 
     public void ReportBreakOutsideLoop(TextSpan span) =>
         Add("TP0215", span, "'break' outside a loop");
@@ -646,7 +689,7 @@ public sealed class DiagnosticBag
         Add("TP0215", span, "'continue' outside a loop");
 
     public void ReportReturnOutsideFunction(TextSpan span) =>
-        Add("TP0215", span, "'return' outside a function");
+        Add("TP0215", span, "'return' outside a function", "to end the program, call sys.exit()");
 
     public void ReportBareRaiseOutsideHandler(TextSpan span) =>
         Add("TP0215", span, "'raise' without an exception outside an except block");
@@ -656,7 +699,7 @@ public sealed class DiagnosticBag
         Add("TP0215", span, $"'{keyword}' cannot be used in a finally block");
 
     public void ReportNotConstant(TextSpan span) =>
-        Add("TP0217", span, "const initializer must be a constant expression");
+        Add("TP0217", span, "const initializer must be a constant expression", "a const is a literal, or arithmetic on literals; use 'let' for a computed value");
 
     /// <summary>A keyword argument to a built-in, or (with no name) to a function value.</summary>
     public void ReportKeywordArguments(TextSpan span, string? function) =>
@@ -1039,7 +1082,7 @@ public sealed class DiagnosticBag
         Add("TP0215", span, "'yield' outside a function");
 
     public void ReportAwaitOutsideAsync(TextSpan span) =>
-        Add("TP0215", span, "'await' outside an async function");
+        Add("TP0215", span, "'await' outside an async function", "mark the function 'async def'");
 
     public void ReportAwaitInComprehension(TextSpan span) =>
         Add("TP0215", span, "'await' can't be inside a comprehension");
@@ -1215,3 +1258,6 @@ public sealed class DiagnosticBag
             ? $"U+{character.Value:X4}"
             : $"'{character}'";
 }
+
+/// <summary>What a duplicate definition clashes with, for TP0214's help.</summary>
+public enum DuplicateKind { Other, Function, Binding, Import }

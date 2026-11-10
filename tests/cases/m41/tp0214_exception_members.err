@@ -1,2 +1,4 @@
 tests/cases/m41/tp0214_exception_members.tpn:3:5: error TP0214: duplicate definition of 'args'
+  help: give it another name
 tests/cases/m41/tp0214_exception_members.tpn:11:5: error TP0214: duplicate definition of '__cause__'
+  help: give it another name

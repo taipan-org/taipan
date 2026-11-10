@@ -207,6 +207,7 @@ print(first([]))
 
 ```error
 main.tpn:10:5: error TP0208: not all paths in 'first' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns
 ```
 
 If `xs` is empty, `Quiet` suppresses the `IndexError` and the function reaches its end without a value. Add a `return` after the `with` for that case. A manager declared `-> None` can't suppress, so a function whose `with` block returns is known to return:

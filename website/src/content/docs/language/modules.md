@@ -162,6 +162,7 @@ print(settings.level())
 
 ```error
 settings.tpn:1:1: error TP0222: only the main file can have top-level statements
+  help: make it a 'const', or move it into a function or the main file
 ```
 
 For the same reason, a top-level `let` or `var` of the main file is visible to the main file's functions, but not to any module.
@@ -196,6 +197,7 @@ def area(width: float, height: float) -> float:
 
 ```error
 main.tpn:1:20: error TP0214: duplicate definition of 'area'
+  help: give it another name, or import the other one 'as' something else
 ```
 
 ```taipan

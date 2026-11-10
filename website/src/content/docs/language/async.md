@@ -97,6 +97,7 @@ tick()
 
 ```error
 main.tpn:4:5: error TP0215: 'await' outside an async function
+  help: mark the function 'async def'
 ```
 
 ## The event loop and `asyncio.run`

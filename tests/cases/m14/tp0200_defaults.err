@@ -1,3 +1,5 @@
 tests/cases/m14/tp0200_defaults.tpn:1:16: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 tests/cases/m14/tp0200_defaults.tpn:1:40: error TP0200: expected str, found int
+  help: convert it with str(…)
 tests/cases/m14/tp0200_defaults.tpn:4:23: error TP0200: expected T, found int

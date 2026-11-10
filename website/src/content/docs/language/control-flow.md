@@ -21,6 +21,7 @@ if xs:
 
 ```error
 main.tpn:2:4: error TP0205: condition must be bool, found list[int]
+  help: write 'len(x) > 0'
 ```
 
 ```taipan
@@ -31,6 +32,7 @@ if not name:
 
 ```error
 main.tpn:2:8: error TP0205: condition must be bool, found str
+  help: write 'x != ""'
 ```
 
 Write the test you mean instead:
@@ -327,6 +329,7 @@ def first_even(xs: list[int]) -> int:
 
 ```error
 main.tpn:1:5: error TP0208: not all paths in 'first_even' return a value
+  help: add a 'return' at the end, or an 'else' branch that returns
 ```
 
 ```taipan
@@ -453,4 +456,5 @@ let ys = [x for x in range(5) if x % 2]
 
 ```error
 main.tpn:1:34: error TP0205: condition must be bool, found int
+  help: write 'x != 0'
 ```

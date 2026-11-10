@@ -76,6 +76,7 @@ total = "zero"
 
 ```error
 main.tpn:2:9: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 ```
 
 ## `const`
@@ -104,6 +105,7 @@ const B = A + 1
 
 ```error
 main.tpn:2:11: error TP0217: const initializer must be a constant expression
+  help: a const is a literal, or arithmetic on literals; use 'let' for a computed value
 ```
 
 A `const` inside a function is a syntax error:
@@ -166,6 +168,7 @@ let n: int = "three"
 
 ```error
 main.tpn:1:14: error TP0200: expected int, found str
+  help: parse it with int(…) or float(…), which give an optional
 ```
 
 The rules for which types are accepted where are in [§3.3](../../reference/specification/#33-assignability), and inference in [§3.2](../../reference/specification/#32-inference).
@@ -412,6 +415,7 @@ if x > 0:
 
 ```error
 main.tpn:3:9: error TP0207: 'x' shadows an outer binding
+  help: give it another name
 ```
 
 **No redeclaring.** Declaring the same name twice in one block is error `TP0214`. To change a value, declare it with `var` and assign it.
@@ -423,6 +427,7 @@ var x = 2
 
 ```error
 main.tpn:2:5: error TP0214: duplicate definition of 'x'
+  help: give it another name; to change a value, assign to it without 'let'
 ```
 
 The special cases:
@@ -437,6 +442,7 @@ let list = [1, 2]
 
 ```error
 main.tpn:1:5: error TP0207: 'list' shadows an outer binding
+  help: give it another name
 ```
 
 ## Top-level names and functions
