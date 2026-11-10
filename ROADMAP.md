@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M57 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M58 are complete.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -479,3 +479,13 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M57 are complete
   - The four disagreements are resolved, with the spec's text and the compiler agreeing.
   - A test checks that every error shown in a diagnostic explanation has a help line, or the explanation says why none is needed.
   - A dotted SDK project builds, and a `taipan.json` added after a build is reported on the next one.
+
+## M58 — Documentation in the editor
+- Hover, completion and signature help show what a name does, not only its signature, as C#'s IntelliSense does: a docstring on a function, method, class or module; a one-sentence description of every built-in function, method, type, module and exception class; and a .NET member's `<summary>` from the reference assemblies' XML documentation.
+- Built-in functions and methods get hover and signature help, which gave nothing before.
+- The built-ins' descriptions are the library reference's sentences, kept the same by a test, so the editor and the website can't drift.
+- Update SPEC first: §1's docstrings, §6's documentation, and §16.3–§16.5.
+- **Accept:**
+  - Hovering a user function with a docstring shows its signature and the docstring; hovering `print`, `str.strip` and `sys.argv` shows a signature and a description; hovering a .NET method shows its summary.
+  - Completion items and signature help carry the same documentation, and `sorted(` gives signature help.
+  - A test checks that every built-in function, method, module member and exception class has a description, and that each description is a sentence on the library reference's page for it.
