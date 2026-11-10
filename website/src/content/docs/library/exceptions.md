@@ -73,6 +73,16 @@ Every class's name can be used anywhere without an import, except `asyncio.Cance
 | `TimeoutError` | `asyncio.wait_for` and `asyncio.timeout` running out of time |
 | `PythonError` | an exception in Python code the program calls (below) |
 | `DotNetError` | an exception in .NET code the program calls, when it's caught as a Taipan class (below) |
+| `BaseException` | nothing directly: the base of every exception class, for catching all of them |
+| `Exception` | nothing directly: the base of every class but `SystemExit`, `GeneratorExit` and `asyncio.CancelledError`, for catching any error |
+| `ArithmeticError` | nothing directly: the base of `ZeroDivisionError` and `OverflowError`, for catching both |
+| `LookupError` | nothing directly: the base of `IndexError` and `KeyError`, for catching both |
+| `UnicodeError` | nothing directly: the base of `UnicodeDecodeError` and `UnicodeEncodeError`, for catching both |
+| `OSError` | opening a file that can't be opened, when no class below says why more exactly; the base of the four below |
+| `FileNotFoundError` | opening a file that doesn't exist, for reading |
+| `FileExistsError` | opening a file that already exists, with mode `"x"` |
+| `PermissionError` | opening a file the program may not read or write |
+| `IsADirectoryError` | opening a directory as a file |
 
 `ArithmeticError`, `LookupError`, `UnicodeError`, `Exception` and `BaseException` aren't raised themselves, only the classes below them: they're for catching a group. A program may raise any class, as in `raise ValueError("bad port")`.
 

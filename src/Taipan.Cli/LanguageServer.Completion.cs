@@ -317,12 +317,12 @@ public sealed partial class LanguageServer
         if (index.ReceiverAt(path, word) is { } receiver)
         {
             foreach (var (name, target) in Members(receiver))
-                items.Add(Item(name, KindOf(target), Detail(target, name), "0000"));
+                items.Add(Item(name, KindOf(target), Detail(target, name), "0000", Documentation(target)));
         }
         else if (index.UnresolvedAt(path, word) is { } scope)
         {
             foreach (var name in scope.Names.Where(n => !scope.InType || IsType(n.Target)))
-                items.Add(Item(name.Name, KindOf(name.Target), Detail(name.Target, name.Name), $"{name.Distance:D4}"));
+                items.Add(Item(name.Name, KindOf(name.Target), Detail(name.Target, name.Name), $"{name.Distance:D4}", Documentation(name.Target)));
             if (scope.InType)
             {
                 foreach (var type in BuiltinTypes)
@@ -338,13 +338,19 @@ public sealed partial class LanguageServer
         return result;
     }
 
-    private static JsonObject Item(string label, int kind, string? detail, string group)
+    private static JsonObject Item(string label, int kind, string? detail, string group, string? documentation = null)
     {
         var item = new JsonObject { ["label"] = label, ["kind"] = kind, ["sortText"] = group + label };
         if (detail is not null)
             item["detail"] = detail;
+        if (documentation is not null)
+            item["documentation"] = new JsonObject { ["kind"] = "markdown", ["value"] = documentation };
         return item;
     }
+
+    // What a name means, for the item (SPEC §16.4, M58).
+    private static string? Documentation(object target) =>
+        SemanticIndex.Documentation(target is BuiltinMethodName builtin ? new SemanticIndex.BuiltinMember(builtin.Kind, builtin.Name) : target);
 
     private IEnumerable<string> ImportableModules(string path)
     {
@@ -376,7 +382,7 @@ public sealed partial class LanguageServer
                     .Concat(c.ClassAttributes.Select(a => (a.Name, (object)a)))).DistinctBy(m => m.Item1);
             case ListOfType or DictOfType or PrimitiveType { Name: "str" }:
                 var kind = receiver switch { ListOfType => "list", DictOfType => "dict", _ => "str" };
-                return BuiltinMethods[kind].Select(m => (m, (object)new BuiltinMethodName(m)));
+                return BuiltinMethods[kind].Select(m => (m, (object)new BuiltinMethodName(kind, m)));
             case DotNetType { Symbol: var type }:
                 return DotNetMembers(type, isStatic: false).DistinctBy(m => m.Item1);
             case INamedTypeSymbol type:
@@ -387,7 +393,7 @@ public sealed partial class LanguageServer
     }
 
     /// <summary>A built-in type's method (SPEC §6), offered after <c>.</c>.</summary>
-    private sealed record BuiltinMethodName(string Name);
+    private sealed record BuiltinMethodName(string Kind, string Name);
 
     private static IEnumerable<ClassSymbol> Chain(ClassSymbol classSymbol)
     {
@@ -411,7 +417,7 @@ public sealed partial class LanguageServer
 
     private static string? Detail(object target, string name) => target switch
     {
-        BuiltinMethodName => null,
+        BuiltinMethodName builtin => SemanticIndex.Describe(new SemanticIndex.BuiltinMember(builtin.Kind, builtin.Name)),
         _ => SemanticIndex.Describe(target),
     };
 
@@ -481,16 +487,19 @@ public sealed partial class LanguageServer
 
         // The arguments before the cursor's, and the cursor's own.
         var arguments = call.Arguments.Select((start, i) => text[start..(i + 1 < call.Arguments.Count ? call.Arguments[i + 1] - 1 : cursor)]).ToList();
-        var active = signatures.Active;
+        var active = signatures.ByArity ? ActiveByArity(signatures, arguments) : signatures.Active;
         var parameter = ActiveParameter(signatures.Items[active], arguments);
         var list = new JsonArray();
         foreach (var signature in signatures.Items)
         {
-            list.Add(new JsonObject
+            var item = new JsonObject
             {
                 ["label"] = signature.Label,
                 ["parameters"] = new JsonArray([.. signature.Parameters.Select(p => (JsonNode)new JsonObject { ["label"] = new JsonArray(p.Start, p.End) })]),
-            });
+            };
+            if (signature.Doc is not null)
+                item["documentation"] = new JsonObject { ["kind"] = "markdown", ["value"] = signature.Doc };
+            list.Add(item);
         }
         return new JsonObject { ["signatures"] = list, ["activeSignature"] = active, ["activeParameter"] = parameter };
     }
@@ -508,29 +517,34 @@ public sealed partial class LanguageServer
     }
 
     /// <summary>A signature: its label, each parameter's place in it, their names and kinds.</summary>
-    private sealed record Signature(string Label, ImmutableArray<(int Start, int End)> Parameters, ImmutableArray<string?> Names, ImmutableArray<ParamKind> Kinds);
+    private sealed record Signature(string Label, ImmutableArray<(int Start, int End)> Parameters, ImmutableArray<string?> Names, ImmutableArray<ParamKind> Kinds, string? Doc = null);
 
     private sealed record SignatureList(List<Signature> Items, int Active)
     {
         public int Count => Items.Count;
+
+        /// <summary>Whether the active signature is the first whose parameters fit the arguments so far (SPEC §16.5, M58).</summary>
+        public bool ByArity { get; init; }
     }
 
     private static SignatureList? Signatures(object target, string name)
     {
         switch (target)
         {
-            case FunctionSymbol { Builtin: not null }:
-                return null;
+            case FunctionSymbol { Builtin: not null } builtin:
+                return FromForms(SemanticIndex.FormsOf(builtin));
+            case SemanticIndex.BuiltinMember member:
+                return FromForms(SemanticIndex.FormsOf(member));
             case FunctionSymbol function:
                 var (label, ranges) = SemanticIndex.SignatureOf(function);
-                return One(new Signature(label, ranges, [.. function.Parameters.Select(p => (string?)p.Name)], function.Kinds));
+                return One(new Signature(label, ranges, [.. function.Parameters.Select(p => (string?)p.Name)], function.Kinds, function.Documentation));
             case ClassSymbol { IsDataclass: true } dataclass:
-                return One(Fields(dataclass.Name, dataclass.AllFields));
+                return One(Fields(dataclass.Name, dataclass.AllFields) with { Doc = dataclass.Documentation });
             case ClassSymbol { IsProtocol: false } classSymbol:
                 var constructor = classSymbol.Constructor;
                 var parts = constructor.Parameters.Select((p, i) => SemanticIndex.ParameterText(p, constructor.Kinds[i], constructor.DefaultFor(i) is not null)).ToList();
                 var (text, places) = SemanticIndex.ParameterList(classSymbol.Name, parts, constructor.Kinds);
-                return One(new Signature(text, places, [.. constructor.Parameters.Select(p => (string?)p.Name)], constructor.Kinds));
+                return One(new Signature(text, places, [.. constructor.Parameters.Select(p => (string?)p.Name)], constructor.Kinds, classSymbol.Documentation));
             case VariantSymbol variant:
                 return One(Fields($"{variant.Enum.Name}.{variant.Name}", variant.Fields));
             case VariableSymbol { Type: FunctionType function }:
@@ -545,10 +559,10 @@ public sealed partial class LanguageServer
                     : method.ContainingType.GetMembers(method.Name).OfType<IMethodSymbol>()
                         .Where(m => m.DeclaredAccessibility == Accessibility.Public && m.IsStatic == method.IsStatic).ToList();
                 var chosen = overloads.FindIndex(m => SymbolEqualityComparer.Default.Equals(m, method));
-                return new SignatureList([.. overloads.Select(DotNetSignature)], Math.Max(chosen, 0));
+                return new SignatureList([.. overloads.Select(o => DotNetSignature(o) with { Doc = SemanticIndex.Documentation(o) })], Math.Max(chosen, 0));
             case DotNetTypeSymbol { Type: var type }:
                 var constructors = type.InstanceConstructors.Where(c => c.DeclaredAccessibility == Accessibility.Public).ToList();
-                return constructors.Count == 0 ? null : new SignatureList([.. constructors.Select(DotNetSignature)], 0);
+                return constructors.Count == 0 ? null : new SignatureList([.. constructors.Select(c => DotNetSignature(c) with { Doc = SemanticIndex.Documentation(c) })], 0);
             default:
                 return null;
         }
@@ -598,6 +612,61 @@ public sealed partial class LanguageServer
     /// The parameter the cursor's argument fills, as §4.2 binds arguments, or the number of
     /// parameters when it fills none (SPEC §16.5).
     /// </summary>
+    // A built-in's call forms as signatures, each with its description (SPEC §16.5, M58). The
+    // parameters are the form's, split at its top-level commas; `…` and `*args` take any number.
+    private static SignatureList? FromForms(ImmutableArray<BuiltinDoc> forms)
+    {
+        if (forms.IsDefaultOrEmpty)
+            return null;
+        var items = new List<Signature>();
+        foreach (var form in forms)
+        {
+            var label = form.Form;
+            var open = label.IndexOf('(');
+            var close = label.LastIndexOf(')');
+            var ranges = ImmutableArray.CreateBuilder<(int Start, int End)>();
+            var names = ImmutableArray.CreateBuilder<string?>();
+            var kinds = ImmutableArray.CreateBuilder<ParamKind>();
+            if (open >= 0 && close > open)
+            {
+                var depth = 0;
+                var start = open + 1;
+                for (var i = open + 1; i <= close; i++)
+                {
+                    var c = label[i];
+                    if (c is '(' or '[' or '{')
+                        depth++;
+                    else if (c is ')' or ']' or '}' && i != close)
+                        depth--;
+                    if ((c == ',' && depth == 0) || i == close)
+                    {
+                        var piece = label[start..i];
+                        var text = piece.Trim();
+                        if (text.Length > 0)
+                        {
+                            var at = start + (piece.Length - piece.TrimStart().Length);
+                            ranges.Add((at, at + text.Length));
+                            var rest = text == "…" || text.StartsWith('*');
+                            names.Add(rest ? null : text.Split('=')[0].Trim());
+                            kinds.Add(text.StartsWith("**") ? ParamKind.VarKeywords : rest ? ParamKind.VarArgs : ParamKind.Normal);
+                        }
+                        start = i + 1;
+                    }
+                }
+            }
+            items.Add(new Signature(label, ranges.ToImmutable(), names.ToImmutable(), kinds.ToImmutable(), BuiltinDocs.Plain(form.Doc)));
+        }
+        return new SignatureList(items, 0) { ByArity = true };
+    }
+
+    // The first form that takes the arguments typed so far: an empty last argument isn't counted.
+    private static int ActiveByArity(SignatureList signatures, List<string> arguments)
+    {
+        var given = arguments.Count - (arguments.Count > 0 && arguments[^1].Trim().Length == 0 ? 1 : 0);
+        var fits = signatures.Items.FindIndex(s => s.Kinds.Contains(ParamKind.VarArgs) || s.Parameters.Length >= given);
+        return fits < 0 ? signatures.Count - 1 : fits;
+    }
+
     private static int ActiveParameter(Signature signature, List<string> arguments)
     {
         var none = signature.Parameters.Length;

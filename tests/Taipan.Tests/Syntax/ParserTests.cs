@@ -91,7 +91,7 @@ public class ParserTests
     public void TypeAliasInBlock() =>
         Assert.Equal(
             "FuncDef(f, [], [], null, Block([TypeAliasStmt(TypeAliasDef(T, [], NamedType(int))), PassStmt]))\n" +
-            "ClassDef(C, [], [], [FieldDef(x, NamedType(int))], [], [TypeAliasDef(U, [A], ListType(NamedType(A)))])",
+            "ClassDef(C, [], [], [FieldDef(x, NamedType(int))], [], [TypeAliasDef(U, [A], ListType(NamedType(A)))], null)",
             Snapshot("def f():\n    type T = int\n    pass\n\nclass C:\n    type U[A] = list[A]\n    x: int\n"));
 
     // ---- func_def / params / param ----
@@ -127,7 +127,7 @@ public class ParserTests
     [Fact]
     public void ClassDef() =>
         Assert.Equal(
-            "ClassDef(Service, [], [], [FieldDef(name, NamedType(str)), FieldDef(tags, ListType(NamedType(str)))], [])",
+            "ClassDef(Service, [], [], [FieldDef(name, NamedType(str)), FieldDef(tags, ListType(NamedType(str)))], [], null)",
             Snapshot("class Service:\n    name: str\n    tags: list[str]\n"));
 
     // ---- method_def ----
@@ -137,19 +137,19 @@ public class ParserTests
         Assert.Equal(
             "ClassDef(Counter, [], [], [FieldDef(n, NamedType(int))], [" +
             "MethodDef(bump, [Param(by, NamedType(int))], null, Block([AssignStmt(MemberExpr(NameExpr(self), n), Add, NameExpr(by))])), " +
-            "MethodDef(get, [], NamedType(int), Block([ReturnStmt(MemberExpr(NameExpr(self), n))]))])",
+            "MethodDef(get, [], NamedType(int), Block([ReturnStmt(MemberExpr(NameExpr(self), n))]))], null)",
             Snapshot("class Counter:\n    n: int\n    def bump(self, by: int,):\n        self.n += by\n    def get(self) -> int:\n        return self.n\n"));
 
     [Fact]
     public void ClassWithDecoratorsBaseAndFieldDefault() =>
         Assert.Equal(
-            "ClassDef([Decorator(dataclass)], P, [], [NamedType(Base)], [FieldDef(x, NamedType(int), IntLiteral(0))], [])",
+            "ClassDef([Decorator(dataclass)], P, [], [NamedType(Base)], [FieldDef(x, NamedType(int), IntLiteral(0))], [], null)",
             Snapshot("@dataclass\nclass P(Base):\n    x: int = 0\n"));
 
     [Fact]
     public void DecoratedMethodAndPassMember() =>
         Assert.Equal(
-            "ClassDef(C, [], [QualifiedType(m, NamedType(B))], [], [MethodDef([Decorator(override)], f, [], null, Block([PassStmt]))])",
+            "ClassDef(C, [], [QualifiedType(m, NamedType(B))], [], [MethodDef([Decorator(override)], f, [], null, Block([PassStmt]))], null)",
             Snapshot("class C(m.B):\n    pass\n    @override\n    def f(self):\n        pass\n"));
 
     [Fact]
@@ -190,7 +190,7 @@ public class ParserTests
         Assert.Equal(
             "ClassDef(C, [], [], [], [MethodDef([Decorator(staticmethod)], make, None, [Param(n, NamedType(int))], null, Block([PassStmt])), " +
             "MethodDef([Decorator(classmethod)], build, Cls, [], null, Block([PassStmt])), " +
-            "MethodDef([Decorator(x, setter)], x, [Param(v, NamedType(int))], null, Block([PassStmt]))])",
+            "MethodDef([Decorator(x, setter)], x, [Param(v, NamedType(int))], null, Block([PassStmt]))], null)",
             Snapshot("class C:\n    @staticmethod\n    def make(n: int):\n        pass\n    @classmethod\n    def build(cls):\n        pass\n" +
                 "    @x.setter\n    def x(self, v: int):\n        pass\n"));
 
@@ -383,7 +383,7 @@ public class ParserTests
     [Fact]
     public void DecoratorArguments() =>
         Assert.Equal(
-            "ClassDef([Decorator(dataclass, [Argument(frozen, BoolLiteral(True)), Argument(order, BoolLiteral(False))])], A, [], [], [FieldDef(x, NamedType(int))], [])",
+            "ClassDef([Decorator(dataclass, [Argument(frozen, BoolLiteral(True)), Argument(order, BoolLiteral(False))])], A, [], [], [FieldDef(x, NamedType(int))], [], null)",
             Snapshot("@dataclass(frozen=True, order=False)\nclass A:\n    x: int\n"));
 
     // ---- patterns and guards (M38) ----
@@ -869,7 +869,7 @@ public class ParserTests
     [Fact]
     public void GenericStructAndEnum() =>
         Assert.Equal(
-            "ClassDef(Pair, [A, B], [], [FieldDef(a, NamedType(A)), FieldDef(b, NamedType(B))], [])\n" +
+            "ClassDef(Pair, [A, B], [], [FieldDef(a, NamedType(A)), FieldDef(b, NamedType(B))], [], null)\n" +
             "EnumDef(Maybe, [T], [VariantDef(Just, [FieldDef(value, NamedType(T))]), VariantDef(Nothing, [])])",
             Snapshot("class Pair[A, B]:\n    a: A\n    b: B\nenum Maybe[T]:\n    Just(value: T)\n    Nothing\n"));
 
@@ -899,7 +899,7 @@ public class ParserTests
         Assert.Equal(
             "ClassDef(Shape, [], [NamedType(Protocol)], [], [" +
             "MethodDef(area, [], NamedType(float), Block([ExprStmt(EllipsisExpr)])), " +
-            "MethodDef(scaled, [Param(k, NamedType(float))], NamedType(Self), Block([ExprStmt(EllipsisExpr)]))])",
+            "MethodDef(scaled, [Param(k, NamedType(float))], NamedType(Self), Block([ExprStmt(EllipsisExpr)]))], null)",
             Snapshot("class Shape(Protocol):\n    def area(self) -> float: ...\n    def scaled(self, k: float) -> Self:\n        ...\n"));
 
     [Fact]

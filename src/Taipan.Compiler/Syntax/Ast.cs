@@ -63,6 +63,9 @@ public sealed record ClassDef(
 {
     /// <summary>Type aliases in the class body (SPEC §3.18, M40).</summary>
     public ImmutableArray<TypeAliasDef> Aliases { get; init; } = [];
+
+    /// <summary>The docstring that opens the body, as written, for editors (SPEC §1, M58).</summary>
+    public string? Docstring { get; init; }
 }
 
 /// <summary>What a method's first parameter is: <c>self</c>, <c>cls</c>, or neither (SPEC §4.8, M28).</summary>

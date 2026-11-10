@@ -124,6 +124,7 @@ public sealed partial class Binder
             name, parameters, AsyncResult(method.IsAsync && !Yields(method.Body), returnType),
             self: kind is MemberKind.Instance or MemberKind.Property ? new VariableSymbol("self", owner.Type, VariableKind.Parameter) : null)
         {
+            Documentation = Docstring(method.Body),
             Defaults = PendingDefaults(method.Params),
             Kinds = KindsOf(method.Params),
             IsGenerator = Yields(method.Body),

@@ -61,6 +61,7 @@ public sealed partial class LanguageServer
         FieldSymbol => ("property", Modifier.None),
         ClassAttributeSymbol => ("property", Modifier.Static),
         FunctionSymbol { Builtin: not null } => ("function", Modifier.DefaultLibrary),
+        SemanticIndex.BuiltinMember => ("method", Modifier.DefaultLibrary),
         FunctionSymbol { Kind: MemberKind.Property } => ("property", Modifier.None),
         FunctionSymbol { Owner: not null } method => ("method", method.IsClassLevel ? Modifier.Static : Modifier.None),
         FunctionSymbol => ("function", Modifier.None),

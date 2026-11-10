@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Taipan.Compiler.Text;
 
@@ -14,6 +15,9 @@ namespace Taipan.Compiler.Semantics;
 public sealed class SemanticIndex
 {
     public sealed record Occurrence(SourceText Source, TextSpan Span, object Target);
+
+    /// <summary>A built-in type's method where it's called, such as <c>str</c>'s <c>strip</c> (SPEC §16.3, M58).</summary>
+    public sealed record BuiltinMember(string Kind, string Name);
 
     public sealed record Location(SourceText Source, TextSpan Span);
 
@@ -90,6 +94,9 @@ public sealed class SemanticIndex
     /// <summary>What hover shows for a name (SPEC §16.3), or null for one it says nothing about.</summary>
     public static string? Describe(object target) => target switch
     {
+        // A built-in's call forms, as the library reference lists them (M58).
+        FunctionSymbol { Builtin: not null } or BuiltinMember or VariableSymbol { RuntimePath: not null } when FormsOf(target) is { IsDefaultOrEmpty: false } forms =>
+            string.Join("\n", forms.Select(f => f.Form)),
         VariableSymbol { Kind: VariableKind.Constant } constant => $"const {constant.Name}: {constant.Type}",
         VariableSymbol { Kind: VariableKind.Var } variable => $"var {variable.Name}: {variable.Type}",
         VariableSymbol { Kind: VariableKind.Parameter } parameter => $"{parameter.Name}: {parameter.Type}",
@@ -107,6 +114,58 @@ public sealed class SemanticIndex
         ISymbol dotnet => $".NET {dotnet.ToDisplayString()}",
         _ => null,
     };
+
+    /// <summary>A built-in function's, method's or module member's call forms and descriptions (SPEC §6, M58).</summary>
+    public static ImmutableArray<BuiltinDoc> FormsOf(object target) => target switch
+    {
+        FunctionSymbol { Builtin: { } builtin } function =>
+            BuiltinDocs.Functions.TryGetValue(function.Name, out var forms) ? forms : BuiltinDocs.Members.GetValueOrDefault(ModuleKey(builtin, function.Name)),
+        BuiltinMember member => BuiltinDocs.Methods.GetValueOrDefault($"{member.Kind}.{member.Name}"),
+        VariableSymbol { RuntimePath: not null } variable =>
+            BuiltinDocs.Members.FirstOrDefault(pair => pair.Key.EndsWith("." + variable.Name)).Value,
+        _ => default,
+    };
+
+    // A module's function, keyed by its module (sys.exit), where its name alone isn't a built-in function's.
+    private static string ModuleKey(BuiltinFunction builtin, string name) => builtin switch
+    {
+        BuiltinFunction.Exit => "sys.exit",
+        BuiltinFunction.GetEnv => "os.getenv",
+        BuiltinFunction.Gather or BuiltinFunction.Sleep or BuiltinFunction.WaitFor or BuiltinFunction.Timeout or BuiltinFunction.Run => $"asyncio.{name}",
+        _ => name,
+    };
+
+    /// <summary>
+    /// What a name means, as markdown, for editors to show after its signature (SPEC §16.3, M58): a
+    /// docstring, a built-in's descriptions, what raises an exception class, or a .NET summary.
+    /// </summary>
+    public static string? Documentation(object target) => target switch
+    {
+        Symbol { Documentation: { } documentation } => documentation,
+        ClassSymbol exception when BuiltinClasses.All.Contains(exception) && BuiltinDocs.Exceptions.TryGetValue(exception.Name, out var raised) =>
+            $"Raised by {BuiltinDocs.Plain(raised)}.",
+        DotNetTypeSymbol dotnet => XmlSummary(dotnet.Type),
+        ISymbol dotnet => XmlSummary(dotnet),
+        _ => FormsOf(target) is { IsDefaultOrEmpty: false } forms ? Describe(forms) : null,
+    };
+
+    private static string Describe(ImmutableArray<BuiltinDoc> forms) =>
+        forms.Length == 1 ? BuiltinDocs.Plain(forms[0].Doc) : string.Join("\n\n", forms.Select(f => $"`{f.Form}` — {BuiltinDocs.Plain(f.Doc)}"));
+
+    // The <summary> of a .NET symbol's XML documentation, as one line of markdown.
+    private static string? XmlSummary(ISymbol symbol)
+    {
+        var xml = symbol.GetDocumentationCommentXml();
+        if (string.IsNullOrEmpty(xml) || Regex.Match(xml, "<summary>(.*?)</summary>", RegexOptions.Singleline) is not { Success: true } summary)
+            return null;
+        var text = summary.Groups[1].Value;
+        text = Regex.Replace(text, @"<see cref=""[A-Z]:([^""]*)""\s*/>", m => $"`{m.Groups[1].Value.Split('(')[0].Split('.').Last()}`");
+        text = Regex.Replace(text, @"<see langword=""([^""]*)""\s*/>", "`$1`");
+        text = Regex.Replace(text, @"<(?:param|typeparam)ref name=""([^""]*)""\s*/>", "`$1`");
+        text = Regex.Replace(text, "<[^>]+>", "");
+        text = Regex.Replace(text, @"\s+", " ").Trim();
+        return text.Length == 0 ? null : text;
+    }
 
     private static string Signature(FunctionSymbol function) => SignatureOf(function).Label;
 
