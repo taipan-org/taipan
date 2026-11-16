@@ -51,6 +51,9 @@ public static class Os
 
     public static string @getenv(string @name, string @default) => environ.TryGetValue(name, out var value) ? value : @default;
 
+    /// <summary>The current directory, as an absolute path (SPEC §6.1, M59).</summary>
+    public static string @getcwd() => Directory.GetCurrentDirectory();
+
     internal static void Start() => _environ = null;
 
     private static OrderedDictionary<string, string> Read()
@@ -96,4 +99,33 @@ public sealed class Traceback(string file, long line, string name, Traceback? ne
     public Traceback? @tb_next { get; } = next;
 
     public override string ToString() => "<traceback object>";
+}
+
+/// <summary><c>os.path</c> (SPEC §6.1, M59).</summary>
+public static class OsPath
+{
+    /// <summary>
+    /// Joins path pieces as Python does: a separator goes between pieces unless the result so far is
+    /// empty or ends with one, and a rooted piece replaces everything before it.
+    /// </summary>
+    public static string @join(string @first, params string[] @rest)
+    {
+        var result = first;
+        foreach (var piece in rest)
+        {
+            if (Path.IsPathRooted(piece))
+                result = piece;
+            else if (result.Length == 0 || EndsWithSeparator(result))
+                result += piece;
+            else
+                result += Path.DirectorySeparatorChar + piece;
+        }
+        return result;
+    }
+
+    /// <summary>Whether a file or directory is at the path.</summary>
+    public static bool @exists(string @path) => File.Exists(path) || Directory.Exists(path);
+
+    private static bool EndsWithSeparator(string path) =>
+        path[^1] == Path.DirectorySeparatorChar || path[^1] == Path.AltDirectorySeparatorChar;
 }

@@ -1,0 +1,25 @@
+import os
+from os import path
+from dotnet.System.IO import Directory
+
+def later() -> int:
+    raise NotImplementedError("not written yet")
+
+try:
+    later()
+except RuntimeError as e:
+    print("caught:", e.message)
+
+try:
+    later()
+except NotImplementedError as e:
+    print("exactly:", e.message)
+
+# Joined paths use the platform's separator, so they're shown with '/'.
+def shown(p: str) -> str:
+    return p.replace("\\", "/")
+
+print(os.getcwd() == Directory.GetCurrentDirectory())
+print(shown(os.path.join("a", "b", "c.txt")), shown(path.join("a/", "b")), shown(os.path.join("a", "")))
+print(shown(os.path.join("a", "/etc", "hosts")), os.path.join("only"))
+print(os.path.exists(os.getcwd()), path.exists(os.path.join(os.getcwd(), "no-such-file-here")))

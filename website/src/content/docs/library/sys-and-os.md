@@ -126,6 +126,24 @@ warning: no config file
 | `os.environ` | a `dict[str, str]` of the environment variables' names and values |
 | `os.getenv(name)` | the value of the variable `name`, as a `str?`: `None` if it isn't set |
 | `os.getenv(name, default)` | the value of `name`, or `default` if it isn't set, as a `str` |
+| `os.getcwd()` | the current directory, as an absolute path |
+| `os.path` | the module of the path functions below, also imported as `from os import path` |
+| `os.path.join(a, b, …)` | the pieces joined with the platform's separator, `/` or `\\` on Windows; a piece that starts at the root, such as `/etc`, replaces those before it |
+| `os.path.exists(p)` | whether a file or directory is at the path `p` |
+
+A relative path, such as `"todo.txt"`, is relative to the current directory, so `open("todo.txt")` needs neither `getcwd` nor `join`. They're for building paths to show or pass on:
+
+```taipan
+import os
+
+let here = os.getcwd()
+let notes = os.path.join(here, "notes", "today.txt")
+print(os.path.exists(here), notes.endswith("today.txt"))
+```
+
+```output
+True True
+```
 
 *Environment variables* are names and values that a program gets from whatever ran it, such as `PATH` or `HOME`, often used for settings.
 

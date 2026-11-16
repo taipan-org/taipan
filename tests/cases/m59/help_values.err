@@ -1,0 +1,6 @@
+tests/cases/m59/help_values.tpn:6:13: error TP0225: a plain class can only derive from a plain class
+  help: make it a @dataclass too, or hold the 'Task' as a field
+tests/cases/m59/help_values.tpn:13:11: error TP0225: a dataclass can only derive from a dataclass
+  help: make 'Plain' a @dataclass, or hold it as a field
+tests/cases/m59/help_values.tpn:17:16: error TP0206: cannot infer the type of 'str'
+  help: write 'lambda x: x.lower()', or use a comprehension

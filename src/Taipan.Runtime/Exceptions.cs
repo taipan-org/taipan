@@ -263,6 +263,16 @@ public class RuntimeError : TaipanException
     public static new RuntimeError @__new__(string @message) => Exceptions.Init(new RuntimeError(), message);
 }
 
+/// <summary><c>NotImplementedError</c> (SPEC §3.10, M59), raised by programs for code they haven't written yet.</summary>
+public class NotImplementedError : RuntimeError
+{
+    protected NotImplementedError() { }
+
+    internal NotImplementedError(string message) : base(message) { }
+
+    public static new NotImplementedError @__new__(string @message) => Exceptions.Init(new NotImplementedError(), message);
+}
+
 public class NameError : TaipanException
 {
     protected NameError() { }

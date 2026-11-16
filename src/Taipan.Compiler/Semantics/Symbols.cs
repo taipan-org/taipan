@@ -31,6 +31,8 @@ public sealed class VariableSymbol(string name, TaipanType type, VariableKind ki
 public enum BuiltinFunction { Print, Len, Str, Int, Float, Range, Reversed, Sorted, Map, Filter, Enumerate, Zip, IsInstance, Super, Repr, Hash, List, Iter, Next, Abs, Min, Max, Sum, Any, All, Round, DivMod, Set, Tuple, Input, Open, Exit, GetEnv,
     // M42 (SPEC §3.20): anext, and asyncio's functions.
     Anext, Gather, Sleep, WaitFor, Timeout, Run,
+    // M59 (SPEC §6.1): os.getcwd, os.path.join, os.path.exists.
+    GetCwd, PathJoin, PathExists,
     // M51.
     Ord, Chr,
     // M52.
@@ -525,6 +527,7 @@ public static class BuiltinClasses
         var lookup = Builtin("LookupError", Exception);
         var value = Builtin("ValueError", Exception);
         var os = CreateOSError();
+        var runtime = Builtin("RuntimeError", Exception);
         var unicode = Builtin("UnicodeError", value);
         return
         [
@@ -539,7 +542,9 @@ public static class BuiltinClasses
             Builtin("KeyError", lookup),
             value,
             Builtin("TypeError", Exception),
-            Builtin("RuntimeError", Exception),
+            runtime,
+            // M59 (SPEC §3.10).
+            Builtin("NotImplementedError", runtime),
             // M53 (SPEC §4.1).
             Builtin("NameError", Exception),
             CreateStopIteration(),
@@ -734,6 +739,13 @@ public static class BuiltinModules
         ["TimeoutError"] = BuiltinClasses.TimeoutError,
     };
 
+    // os.path (SPEC §6.1, M59), a module inside os.
+    private static readonly IReadOnlyDictionary<string, Symbol> OsPath = new Dictionary<string, Symbol>
+    {
+        ["join"] = new FunctionSymbol("join", [], TaipanType.Str, BuiltinFunction.PathJoin),
+        ["exists"] = new FunctionSymbol("exists", [], TaipanType.Bool, BuiltinFunction.PathExists),
+    };
+
     private static readonly Dictionary<string, IReadOnlyDictionary<string, Symbol>> Definitions = new()
     {
         ["sys"] = new Dictionary<string, Symbol>
@@ -748,6 +760,9 @@ public static class BuiltinModules
         {
             ["environ"] = Value("environ", new DictOfType(TaipanType.Str, TaipanType.Str), "Os"),
             ["getenv"] = new FunctionSymbol("getenv", [], TaipanType.Error, BuiltinFunction.GetEnv),
+            // M59 (SPEC §6.1).
+            ["getcwd"] = new FunctionSymbol("getcwd", [], TaipanType.Str, BuiltinFunction.GetCwd),
+            ["path"] = new ModuleSymbol("path", OsPath, new Dictionary<string, ClassSymbol>(), new Dictionary<string, EnumSymbol>()),
         },
         ["types"] = new Dictionary<string, Symbol>
         {

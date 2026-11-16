@@ -12,7 +12,7 @@ public sealed record BuiltinDoc(string Form, string Doc);
 /// what raises it. The sentences are the website's library reference's, and
 /// <c>BuiltinDocsTests</c> keeps them the same, so this table is edited together with those pages.
 /// Methods are keyed <c>str.strip</c>, <c>list.append</c>, <c>dict.get</c>, <c>set.add</c> and
-/// <c>file.read</c>; module members <c>sys.argv</c>.
+/// <c>file.read</c>; module members <c>sys.argv</c> and <c>os.path.join</c>.
 /// </summary>
 public static class BuiltinDocs
 {
@@ -148,7 +148,11 @@ public static class BuiltinDocs
         ["asyncio.timeout"] = [new("asyncio.timeout(seconds)", "a limit for `async with`: the code inside is stopped after `seconds`, and `TimeoutError` raised")],
         ["asyncio.wait_for"] = [new("asyncio.wait_for(aw, seconds)", "an awaitable that gives `aw`'s result, or raises `TimeoutError` if `aw` takes longer than `seconds`")],
         ["os.environ"] = [new("os.environ", "a `dict[str, str]` of the environment variables' names and values")],
+        ["os.getcwd"] = [new("os.getcwd()", "the current directory, as an absolute path")],
         ["os.getenv"] = [new("os.getenv(name)", "the value of the variable `name`, as a `str?`: `None` if it isn't set"), new("os.getenv(name, default)", "the value of `name`, or `default` if it isn't set, as a `str`")],
+        ["os.path"] = [new("os.path", "the module of the path functions below, also imported as `from os import path`")],
+        ["os.path.exists"] = [new("os.path.exists(p)", "whether a file or directory is at the path `p`")],
+        ["os.path.join"] = [new("os.path.join(a, b, …)", "the pieces joined with the platform's separator, `/` or `\\\\` on Windows; a piece that starts at the root, such as `/etc`, replaces those before it")],
         ["sys.argv"] = [new("sys.argv", "a `list[str]`: the program's path, then each of its arguments")],
         ["sys.exit"] = [new("sys.exit()", "ends the program with exit code 0"), new("sys.exit(code)", "ends the program with the exit code `code`, an `int`"), new("sys.exit(message)", "writes `message`, a `str`, to the error output, and ends the program with exit code 1")],
         ["sys.stderr"] = [new("sys.stderr", "the program's error output, as a file: where error messages go")],
@@ -174,6 +178,7 @@ public static class BuiltinDocs
         ["KeyError"] = "a key missing from a dict, a value missing in a set's `remove`, and `pop()` on an empty set",
         ["LookupError"] = "nothing directly: the base of `IndexError` and `KeyError`, for catching both",
         ["NameError"] = "a function reading a top-level variable before it's set, where the compiler can't tell",
+        ["NotImplementedError"] = "nothing built in: raise it for code you haven't written yet; for a method every subclass must define, `@abstractmethod` is checked by the compiler instead",
         ["OSError"] = "opening a file the system refuses to open, reading a file opened for writing, and writing one opened for reading (see [Files](../files/))",
         ["OverflowError"] = "an `int` result too large for 64 bits, and `int(x)` of an infinite `float`",
         ["PermissionError"] = "opening a file the program may not read or write",

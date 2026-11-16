@@ -1096,7 +1096,7 @@ public sealed partial class Binder
                 symbol.BaseType = (ClassType)type;
                 return;
             case ClassType { Symbol: var baseClass } when baseClass.IsDataclass != symbol.IsDataclass:
-                _diagnostics.ReportMixedBase(syntax.Span, symbol.IsDataclass, symbol.IsDataclass && BuiltinClasses.IsException(baseClass));
+                _diagnostics.ReportMixedBase(syntax.Span, symbol.IsDataclass, symbol.IsDataclass && BuiltinClasses.IsException(baseClass), baseClass.Name);
                 return;
             // M39 (SPEC §4.9): a final class has no subclasses, and frozen dataclasses derive only from frozen ones.
             case ClassType { Symbol.IsFinal: true } finalBase:
@@ -2979,7 +2979,7 @@ public sealed partial class Binder
     private static readonly HashSet<string> PythonBuiltinExceptions =
     [
         "ArithmeticError", "ZeroDivisionError", "OverflowError", "LookupError", "IndexError", "KeyError", "ValueError",
-        "TypeError", "RuntimeError", "NameError", "StopIteration", "AssertionError", "EOFError", "OSError",
+        "TypeError", "RuntimeError", "NotImplementedError", "NameError", "StopIteration", "AssertionError", "EOFError", "OSError",
         "FileNotFoundError", "FileExistsError", "PermissionError", "IsADirectoryError", "TimeoutError",
         "UnicodeError", "UnicodeDecodeError", "UnicodeEncodeError", "StopAsyncIteration",
     ];
@@ -4463,6 +4463,13 @@ public sealed partial class Binder
 
     private BoundExpr BindMember(MemberExpr member, TaipanType? expected)
     {
+        // Python's `str.lower` as a function value (SPEC §9, M59).
+        if (member.Target is NameExpr { Name: "str" or "int" or "float" or "list" or "dict" or "set" or "tuple" } typeName
+            && _scope.Lookup(typeName.Name) is FunctionSymbol { Builtin: not null })
+        {
+            _diagnostics.ReportTypeMethodAsValue(typeName.Span, typeName.Name, member.Member.Text);
+            return new BoundErrorExpr(member.Span);
+        }
         if (TryQualifiedVariant(member, out var qualified))
         {
             return qualified is null ? new BoundErrorExpr(member.Span)
@@ -4682,7 +4689,7 @@ public sealed partial class Binder
             case FunctionSymbol { Builtin: BuiltinFunction.Ord or BuiltinFunction.Chr } function:
                 ReportKeywordArguments(call, function.Name);
                 return BindOrdOrChr(call, function);
-            case FunctionSymbol { Builtin: BuiltinFunction.Print or BuiltinFunction.Input or BuiltinFunction.Open or BuiltinFunction.Exit or BuiltinFunction.GetEnv } io:
+            case FunctionSymbol { Builtin: BuiltinFunction.Print or BuiltinFunction.Input or BuiltinFunction.Open or BuiltinFunction.Exit or BuiltinFunction.GetEnv or BuiltinFunction.GetCwd or BuiltinFunction.PathJoin or BuiltinFunction.PathExists } io:
                 return BindIoBuiltin(call, io, io.Builtin!.Value);
             case FunctionSymbol { Builtin: BuiltinFunction.Gather or BuiltinFunction.Sleep or BuiltinFunction.WaitFor or BuiltinFunction.Timeout or BuiltinFunction.Run } asyncio:
                 ReportKeywordArguments(call, asyncio.Name);
@@ -5426,12 +5433,20 @@ public sealed partial class Binder
     /// <c>m.x</c> where <c>m</c> names a module: true, with what <c>m</c> defines as <c>x</c>
     /// (null, after TP0201, if nothing). False if the target isn't a module (SPEC §4.7).
     /// </summary>
+    // A module a name or a module's member names: `os`, or `os.path` (SPEC §6.1, M59).
+    private ModuleSymbol? ModuleOf(Expr target) => target switch
+    {
+        NameExpr name => _scope.Lookup(name.Name) as ModuleSymbol,
+        MemberExpr { Target: var outer } inner when ModuleOf(outer) is { } parent => parent.Definitions.GetValueOrDefault(inner.Member.Text) as ModuleSymbol,
+        _ => null,
+    };
+
     private bool TryModuleMember(MemberExpr member, out Symbol? symbol)
     {
         symbol = null;
-        if (member.Target is not NameExpr moduleName || _scope.Lookup(moduleName.Name) is not ModuleSymbol module)
+        if (ModuleOf(member.Target) is not { } module)
             return false;
-        Index(moduleName.Span, module);
+        Index(member.Target is MemberExpr inner ? inner.Member.Span : member.Target.Span, module);
         RecordReceiver(member.Member.Span, module);
         if (!module.Definitions.TryGetValue(member.Member.Text, out symbol))
             _diagnostics.ReportNoDefinition(member.Member.Span, module.Name, member.Member.Text);

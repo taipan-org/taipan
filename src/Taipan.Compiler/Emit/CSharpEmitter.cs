@@ -1965,6 +1965,9 @@ public sealed partial class CSharpEmitter
             BuiltinFunction.Input => $"{Runtime}.Builtins.Input({arguments})",
             BuiltinFunction.Open => $"{Runtime}.TextFile.@open({arguments})",
             BuiltinFunction.GetEnv => $"{Runtime}.Os.@getenv({arguments})",
+            BuiltinFunction.GetCwd => $"{Runtime}.Os.@getcwd()",
+            BuiltinFunction.PathJoin => $"{Runtime}.OsPath.@join({arguments})",
+            BuiltinFunction.PathExists => $"{Runtime}.OsPath.@exists({arguments})",
             BuiltinFunction.Exit => $"{Runtime}.Exceptions.Throw({Exit(call)})",
             // M35 (SPEC §6).
             BuiltinFunction.Abs when argumentType == TaipanType.Int => $"{Runtime}.Numbers.Abs({arguments})",

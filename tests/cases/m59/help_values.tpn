@@ -1,0 +1,17 @@
+@dataclass
+class Task:
+    id: int
+    text: str
+
+class Dated(Task):
+    pass
+
+class Plain:
+    n: int = 0
+
+@dataclass
+class Odd(Plain):
+    x: int
+
+let words = ["Buy", "MILK"]
+print(list(map(str.lower, words)))

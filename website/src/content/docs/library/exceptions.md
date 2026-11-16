@@ -30,6 +30,7 @@ BaseException
     ├── TypeError
     ├── NameError
     ├── RuntimeError
+    │   └── NotImplementedError
     ├── AssertionError
     ├── StopIteration
     ├── StopAsyncIteration
@@ -65,6 +66,7 @@ Every class's name can be used anywhere without an import, except `asyncio.Cance
 | `TypeError` | an `as` conversion that fails, and `ord(s)` of a string that isn't one character |
 | `NameError` | a function reading a top-level variable before it's set, where the compiler can't tell |
 | `RuntimeError` | a list, dict or set that gains or loses elements while a loop goes through it |
+| `NotImplementedError` | nothing built in: raise it for code you haven't written yet; for a method every subclass must define, `@abstractmethod` is checked by the compiler instead |
 | `AssertionError` | an `assert` whose condition is `False` |
 | `StopIteration` | `next(it)` when the iterator `it` has nothing left |
 | `StopAsyncIteration` | the same, for an async iterator |
