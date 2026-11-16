@@ -7,6 +7,7 @@ namespace Taipan.Tests;
 /// The built-ins' documentation is the library reference's (SPEC §6, M58): every built-in function,
 /// method, module member and exception class is in <see cref="BuiltinDocs"/>, and each entry's call
 /// form and description are a row of the page for it, so the editor and the website say the same.
+/// After editing a library page's table, regenerate the table with <c>npm run builtin-docs</c> in website/.
 /// </summary>
 public class BuiltinDocsTests
 {
@@ -39,7 +40,7 @@ public class BuiltinDocsTests
         {
             var rows = Rows(PageOf(key.Split('.')[0]));
             foreach (var form in forms)
-                Assert.Contains((form.Form, form.Doc), rows);
+                Assert.True(rows.Contains((form.Form, form.Doc)), $"{key}: '{form.Form}' isn't a row of {PageOf(key.Split('.')[0])}; run 'npm run builtin-docs' in website/");
         }
     }
 

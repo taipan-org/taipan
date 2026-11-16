@@ -9,8 +9,8 @@ public sealed record BuiltinDoc(string Form, string Doc);
 /// <summary>
 /// The built-ins' documentation, shown by editors (SPEC §6, §16.3, M58): for each built-in function,
 /// method and module member, its call forms and their descriptions, and for each exception class
-/// what raises it. The sentences are the website's library reference's, and
-/// <c>BuiltinDocsTests</c> keeps them the same, so this table is edited together with those pages.
+/// what raises it. Generated from the website's library reference by
+/// <c>website/scripts/builtin-docs.mjs</c> (<c>npm run builtin-docs</c>); don't edit it by hand.
 /// Methods are keyed <c>str.strip</c>, <c>list.append</c>, <c>dict.get</c>, <c>set.add</c> and
 /// <c>file.read</c>; module members <c>sys.argv</c> and <c>os.path.join</c>.
 /// </summary>

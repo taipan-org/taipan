@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "generate": "node scripts/generate.mjs",
+    "builtin-docs": "node scripts/builtin-docs.mjs",
     "dev": "npm run generate && astro dev",
     "build": "npm run generate && astro build",
     "preview": "astro preview"
