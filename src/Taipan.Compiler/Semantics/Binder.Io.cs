@@ -20,6 +20,10 @@ public sealed partial class Binder
         BuiltinFunction.Open => BindOpen(call, function),
         BuiltinFunction.Input => BindStrings(call, function, 0, 1, TaipanType.Str),
         BuiltinFunction.GetEnv => BindStrings(call, function, 1, 2, call.Arguments.Length == 1 ? new OptionalOf(TaipanType.Str) : TaipanType.Str),
+        // M59 (SPEC §6.1).
+        BuiltinFunction.GetCwd => BindStrings(call, function, 0, 0, TaipanType.Str),
+        BuiltinFunction.PathJoin => BindStrings(call, function, 1, int.MaxValue, TaipanType.Str),
+        BuiltinFunction.PathExists => BindStrings(call, function, 1, 1, TaipanType.Bool),
         _ => BindExit(call, function),
     };
 
@@ -71,7 +75,7 @@ public sealed partial class Binder
         ReportKeywordArguments(call, function.Name);
         if (call.Arguments.Length < least || call.Arguments.Length > most)
         {
-            _diagnostics.ReportWrongArgumentCount(call.Callee.Span, function.Name, least == most - 1 ? $"{least} or {Arguments(most)}" : Arguments(most), call.Arguments.Length);
+            _diagnostics.ReportWrongArgumentCount(call.Callee.Span, function.Name, most == int.MaxValue ? $"at least {Arguments(least)}" : least == most - 1 ? $"{least} or {Arguments(most)}" : Arguments(most), call.Arguments.Length);
             return new BoundCall(function, BindArguments(call), result, call.Span);
         }
         return new BoundCall(function, [.. call.Arguments.Select(a => BindExpected(a.Value, TaipanType.Str))], result, call.Span);

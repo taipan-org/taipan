@@ -131,6 +131,9 @@ public sealed class SemanticIndex
     {
         BuiltinFunction.Exit => "sys.exit",
         BuiltinFunction.GetEnv => "os.getenv",
+        BuiltinFunction.GetCwd => "os.getcwd",
+        BuiltinFunction.PathJoin => "os.path.join",
+        BuiltinFunction.PathExists => "os.path.exists",
         BuiltinFunction.Gather or BuiltinFunction.Sleep or BuiltinFunction.WaitFor or BuiltinFunction.Timeout or BuiltinFunction.Run => $"asyncio.{name}",
         _ => name,
     };

@@ -759,9 +759,15 @@ public sealed class DiagnosticBag
     public void ReportInvalidBase(TextSpan span, object type, string? aliasOf = null) =>
         Add("TP0225", span, $"'{type}' cannot be a base class", aliasOf is null ? null : $"use '{aliasOf}'");
 
-    public void ReportMixedBase(TextSpan span, bool isDataclass, bool isException = false) =>
+    public void ReportMixedBase(TextSpan span, bool isDataclass, bool isException = false, string? baseName = null) =>
         Add("TP0225", span, isDataclass ? "a dataclass can only derive from a dataclass" : "a plain class can only derive from a plain class",
-            isException ? "exceptions are plain classes; give it an '__init__'" : null);
+            isException ? "exceptions are plain classes; give it an '__init__'"
+            : baseName is null ? null
+            : isDataclass ? $"make '{baseName}' a @dataclass, or hold it as a field"
+            : $"make it a @dataclass too, or hold the '{baseName}' as a field");
+
+    public void ReportTypeMethodAsValue(TextSpan span, string type, string method) =>
+        Add("TP0206", span, $"cannot infer the type of '{type}'", $"write 'lambda x: x.{method}()', or use a comprehension");
 
     public void ReportGenericException(TextSpan span) =>
         Add("TP0225", span, "an exception class can't be generic");
