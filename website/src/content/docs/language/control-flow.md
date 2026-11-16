@@ -85,33 +85,40 @@ if ages.get("ana") is some age:
 ana is 31
 ```
 
-### No conditional expression
+### Conditional expressions
 
-There's no `a if condition else b` that gives one of two values. To choose a value, use a [`match` expression](../match/#match-expressions) on a `bool`, or an `if` statement that assigns a `var`:
+`a if condition else b` gives `a` when the condition is true and `b` otherwise. Only the chosen value is evaluated. The condition must be a `bool`, as an `if` statement's is, and it narrows each value as an `if` statement's condition does, so the first value below can use `p.name` because `p` isn't `None` there:
 
 ```taipan
+@dataclass
+class Person:
+    name: str
+
+def label(p: Person?) -> str:
+    return p.name if p is not None else "nobody"
+
 let n = 3
 let size = "big" if n > 10 else "small"
-```
-
-```error
-main.tpn:2:18: error TP0100: Taipan has no conditional expression
-  help: use a 'match' expression or an 'if' statement
-```
-
-```taipan
-let n = 3
-let size = match n > 10:
-    True: "big"
-    False: "small"
-var parity = "odd"
-if n % 2 == 0:
-    parity = "even"
-print(size, parity)
+let sign = "negative" if n < 0 else "zero" if n == 0 else "positive"
+print(size, sign, label(None), [x if x > 1 else 0 for x in [1, 2, 3]])
 ```
 
 ```output
-small odd
+small positive nobody [0, 2, 3]
+```
+
+The two values must have types that join, as a list's elements do: `1 if c else 2.5` is a `float`, and `name if c else None` a `str?`. A chain like `sign` above groups to the right, so it reads as an `if`/`elif`/`else`. For more than two or three choices, a [`match` expression](../match/#match-expressions) is usually clearer.
+
+C#'s `c ? a : b` is an error that points here:
+
+```taipan
+let done = True
+let mark = done ? "x" : " "
+```
+
+```error
+main.tpn:2:17: error TP0100: Taipan has no '?:'
+  help: write 'a if c else b'
 ```
 
 ## `while`

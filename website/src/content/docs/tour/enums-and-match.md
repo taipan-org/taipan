@@ -126,7 +126,7 @@ don't know how to dance
 
 ## `match` expressions
 
-`match` is also an expression, whose arms are values. It's Taipan's conditional expression too:
+`match` is also an expression, whose arms are values:
 
 ```taipan
 enum Health:

@@ -164,13 +164,11 @@ a-b
 no newline
 ```
 
-There's no conditional expression (`a if c else b`). Use an `if` statement, or a [`match` expression](../enums-and-match/#match-expressions):
+To choose between two values, use a conditional expression, `a if condition else b`, as in Python:
 
 ```taipan
 let n = 7
-let parity = match n % 2 == 0:
-    True: "even"
-    False: "odd"
+let parity = "even" if n % 2 == 0 else "odd"
 print(parity)
 ```
 

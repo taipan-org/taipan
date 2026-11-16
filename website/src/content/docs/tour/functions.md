@@ -33,13 +33,11 @@ Top-level functions are hoisted, so they can be called before they're defined an
 
 Arguments may be passed by position or by name, and parameters may have defaults. A default is evaluated on each call that leaves it out, so a list default is a new list every time.
 
-The `match` expression below picks the scheme, since Taipan has no `a if c else b`.
+The conditional expression below picks the scheme.
 
 ```taipan
 def connect(host: str, port: int = 8080, secure: bool = False) -> str:
-    let scheme = match secure:
-        True: "https"
-        False: "http"
+    let scheme = "https" if secure else "http"
     return f"{scheme}://{host}:{port}"
 
 print(connect("localhost"))

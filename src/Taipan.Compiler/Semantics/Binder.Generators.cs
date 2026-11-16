@@ -61,6 +61,7 @@ public sealed partial class Binder
         CastExpr cast => Yields(cast.Value),
         StarredExpr starred => Yields(starred.Value),
         MatchExpr match => Yields(match.Scrutinee) || match.Arms.Any(a => Yields(a.Value) || a.Block is { } block && Yields(block)),
+        ConditionalExpr conditional => Yields(conditional.Condition) || Yields(conditional.Then) || Yields(conditional.Otherwise),
         _ => false,
     };
 

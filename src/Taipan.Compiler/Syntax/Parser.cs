@@ -1772,48 +1772,34 @@ public sealed class Parser
 
     // ---- Expressions ----
 
-    // expr = lambda_expr | coalesce
-    private Expr ParseExpr()
-    {
-        var expr = At(TokenKind.LambdaKeyword) ? ParseLambdaExpr() : ParseCoalesce();
-        // Python's `a if c else b` isn't Taipan; it's reported, then read past (SPEC §9, TP0100).
-        if (At(TokenKind.IfKeyword) && ElseFollows())
-        {
-            if (!_recovering)
-                _diagnostics.ReportConditionalExpression(Current.Span);
-            Next();
-            ParseCoalesce();
-            if (At(TokenKind.ElseKeyword))
-            {
-                Next();
-                ParseExpr();
-            }
-        }
-        return expr;
-    }
+    // expr = lambda_expr | conditional
+    private Expr ParseExpr() => At(TokenKind.LambdaKeyword) ? ParseLambdaExpr() : ParseConditional();
 
-    // Whether an `else` comes before the end of the line or of the enclosing brackets, as in a
-    // conditional expression; a comprehension's `if` never has one.
-    private bool ElseFollows()
+    // conditional = coalesce [ "if" coalesce "else" expr ] (SPEC §5.7, M59)
+    private Expr ParseConditional()
     {
-        var depth = 0;
-        for (var i = 1; ; i++)
+        var start = Current.Span.Start;
+        var then = ParseCoalesce();
+        // C#'s `c ? a : b` (SPEC §9).
+        if (At(TokenKind.Question))
         {
-            switch (Peek(i).Kind)
-            {
-                case TokenKind.ElseKeyword when depth == 0:
-                    return true;
-                case TokenKind.OpenParen or TokenKind.OpenBracket or TokenKind.OpenBrace:
-                    depth++;
-                    break;
-                case TokenKind.CloseParen or TokenKind.CloseBracket or TokenKind.CloseBrace when depth == 0:
-                case TokenKind.Newline or TokenKind.EndOfFile or TokenKind.Comma or TokenKind.ForKeyword or TokenKind.Colon when depth == 0:
-                    return false;
-                case TokenKind.CloseParen or TokenKind.CloseBracket or TokenKind.CloseBrace:
-                    depth--;
-                    break;
-            }
+            var question = Current;
+            ReportSyntaxError(bag => bag.ReportQuestionConditional(question.Span));
+            return then;
         }
+        if (!At(TokenKind.IfKeyword))
+            return then;
+        Next();
+        var condition = ParseCoalesce();
+        if (!At(TokenKind.ElseKeyword))
+        {
+            var found = Current;
+            ReportSyntaxError(bag => bag.ReportExpected(found.Span, "'else'", TokenFacts.Describe(found), "a conditional expression needs both values: 'a if c else b'"));
+            return new ErrorExpr(Here);
+        }
+        Next();
+        var otherwise = ParseExpr();
+        return new ConditionalExpr(then, condition, otherwise, SpanFrom(start));
     }
 
     // lambda_expr = "lambda" [ lambda_param { "," lambda_param } ] ":" expr ; lambda_param = NAME | "_"

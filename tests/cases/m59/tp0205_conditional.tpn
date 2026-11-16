@@ -1,0 +1,2 @@
+let xs = [1]
+print("y" if xs else "n")

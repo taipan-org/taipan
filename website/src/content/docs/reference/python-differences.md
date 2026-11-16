@@ -25,7 +25,6 @@ These are Taipan's own, so they can't be mistaken for Python:
 
 | Python | Taipan |
 |---|---|
-| `a if c else b` | a `match` expression, or an `if` statement |
 | `x = 1` for a new name | `let x = 1` or `var x = 1` |
 | `a = 1; b = 2` | one statement per line |
 | `if xs:`, `while n:` | `if len(xs) > 0:`, `while n != 0:`, since conditions must be `bool` |

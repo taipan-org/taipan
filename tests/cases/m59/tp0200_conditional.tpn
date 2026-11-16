@@ -1,0 +1,2 @@
+let n = 1
+let x = "a" if n > 0 else 2

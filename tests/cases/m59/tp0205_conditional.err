@@ -1,0 +1,2 @@
+tests/cases/m59/tp0205_conditional.tpn:2:14: error TP0205: condition must be bool, found list[int]
+  help: write 'len(x) > 0'

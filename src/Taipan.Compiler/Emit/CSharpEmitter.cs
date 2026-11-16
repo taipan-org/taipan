@@ -1694,6 +1694,7 @@ public sealed partial class CSharpEmitter
                 $"({TypeName(rest.ListType.Element)}){Operand(rest.Tuple)}.Item{i + 1}"))} }}",
             BoundSlice slice => Slice(slice),
             BoundMatchExpr match => MatchExpr(match),
+            BoundConditional conditional => $"({Expr(conditional.Condition)} ? {As(conditional.Then, Concrete(conditional.Type))} : {As(conditional.Otherwise, Concrete(conditional.Type))})",
             BoundDotNetCall call => DotNetCall(call),
             BoundDotNetIndex index => DotNetIndex(index),
             BoundDotNetOperator op => DotNetOperator(op),

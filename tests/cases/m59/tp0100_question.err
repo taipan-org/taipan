@@ -1,0 +1,2 @@
+tests/cases/m59/tp0100_question.tpn:2:17: error TP0100: Taipan has no '?:'
+  help: write 'a if c else b'
