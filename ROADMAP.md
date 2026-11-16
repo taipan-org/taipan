@@ -2,7 +2,7 @@
 
 Each milestone is done when **all** of its acceptance criteria pass as golden tests (see CLAUDE.md). Milestones are sequential. Don't start the next one early.
 
-M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M58 are complete.
+M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M58 are complete. M59 is in progress.
 
 ## M0 — Scaffold
 - Create the solution layout from CLAUDE.md, the `taipan` CLI with `check | emit | build | run` stubs, and the golden-test harness.
@@ -489,3 +489,14 @@ M0–M10 (with M8.1) make up v0.1 and are complete. M11 through M58 are complete
   - Hovering a user function with a docstring shows its signature and the docstring; hovering `print`, `str.strip` and `sys.argv` shows a signature and a description; hovering a .NET method shows its summary.
   - Completion items and signature help carry the same documentation, and `sorted(` gives signature help.
   - A test checks that every built-in function, method, module member and exception class has a description, and that each description is a sentence on the library reference's page for it.
+
+## M59 — Python habits from the first programs
+- What writing the word counter and the to-do app turned up, in two PRs.
+- **The conditional expression:** Python's `a if c else b`, with its type joined as a `match` expression's arms are, and its condition narrowing each value. C#'s `c ? a : b` gets a help line pointing to it.
+- **Additions:** `NotImplementedError`, a subclass of `RuntimeError`; `os.getcwd()`, `os.path.join(…)` and `os.path.exists(path)`.
+- **Help lines:** `map(str.lower, xs)` suggests a comprehension or a lambda; a plain class deriving from a dataclass suggests making it a dataclass or holding the base as a field.
+- Update SPEC first: §2's grammar, §5.7, §6.1 and §9.
+- **Accept:**
+  - `"x" if done else " "`, a conditional in a comprehension's element, a nested one, and one whose condition narrows an optional each compile and give Python's results; a non-bool condition, a missing `else` and `?:` are errors with help.
+  - `raise NotImplementedError("later")` is caught by `except RuntimeError`; `os.getcwd()`, `os.path.join` and `os.path.exists` give .NET's answers.
+  - The two help lines appear on their golden cases.
