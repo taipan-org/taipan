@@ -1,0 +1,2 @@
+tests/cases/m59/tp0200_conditional.tpn:2:27: error TP0200: expected str, found int
+  help: convert it with str(…)

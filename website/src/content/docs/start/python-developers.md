@@ -176,7 +176,6 @@ print(area(Rect(2.0, 3.0)))
 - **A main file can't be imported**, and there's no `__name__`. To test a command-line tool, put its code in a module that the main file and the test file both import.
 - **A Python exception is a `PythonError`**: `except KeyError` catches Taipan's `KeyError`, not one from Python code. Catch Python's with `from python import builtins` and `except builtins.KeyError`, or catch `PythonError`.
 - **Each loop iteration has its own variable**, so `[lambda: i for i in range(3)]` gives functions returning 0, 1 and 2.
-- **No conditional expression**: `a if c else b` is written as an `if` statement or a `match` expression.
 - **Strings in containers print with double quotes**: `print(["a"])` is `["a"]`.
 - **An `int` that widens to a `float` is a `float`**: `let x: float = 1` prints `1.0`, and `[1, 2.5]` prints `[1.0, 2.5]`.
 - **Calling an async function starts it**, as a .NET task starts, rather than waiting to be awaited.

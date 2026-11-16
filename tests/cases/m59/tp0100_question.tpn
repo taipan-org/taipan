@@ -1,0 +1,2 @@
+let done = True
+let mark = done ? "x" : " "

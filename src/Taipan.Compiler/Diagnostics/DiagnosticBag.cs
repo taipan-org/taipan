@@ -182,8 +182,8 @@ public sealed class DiagnosticBag
     public void ReportNeverAwaited(TextSpan span, string name) =>
         Warn("TP0307", span, $"'{name}' is never awaited", "await it, or pass it to 'asyncio.gather'");
 
-    public void ReportConditionalExpression(TextSpan span) =>
-        Add("TP0100", span, "Taipan has no conditional expression", "use a 'match' expression or an 'if' statement");
+    public void ReportQuestionConditional(TextSpan span) =>
+        Add("TP0100", span, "Taipan has no '?:'", "write 'a if c else b'");
 
     public void ReportAssignedUndeclared(TextSpan span, string name) =>
         Add("TP0201", span, $"undefined name '{name}'", "if it's a new variable, declare it with 'let', 'var' or 'const'");

@@ -1,0 +1,29 @@
+@dataclass
+class Person:
+    name: str
+
+def label(p: Person?) -> str:
+    return p.name if p is not None else "nobody"
+
+let done = True
+let mark = "x" if done else " "
+print(f"[{mark}]", label(Person("Ada")), label(None))
+
+let n = 3
+print("big" if n > 10 else "small", 1 if n > 0 else 2.5)
+let sign = "neg" if n < 0 else "zero" if n == 0 else "pos"
+print(sign)
+print([x if x > 0 else 0 for x in [-1, 2, -3]], [x for x in [1, -2, 3] if x > 0])
+let maybe: int? = None
+print((maybe ?? 5) if n > 0 else 0, maybe ?? 5 if n > 100 else 7)
+let pick = lambda: "a" if n > 0 else "b"
+print(pick())
+let name: str? = "Lin" if n > 0 else None
+print(name)
+
+def calls(which: str) -> bool:
+    print("called", which)
+    return True
+
+let chosen = calls("then") if n > 0 else calls("else")
+print(chosen)

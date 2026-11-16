@@ -420,6 +420,9 @@ public sealed record TupleExpr(ImmutableArray<Expr> Elements, TextSpan Span) : E
 /// <summary><c>lambda x, y: body</c>; a parameter may be <c>_</c> (SPEC §3.7).</summary>
 public sealed record LambdaExpr(ImmutableArray<Identifier> Parameters, Expr Body, TextSpan Span) : Expr(Span);
 
+/// <summary><c>then if condition else otherwise</c> (SPEC §5.7, M59).</summary>
+public sealed record ConditionalExpr(Expr Then, Expr Condition, Expr Otherwise, TextSpan Span) : Expr(Span);
+
 /// <summary><c>x is None</c>, or <c>x is not None</c> when <see cref="Negated"/> (SPEC §3.4).</summary>
 public sealed record IsNoneExpr(Expr Operand, bool Negated, TextSpan Span) : Expr(Span);
 

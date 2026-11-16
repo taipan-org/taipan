@@ -125,6 +125,7 @@ public static class BoundTree
         BoundListRest rest => [rest.List],
         BoundTupleRest rest => [rest.Tuple],
         BoundSlice slice => ((BoundExpr?[])[slice.Target, slice.Start, slice.Stop, slice.Step]).OfType<BoundExpr>(),
+        BoundConditional conditional => [conditional.Condition, conditional.Then, conditional.Otherwise],
         // A block arm's statements are a nested block, reached through ArmBlocks (M29).
         BoundMatchExpr match => [match.Scrutinee, .. match.Arms.Select(a => a.Guard).OfType<BoundExpr>(), .. match.Arms.Select(a => a.Value ?? a.Raise?.Value).OfType<BoundExpr>()],
         BoundDotNetCall call => [.. ((BoundExpr?[])[call.Target]).OfType<BoundExpr>(), .. call.Arguments.Select(a => a.Value)],

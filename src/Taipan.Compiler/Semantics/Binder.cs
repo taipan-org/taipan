@@ -3742,6 +3742,7 @@ public sealed partial class Binder
         CastExpr cast => BindCast(cast),
         LambdaExpr lambda => BindLambda(lambda, expected),
         MatchExpr match => BindMatchExpr(match, expected),
+        ConditionalExpr conditional => BindConditional(conditional, expected),
         TupleExpr tuple => BindTuple(tuple, expected),
         SliceExpr slice => BindSlice(slice),
         ErrorExpr => new BoundErrorExpr(expr.Span),
@@ -4090,6 +4091,23 @@ public sealed partial class Binder
         var right = BindValue(binary.Right);
         _narrowing = Replay(outer, mark);
         return BindBinaryOperation(left, binary.Op, right, binary.Span);
+    }
+
+    /// <summary>
+    /// <c>a if c else b</c> (SPEC §5.7): the condition is a bool, and narrows each value as an
+    /// <c>if</c> statement's does; the type is a match expression's with the two as its arms.
+    /// </summary>
+    private BoundExpr BindConditional(ConditionalExpr conditional, TaipanType? expected)
+    {
+        var condition = BindCondition(new ExprCondition(conditional.Condition, conditional.Condition.Span));
+        var (outer, mark) = (_narrowing, _endings.Count);
+        _narrowing = _narrowing.With(Facts(condition, whenTrue: true));
+        var then = expected is null ? BindValue(conditional.Then) : BindExpected(conditional.Then, expected);
+        _narrowing = Replay(outer, mark);
+        _narrowing = _narrowing.With(Facts(condition, whenTrue: false));
+        var otherwise = expected is null ? BindValue(conditional.Otherwise) : BindExpected(conditional.Otherwise, expected);
+        _narrowing = Replay(outer, mark);
+        return new BoundConditional(condition, then, otherwise, expected ?? InferElementType([then, otherwise]), conditional.Span);
     }
 
     private BoundIsNone BindIsNone(IsNoneExpr isNone)

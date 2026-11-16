@@ -1,0 +1,2 @@
+tests/cases/m59/tp0100_no_else.tpn:2:19: error TP0100: expected 'else', found ')'
+  help: a conditional expression needs both values: 'a if c else b'

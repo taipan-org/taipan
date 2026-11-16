@@ -16,20 +16,21 @@ When an expression has several operators, those higher in this table are applied
 | Precedence | Operators | Notes |
 |---|---|---|
 | 1 (lowest) | `lambda` | a function value, described on [Functions](../functions/) |
-| 2 | `??` | groups from the right: `a ?? b ?? c` is `a ?? (b ?? c)` |
-| 3 | `or` | |
-| 4 | `and` | |
-| 5 | `not` | |
-| 6 | `==` `!=` `<` `<=` `>` `>=` `in` `not in` `is` `is not` | comparisons, which can be [chained](#chained-comparisons) |
-| 7 | `\|` | set union |
-| 8 | `^` | set symmetric difference |
-| 9 | `&` | set intersection |
-| 10 | `+` `-` | |
-| 11 | `*` `/` `//` `%` | |
-| 12 | `-x`, `await x` | a minus sign in front of one value |
-| 13 | `**` | groups from the right: `2 ** 3 ** 2` is `2 ** 9` |
-| 14 | `x as T` | a conversion |
-| 15 (highest) | `f(…)`, `x.name`, `x[…]` | a call, a field or method, an index or slice |
+| 2 | `a if c else b` | a [conditional expression](../control-flow/#conditional-expressions); groups from the right |
+| 3 | `??` | groups from the right: `a ?? b ?? c` is `a ?? (b ?? c)` |
+| 4 | `or` | |
+| 5 | `and` | |
+| 6 | `not` | |
+| 7 | `==` `!=` `<` `<=` `>` `>=` `in` `not in` `is` `is not` | comparisons, which can be [chained](#chained-comparisons) |
+| 8 | `\|` | set union |
+| 9 | `^` | set symmetric difference |
+| 10 | `&` | set intersection |
+| 11 | `+` `-` | |
+| 12 | `*` `/` `//` `%` | |
+| 13 | `-x`, `await x` | a minus sign in front of one value |
+| 14 | `**` | groups from the right: `2 ** 3 ** 2` is `2 ** 9` |
+| 15 | `x as T` | a conversion |
+| 16 (highest) | `f(…)`, `x.name`, `x[…]` | a call, a field or method, an index or slice |
 
 `**` binds more tightly than a minus sign on its left, so `-2 ** 2` is `-(2 ** 2)`, which is `-4`. On its right, a minus belongs to the exponent: `2 ** -1.0` is `0.5`.
 
@@ -511,7 +512,7 @@ Some operators found in other languages don't exist in Taipan. Each is a compile
 
 | Written | Instead |
 |---|---|
-| `a if c else b` | a [`match` expression](../match/#match-expressions) on `c`, or an `if` statement |
+| `c ? a : b` | `a if c else b` |
 | `&`, `\|`, `^` on `int`s, `~`, `<<`, `>>` | none yet: operators on the bits of an `int` are planned for later |
 | `&=`, `\|=`, `^=`, `<<=`, `>>=` | none yet, as above; on sets, write `a = a \| b` |
 | `+x` | `x` |
@@ -521,13 +522,13 @@ Some operators found in other languages don't exist in Taipan. Each is a compile
 | `*=` on a list | `xs = xs * n` |
 
 ```taipan
-let n = 3
-let size = "big" if n > 10 else "small"
+let done = True
+let mark = done ? "x" : " "
 ```
 
 ```error
-main.tpn:2:18: error TP0100: Taipan has no conditional expression
-  help: use a 'match' expression or an 'if' statement
+main.tpn:2:17: error TP0100: Taipan has no '?:'
+  help: write 'a if c else b'
 ```
 
 ```taipan

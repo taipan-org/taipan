@@ -296,6 +296,9 @@ public sealed record BoundDotNetMember(BoundExpr? Target, Microsoft.CodeAnalysis
 /// <summary>A <c>match</c> expression (SPEC §5.1.1); arms marked unreachable are checked but not emitted.</summary>
 public sealed record BoundMatchExpr(BoundExpr Scrutinee, ImmutableArray<BoundValueArm> Arms, TaipanType Type, TextSpan Span) : BoundExpr(Type, Span);
 
+/// <summary><c>then if condition else otherwise</c> (SPEC §5.7, M59).</summary>
+public sealed record BoundConditional(BoundExpr Condition, BoundExpr Then, BoundExpr Otherwise, TaipanType Type, TextSpan Span) : BoundExpr(Type, Span);
+
 /// <summary>
 /// Exactly one of <see cref="Value"/> and <see cref="Raise"/> is set, or neither for a block arm
 /// (M29) whose last statement leaves; a block arm's <see cref="Body"/> runs first.
